@@ -1,56 +1,149 @@
-# Welcome to your Expo app 👋
+# 🐾 PawPair
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A dog friendship & meetup app — *"Tinder for dogs."* Owners create profiles, but
+**dogs are the main card**. Swipe to find compatible playmates for walks, playdates,
+and meetups nearby.
 
-## Get started
+> PawPair is a dog friendship and meetup platform — **not** a human dating app.
 
-1. Install dependencies
+This repo currently contains the **first vertical slice** of the MVP, built end-to-end
+on real app architecture (Expo + expo-router + a persisted state store), not static mockups.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## What's built in this slice
 
-   ```bash
-   npx expo start
-   ```
+| Flow | Status |
+| --- | --- |
+| Email sign-in / create account | ✅ working (local/mock auth) |
+| Owner profile onboarding | ✅ working |
+| Dog profile onboarding (full detail form + validation) | ✅ working |
+| Discovery swipe deck (gesture + buttons) | ✅ working |
+| Swipe left/right, undo, save, tap-to-open | ✅ working |
+| Compatibility score + human-readable reasons | ✅ working |
+| Mutual match → celebration screen | ✅ working |
+| Matches list | ✅ working |
+| Full dog profile | ✅ working |
+| Owner profile / stats / sign out / reset demo | ✅ working |
+| Persistence across app reloads (AsyncStorage) | ✅ working |
+| Accessibility: like/pass buttons as swipe alternative, labels | ✅ working |
+| Loading / empty / image-error states | ✅ working |
 
-In the output, you'll find options to open the app in a
+## Slice 2 additions
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+| Feature | Status |
+| --- | --- |
+| Animated Welcome screen (new first screen) | ✅ working |
+| Reanimated effects (entrances, match heart-burst, like-pop, spring buttons, floating hero) | ✅ working |
+| 12 demo users with distinct **procedural avatars** (gradient + emoji) | ✅ working |
+| Real photo upload via device picker (onboarding + profile) | ✅ wired (expo-image-picker) |
+| Likeable photo gallery on profiles, **anonymous likes** + counts | ✅ working |
+| "Looking for" intents — dates **and** meetups / hangouts / events | ✅ working |
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**On animations:** the brief asked for anime.js — but anime.js is DOM/CSS/SVG only and can't
+drive native React Native views, so this uses `react-native-reanimated` (correct for RN, runs on
+the native UI thread). Note: reanimated's `entering={FadeInDown}` layout animations don't complete
+on react-native-web, so entrances here are mount-driven shared-value animations that keep content
+visible even if the animation engine is paused.
 
-## Get a fresh project
+**On photos:** AI image generation was unavailable (no Hugging Face token) and stock-site scraping
+is unreliable + licence-murky, so demo profiles use deterministic procedural avatars and real
+users add photos via the picker. To use your own welcome illustration, drop it at
+`assets/images/welcome-hero.png` and follow the comment in `src/app/welcome.tsx`.
 
-When you're ready, run:
+## Slice 3 additions — chat & calls (from a match)
+
+| Feature | Status |
+| --- | --- |
+| Text chat from a match (persisted) | ✅ working |
+| Suggested opening messages | ✅ working |
+| Image messages via device picker | ✅ working |
+| Typing indicator + simulated replies | ✅ working |
+| Voice & video **call UI** (connecting → timer, mute / camera / end) | ✅ UI shell, clearly labeled |
+| Entry points: Matches row, match screen, profile "Message" button | ✅ working |
+
+**On calls:** real voice/video (WebRTC) needs a signaling server, STUN/TURN, and an actual second
+participant — none of which exist in a local single-user demo. So the call screens are an honest
+UI shell (no fake camera/mic stream), labeled "Demo call — not a real connection." Wiring real
+calls is a backend slice.
+
+## Slice 4 additions — real photos, profile editing, events
+
+| Feature | Status |
+| --- | --- |
+| **Real bundled photos** — breed-matched dogs (dog.ceo) + owner portraits (randomuser.me) | ✅ working |
+| Edit your owner profile (incl. your photo) | ✅ working |
+| Edit your dog profile (incl. photos) | ✅ working |
+| **Events / meetups** tab — browse, RSVP, attendee list | ✅ working |
+| Host (create) an event | ✅ working |
+
+**On photos:** cleanpng was declined — it's an ad-walled, hotlink-protected site with murky
+redistribution licensing. Instead, real freely-available photos are downloaded into
+`assets/images/{dogs,people}/` and bundled (offline-safe). Priority: your uploaded photo →
+bundled seed photo → procedural avatar. Replace any with your own files anytime.
+
+## What is mocked (and clearly labeled in-app)
+
+These need external credentials/infra and are **intentionally stubbed** for the prototype —
+nothing is faked silently:
+
+- **Auth** — email/Google/Apple sign-in stores a local session; there is no real server
+  or password check. The Google/Apple buttons say so before continuing.
+- **The "other owner liked you" side of a match** — each demo dog carries a `likesYou`
+  flag (`src/data/seed.ts`). Right-swiping a dog with `likesYou: true` produces an instant
+  mutual match so the match flow is demoable with a single user.
+- **Photos** — remote sample images with a themed emoji fallback if they fail to load.
+
+## Not in this slice (next stages)
+
+Real-time chat, meetup scheduling, map/places, push notifications, filters,
+verification, subscriptions, and the admin/moderation dashboard. The five-tab nav
+(adding Meetups + Messages) and these flows come next.
+
+---
+
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npm start          # then press i (iOS), a (Android), or w (web)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+To reset to a fresh user: Profile tab → **Sign out**, or delete the app's storage.
 
-### Other setup steps
+## Verify the build
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx tsc --noEmit       # type-check (passes clean)
+npx expo export -p ios # production Metro bundle (passes)
+```
 
-## Learn more
+> Note: the above verify the code compiles and bundles. On-device runtime behavior
+> (gestures, persistence, image loads) should be confirmed in a simulator/device.
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Architecture
 
-## Join the community
+```
+src/
+  app/                      # expo-router file-based routes
+    _layout.tsx             # providers (gesture root, safe area) + stack
+    index.tsx               # splash + onboarding router (redirects by state)
+    sign-in.tsx
+    onboarding/{owner,dog}.tsx
+    (tabs)/{index,matches,profile}.tsx
+    match.tsx               # match celebration (modal)
+    dog/[id].tsx            # full dog profile
+  components/               # DogCard, SwipeDeck, DogPhoto, Screen, ui, form
+  data/{seed,options}.ts    # demo deck + selectable option sets
+  lib/compatibility.ts      # pure, testable scoring function
+  store.ts                  # zustand + AsyncStorage (single source of truth)
+  theme.ts                  # design tokens
+  types.ts                  # domain models
+```
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Key decisions:
+- **Matches & swipes reference a specific dog profile**, not the owner (per the brief).
+- **Compatibility is a transparent heuristic, never a safety guarantee** — the UI says so.
+- **Owner is supporting info** beneath the dog, never the hero of the card.

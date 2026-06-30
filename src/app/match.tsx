@@ -1,0 +1,108 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { HeartBurst, Pop } from '@/components/anim';
+import { DogPhoto } from '@/components/DogPhoto';
+import { Button } from '@/components/ui';
+import { SEED_DOGS } from '@/data/seed';
+import { useStore } from '@/store';
+import { colors, font, radius, spacing } from '@/theme';
+
+export default function MatchCelebration() {
+  const router = useRouter();
+  const { dogId } = useLocalSearchParams<{ dogId: string }>();
+  const myDog = useStore((s) => s.dogs[0]);
+  const dog = SEED_DOGS.find((d) => d.id === dogId);
+
+  const close = () => router.back();
+
+  // Edge case: the matched dog couldn't be resolved. Show a dismissible state
+  // rather than navigating during render (which would warn / risk a loop).
+  if (!dog || !myDog) {
+    return (
+      <View style={styles.backdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Dismiss" />
+        <View style={styles.card}>
+          <Text style={styles.title}>This match is no longer available</Text>
+          <Button label="Close" onPress={close} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.backdrop}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="Dismiss" />
+      <Pop style={styles.card}>
+        <Text style={styles.kicker}>🎉 It's a match!</Text>
+        <Text style={styles.title}>
+          {myDog.name} and {dog.name} both want to meet
+        </Text>
+
+        <View style={styles.photos}>
+          <DogPhoto dog={myDog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
+          <View style={styles.heart}>
+            <Text style={{ fontSize: 28 }}>🐾</Text>
+          </View>
+          <DogPhoto dog={dog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
+          <HeartBurst count={12} size={26} />
+        </View>
+
+        <Text style={styles.body}>
+          You can now plan a meetup with {dog.ownerName}. Always meet first in a public, dog-friendly
+          place.
+        </Text>
+
+        <View style={{ gap: spacing.md, width: '100%' }}>
+          <Button
+            label="Send a message"
+            onPress={() => {
+              close();
+              router.push(`/chat/${dog.id}`);
+            }}
+          />
+          <Button
+            label={`View ${dog.name}'s profile`}
+            variant="outline"
+            onPress={() => {
+              close();
+              router.push(`/dog/${dog.id}`);
+            }}
+          />
+          <Button label="Keep browsing" variant="ghost" onPress={close} />
+        </View>
+      </Pop>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(20,30,26,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: colors.cream,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  kicker: { fontSize: font.heading, fontWeight: '900', color: colors.coral },
+  title: { fontSize: font.title, fontWeight: '900', color: colors.charcoal, textAlign: 'center' },
+  photos: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.sm },
+  photo: { width: 110, height: 130 },
+  heart: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: { fontSize: font.body, color: colors.muted, textAlign: 'center', lineHeight: 21 },
+});
