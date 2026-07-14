@@ -1,75 +1,67 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { OwnerAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
-import { Tag, VerifiedBadge } from '@/components/ui';
+import { Icon } from '@/components/icons';
 import type { CompatibilityResult } from '@/lib/compatibility';
-import { colors, font, radius, shadow, spacing } from '@/theme';
+import { font, night, radius, shadow, spacing } from '@/theme';
 import type { DogProfile } from '@/types';
 
 /**
- * The discovery card. Dog is the hero; the owner appears only as a small
- * supporting preview beneath the dog, per the product brief.
+ * The discovery card: a full-bleed dog photo with frosted-glass overlays and a
+ * bottom scrim carrying the essentials. `compat` is null when the current user
+ * has no dog profile — the compatibility pill is simply skipped.
  */
-export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult }) {
+export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult | null }) {
   return (
-    <View style={styles.card}>
-      <View style={styles.photoWrap}>
-        <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} />
+    // pointerEvents="none": the card is purely visual — the SwipeDeck's
+    // GestureDetector (our parent) handles pan/tap. Critically, on web this
+    // also stops the <img> from hijacking mouse drags as native image-drag,
+    // which silently killed the swipe gesture.
+    <View style={styles.card} pointerEvents="none">
+      <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} />
 
-        <View style={styles.compatBadge}>
-          <Text style={styles.compatPct}>{compat.score}%</Text>
-          <Text style={styles.compatLabel}>match</Text>
+      {/* Top-left: area pill + optional compatibility pill */}
+      <View style={styles.topLeft} pointerEvents="none">
+        <View style={styles.glassPill}>
+          <Icon name="pin" color="#fff" size={13} />
+          <Text style={styles.pillText}>{dog.ownerArea}</Text>
         </View>
-
-        <View style={styles.photoFooter}>
-          <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>
-              {dog.name}
-            </Text>
-            <Text style={styles.age}>{dog.ageYears}y</Text>
-          </View>
-          <Text style={styles.breed} numberOfLines={1}>
-            {dog.breed} · {dog.sex}
-          </Text>
-          <View style={styles.metaRow}>
-            <Text style={styles.meta}>📍 {dog.distanceKm} km</Text>
-            <Text style={styles.meta}>📐 {dog.size}</Text>
-            <Text style={styles.meta}>⚡ {dog.energy} energy</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.info}>
-        <View style={styles.tagRow}>
-          {dog.personality.slice(0, 4).map((t) => (
-            <Tag key={t} label={t} />
-          ))}
-        </View>
-
-        <Text style={styles.pref}>
-          🐾 Prefers a <Text style={styles.prefStrong}>{dog.meetupPref.toLowerCase()}</Text>
-        </Text>
-
-        {dog.intents.length > 0 && (
-          <View style={styles.tagRow}>
-            {dog.intents.slice(0, 2).map((it) => (
-              <Tag key={it} label={it} tone="blue" />
-            ))}
+        {compat && (
+          <View style={[styles.glassPill, styles.compatPill]}>
+            <Icon name="pawFill" color="#fff" size={13} />
+            <Text style={styles.pillText}>相性 {compat.score}%</Text>
           </View>
         )}
-
-        <View style={styles.ownerRow}>
-          <OwnerAvatar ownerId={dog.ownerId} name={dog.ownerName} style={styles.ownerAvatar} rounded={radius.pill} size={20} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.ownerName} numberOfLines={1}>
-              {dog.ownerName} · {dog.ownerArea}
-            </Text>
-            <Text style={styles.ownerSub}>Owner</Text>
-          </View>
-          {dog.ownerVerified && <VerifiedBadge />}
-        </View>
       </View>
+
+      {/* Bottom scrim with the dog's essentials */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        style={styles.scrim}
+        pointerEvents="none"
+      >
+        <Text style={styles.distance}>{dog.distanceKm}km先</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={1}>
+            {dog.name}
+          </Text>
+          {dog.ownerVerified && (
+            <View style={styles.verifiedDot} accessibilityLabel="認証済み">
+              <Icon name="check" color="#fff" size={11} strokeWidth={3.5} />
+            </View>
+          )}
+        </View>
+        <Text style={styles.breed} numberOfLines={1}>
+          {dog.breed}・{dog.ageYears}歳
+        </Text>
+        {!!dog.notes && (
+          <Text style={styles.notes} numberOfLines={2}>
+            {dog.notes}
+          </Text>
+        )}
+        <Text style={styles.more}>もっと見る</Text>
+      </LinearGradient>
     </View>
   );
 }
@@ -77,66 +69,67 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: night.card,
     borderRadius: radius.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: night.border,
     ...shadow.card,
   },
-  photoWrap: { flex: 1, backgroundColor: colors.forestSoft },
-  compatBadge: {
-    position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    backgroundColor: colors.forest,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    ...shadow.soft,
-  },
-  compatPct: { color: '#fff', fontWeight: '900', fontSize: font.heading },
-  compatLabel: { color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 1, opacity: 0.9 },
 
-  photoFooter: {
+  topLeft: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: spacing.lg,
+    right: 76, // keep clear of the floating pass button
+    gap: spacing.sm,
+    alignItems: 'flex-start',
+  },
+  glassPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(22,6,13,0.45)',
+    borderWidth: 1,
+    borderColor: night.border,
+  },
+  compatPill: {
+    backgroundColor: 'rgba(247,46,99,0.32)',
+    borderColor: 'rgba(247,46,99,0.55)',
+  },
+  pillText: { color: '#fff', fontSize: font.small, fontWeight: '700' },
+
+  scrim: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
     padding: spacing.lg,
-    paddingTop: spacing.xxl,
-    backgroundColor: 'rgba(20,30,26,0.45)',
+    paddingTop: 72,
+    paddingBottom: spacing.xl,
+    gap: 3,
   },
-  nameRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
+  distance: { color: night.muted, fontSize: font.small, fontWeight: '700' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   name: { color: '#fff', fontSize: font.display, fontWeight: '900', flexShrink: 1 },
-  age: { color: '#fff', fontSize: font.title, fontWeight: '600', opacity: 0.9, marginBottom: 3 },
-  breed: { color: '#fff', fontSize: font.body, fontWeight: '600', opacity: 0.95, marginTop: 2 },
-  metaRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm, flexWrap: 'wrap' },
-  meta: { color: '#fff', fontSize: font.small, fontWeight: '600', opacity: 0.95 },
-
-  info: { padding: spacing.lg, gap: spacing.md },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  pref: { fontSize: font.body, color: colors.muted },
-  prefStrong: { color: colors.forest, fontWeight: '700' },
-
-  ownerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.md,
-  },
-  ownerAvatar: {
-    width: 38,
-    height: 38,
+  verifiedDot: {
+    width: 20,
+    height: 20,
     borderRadius: radius.pill,
-    backgroundColor: colors.blueSoft,
+    backgroundColor: night.pink,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ownerInitial: { fontSize: font.body, fontWeight: '800', color: '#3D6A93' },
-  ownerName: { fontSize: font.body, fontWeight: '700', color: colors.charcoal },
-  ownerSub: { fontSize: font.tiny, color: colors.faint, fontWeight: '600' },
+  breed: { color: 'rgba(255,255,255,0.92)', fontSize: font.body, fontWeight: '600' },
+  notes: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: font.small,
+    fontWeight: '500',
+    lineHeight: 19,
+    marginTop: 2,
+  },
+  more: { color: '#fff', fontSize: font.body, fontWeight: '800', marginTop: 2 },
 });

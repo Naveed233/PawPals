@@ -7,17 +7,19 @@ import { useStore } from '@/store';
 export default function EditOwner() {
   const router = useRouter();
   const owner = useStore((s) => s.owner);
-  const updateOwner = useStore((s) => s.updateOwner);
+  const setOwner = useStore((s) => s.setOwner);
 
   if (!owner) return null;
 
   return (
-    <Screen title="Edit your profile" onBack={() => router.back()}>
+    <Screen title="プロフィールを編集" onBack={() => router.back()}>
       <OwnerForm
         initial={owner}
-        submitLabel="Save changes"
+        submitLabel="変更を保存"
         onSubmit={(v) => {
-          updateOwner(v);
+          // Spread over the full profile so new form fields (petStatus,
+          // otherPetType, custom languages) persist alongside id/verified.
+          setOwner({ ...owner, ...v });
           router.back();
         }}
       />

@@ -1,21 +1,27 @@
 import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui';
-import { colors, font, spacing } from '@/theme';
+import { font, night, spacing } from '@/theme';
 
-/** Single- or multi-select chip group with a label. */
+/**
+ * Single- or multi-select chip group with a label.
+ * `format` maps a stored (English) value to its display label — pass a jp()
+ * wrapper to render Japanese while keeping stored values unchanged.
+ */
 export function ChipGroup<T extends string>({
   label,
   options,
   selected,
   onToggle,
   error,
+  format,
 }: {
   label: string;
   options: readonly T[];
   selected: T[];
   onToggle: (value: T) => void;
   error?: string;
+  format?: (value: T) => string;
 }) {
   return (
     <View style={{ gap: spacing.sm }}>
@@ -24,7 +30,7 @@ export function ChipGroup<T extends string>({
         {options.map((opt) => (
           <Chip
             key={opt}
-            label={capitalize(opt)}
+            label={format ? format(opt) : capitalize(opt)}
             selected={selected.includes(opt)}
             onPress={() => onToggle(opt)}
           />
@@ -50,7 +56,7 @@ export function ToggleRow({
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ true: colors.forest, false: colors.border }}
+        trackColor={{ true: night.pink, false: night.surfaceHi }}
         thumbColor="#fff"
         accessibilityLabel={label}
       />
@@ -63,14 +69,14 @@ function capitalize(s: string) {
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: font.small, fontWeight: '700', color: colors.charcoal },
+  label: { fontSize: font.small, fontWeight: '700', color: night.text },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  error: { fontSize: font.tiny, color: colors.danger, fontWeight: '600' },
+  error: { fontSize: font.tiny, color: night.danger, fontWeight: '600' },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.xs,
   },
-  toggleLabel: { fontSize: font.body, color: colors.charcoal, fontWeight: '600', flex: 1 },
+  toggleLabel: { fontSize: font.body, color: night.text, fontWeight: '600', flex: 1 },
 });

@@ -11,11 +11,11 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { colors, font, radius, shadow, spacing } from '@/theme';
+import { colors, font, night, radius, shadow, spacing } from '@/theme';
 
 /* ---------------------------------------------------------------- Button */
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dark';
 
 export function Button({
   label,
@@ -64,11 +64,12 @@ export function Button({
 }
 
 const BUTTON_VARIANTS: Record<ButtonVariant, { bg: string; fg: string; border: string }> = {
-  primary: { bg: colors.forest, fg: '#fff', border: colors.forest },
-  secondary: { bg: colors.blue, fg: '#fff', border: colors.blue },
-  outline: { bg: 'transparent', fg: colors.forest, border: colors.forest },
-  ghost: { bg: 'transparent', fg: colors.muted, border: 'transparent' },
-  danger: { bg: colors.coral, fg: '#fff', border: colors.coral },
+  primary: { bg: night.pink, fg: '#fff', border: night.pink },
+  secondary: { bg: night.surfaceHi, fg: '#fff', border: 'transparent' },
+  outline: { bg: 'transparent', fg: '#fff', border: 'rgba(255,255,255,0.35)' },
+  ghost: { bg: 'transparent', fg: night.muted, border: 'transparent' },
+  danger: { bg: night.danger, fg: '#fff', border: night.danger },
+  dark: { bg: colors.ink, fg: '#fff', border: colors.ink },
 };
 
 /* ------------------------------------------------------------------ Chip */
@@ -100,9 +101,9 @@ export function Chip({
 
 export function Tag({ label, tone = 'forest' }: { label: string; tone?: 'forest' | 'blue' | 'coral' }) {
   const map = {
-    forest: { bg: colors.forestSoft, fg: colors.forestDark },
-    blue: { bg: colors.blueSoft, fg: '#3D6A93' },
-    coral: { bg: colors.coralSoft, fg: '#B6432F' },
+    forest: { bg: night.pinkSoft, fg: '#FF8FAF' },
+    blue: { bg: 'rgba(111,168,220,0.22)', fg: '#9CC4EA' },
+    coral: { bg: 'rgba(242,118,94,0.22)', fg: '#FFAB97' },
   } as const;
   const t = map[tone];
   return (
@@ -147,7 +148,7 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 export function VerifiedBadge() {
   return (
     <View style={styles.verified}>
-      <Text style={styles.verifiedText}>✓ Verified</Text>
+      <Text style={styles.verifiedText}>✓ 認証済み</Text>
     </View>
   );
 }
@@ -155,7 +156,7 @@ export function VerifiedBadge() {
 const styles = StyleSheet.create({
   btn: {
     height: 52,
-    borderRadius: radius.lg,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -172,11 +173,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1.5,
   },
-  chipOn: { backgroundColor: colors.forest, borderColor: colors.forest },
-  chipOff: { backgroundColor: colors.surface, borderColor: colors.border },
+  chipOn: { backgroundColor: night.pink, borderColor: night.pink },
+  chipOff: { backgroundColor: night.surface, borderColor: night.border },
   chipText: { fontSize: font.small, fontWeight: '600' },
   chipTextOn: { color: '#fff' },
-  chipTextOff: { color: colors.muted },
+  chipTextOff: { color: night.muted },
 
   tag: {
     paddingHorizontal: spacing.md,
@@ -185,44 +186,44 @@ const styles = StyleSheet.create({
   },
   tagText: { fontSize: font.small, fontWeight: '600' },
 
-  fieldLabel: { fontSize: font.small, fontWeight: '700', color: colors.charcoal },
+  fieldLabel: { fontSize: font.small, fontWeight: '700', color: night.text },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: night.input,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: night.border,
     borderRadius: radius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: font.body,
-    color: colors.charcoal,
+    color: night.text,
   },
-  inputError: { borderColor: colors.danger },
-  fieldError: { fontSize: font.tiny, color: colors.danger, fontWeight: '600' },
+  inputError: { borderColor: night.danger },
+  fieldError: { fontSize: font.tiny, color: night.danger, fontWeight: '600' },
 
   sectionTitle: {
     fontSize: font.small,
     fontWeight: '800',
-    color: colors.faint,
+    color: night.faint,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
 
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: night.card,
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: night.border,
     ...shadow.soft,
   },
 
   verified: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.forestSoft,
+    backgroundColor: night.pinkSoft,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.pill,
   },
-  verifiedText: { fontSize: font.tiny, fontWeight: '800', color: colors.forestDark },
+  verifiedText: { fontSize: font.tiny, fontWeight: '800', color: '#FF8FAF' },
 });

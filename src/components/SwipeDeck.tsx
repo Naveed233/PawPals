@@ -13,7 +13,7 @@ import Animated, {
 
 import { DogCard } from '@/components/DogCard';
 import { computeCompatibility } from '@/lib/compatibility';
-import { colors, font, radius, spacing } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
 
 export interface SwipeDeckHandle {
@@ -22,7 +22,8 @@ export interface SwipeDeckHandle {
 
 interface Props {
   dogs: DogProfile[]; // remaining, index 0 = top
-  myDog: DogProfile;
+  /** The user's own dog, or null when they have none — compat is skipped. */
+  myDog: DogProfile | null;
   onSwipe: (dog: DogProfile, dir: SwipeDirection) => void;
   onTap: (dog: DogProfile) => void;
 }
@@ -38,6 +39,9 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
 
   const top = dogs[0];
   const next = dogs[1];
+
+  // Compatibility needs the user's own dog; null hides the badge entirely.
+  const compatFor = (dog: DogProfile) => (myDog ? computeCompatibility(myDog, dog) : null);
 
   // Runs on the JS thread once a card has flown off-screen.
   const finish = (dog: DogProfile, dir: SwipeDirection) => {
@@ -103,20 +107,20 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
       {/* Back card */}
       {next && (
         <View style={[styles.cardLayer, styles.backCard]} pointerEvents="none">
-          <DogCard dog={next} compat={computeCompatibility(myDog, next)} />
+          <DogCard dog={next} compat={compatFor(next)} />
         </View>
       )}
 
       {/* Top card */}
       <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.cardLayer, topStyle]}>
-          <DogCard dog={top} compat={computeCompatibility(myDog, top)} />
+          <DogCard dog={top} compat={compatFor(top)} />
 
           <Animated.View style={[styles.stamp, styles.likeStamp, likeStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: colors.success }]}>LIKE</Text>
+            <Text style={[styles.stampText, { color: night.pink }]}>いいね</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.passStamp, passStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: colors.danger }]}>PASS</Text>
+            <Text style={[styles.stampText, { color: night.danger }]}>パス</Text>
           </Animated.View>
         </Animated.View>
       </GestureDetector>
@@ -132,13 +136,13 @@ const styles = StyleSheet.create({
   stamp: {
     position: 'absolute',
     top: spacing.xl,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderWidth: 4,
-    borderRadius: radius.md,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 3,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(22,4,9,0.55)',
   },
-  likeStamp: { left: spacing.xl, borderColor: colors.success, transform: [{ rotate: '-14deg' }] },
-  passStamp: { right: spacing.xl, borderColor: colors.danger, transform: [{ rotate: '14deg' }] },
+  likeStamp: { left: spacing.xl, borderColor: night.pink, transform: [{ rotate: '-14deg' }] },
+  passStamp: { right: spacing.xl, borderColor: night.danger, transform: [{ rotate: '14deg' }] },
   stampText: { fontSize: font.title, fontWeight: '900', letterSpacing: 2 },
 });

@@ -1,186 +1,138 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 
-import { AnimatedPressable, Entrance, Pop } from '@/components/anim';
+import { AnimatedPressable, Entrance } from '@/components/anim';
 import { colors, font, radius, shadow, spacing } from '@/theme';
 
 /*
- * Welcome / first screen.
+ * Welcome / first screen — poster-style hero.
  *
- * To use your own hero illustration (e.g. the attached couple-and-dog image):
- *   1. Save it to  assets/images/welcome-hero.png
- *   2. Replace <AnimatedHero /> below with:
- *        <Image source={require('@/assets/images/welcome-hero.png')}
- *               style={styles.heroImg} contentFit="contain" />
- *      (import { Image } from 'expo-image')
- * Until then we show an animated branded hero so nothing is broken.
+ * Full-bleed park photo (assets/images/welcome-bg.jpg) under a warm scrim,
+ * cream Japanese headline, and a single green CTA. Swap the photo by
+ * replacing that file; keep it portrait (~9:16) so the crop stays nice.
  */
 
-const FEATURES = ['🐾 Playdates', '🚶 Walks', '☕ Meetups', '🎉 Events', '💛 Dating'];
+const BG = require('@/assets/images/welcome-bg.jpg');
+
+const CREAM = '#F3E3C2';
 
 export default function Welcome() {
   const router = useRouter();
+  // Scale type/spacing down on short screens (e.g. iPhone SE) so the whole
+  // screen fits without scrolling.
+  const { height } = useWindowDimensions();
+  const compact = height < 740;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.body}>
-        <Pop style={styles.heroWrap}>
-          <AnimatedHero />
-        </Pop>
+    <ImageBackground
+      source={BG}
+      style={styles.bg}
+      imageStyle={styles.bgImage}
+      resizeMode="cover"
+    >
+      <LinearGradient
+        colors={['rgba(28,20,10,0.55)', 'rgba(28,20,10,0.12)', 'rgba(18,14,8,0.45)']}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
 
-        <Entrance delay={150}>
-          <Text style={styles.brand}>PawPair</Text>
-        </Entrance>
-        <Entrance delay={280}>
-          <Text style={styles.tagline}>
-            Where dogs make friends — and so do their humans. Find playdates, walks, meetups,
-            events, and maybe a little romance.
-          </Text>
-        </Entrance>
+      <SafeAreaView style={styles.safe}>
+        <View style={[styles.body, compact && styles.bodyCompact]}>
+          <Entrance delay={0}>
+            <Text style={styles.logo}>PawPair</Text>
+          </Entrance>
 
-        <View style={styles.featureRow}>
-          {FEATURES.map((f, i) => (
-            <Entrance key={f} delay={420 + i * 70} style={styles.pill}>
-              <Text style={styles.pillText}>{f}</Text>
-            </Entrance>
-          ))}
+          <Entrance delay={150}>
+            <Text style={[styles.headline, compact && styles.headlineCompact]}>
+              愛犬の、新しい親友を見つけよう。
+            </Text>
+          </Entrance>
+
+          <Entrance delay={300}>
+            <Text style={[styles.sub, compact && styles.subCompact]}>
+              近くのワンちゃんとつながろう。お散歩やプレイデート、新しい出会いを。
+            </Text>
+          </Entrance>
+
+          <View style={{ flex: 1 }} />
+
+          <Entrance delay={500} style={styles.ctaWrap}>
+            <AnimatedPressable
+              onPress={() => router.push('/sign-in')}
+              accessibilityLabel="Get started"
+              style={[styles.cta, compact && styles.ctaCompact]}
+            >
+              <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>Download Free</Text>
+            </AnimatedPressable>
+          </Entrance>
         </View>
-
-        <View style={{ flex: 1 }} />
-
-        <Entrance delay={800} style={{ gap: spacing.md }}>
-          <AnimatedPressable
-            onPress={() => router.push('/sign-in')}
-            accessibilityLabel="Get started"
-            style={styles.cta}
-          >
-            <Text style={styles.ctaText}>Get started</Text>
-          </AnimatedPressable>
-          <Text style={styles.fine}>
-            A dog friendship & meetup app — not a human-only dating app. Always meet in public.
-          </Text>
-        </Entrance>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function AnimatedHero() {
-  return (
-    <LinearGradient colors={[colors.blueSoft, colors.forestSoft]} style={styles.hero}>
-      <Floaty emoji="✨" size={26} delay={0} left="14%" top="18%" range={12} />
-      <Floaty emoji="💛" size={22} delay={300} left="78%" top="22%" range={14} />
-      <Floaty emoji="🩷" size={20} delay={600} left="22%" top="64%" range={10} />
-      <Floaty emoji="✨" size={18} delay={900} left="80%" top="62%" range={12} />
-      <Bobbing>
-        <Text style={styles.heroPaw}>🐾</Text>
-      </Bobbing>
-    </LinearGradient>
-  );
-}
-
-function Bobbing({ children }: { children: React.ReactNode }) {
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }), -1, true);
-  }, [t]);
-  const s = useAnimatedStyle(() => ({ transform: [{ translateY: -10 * t.value }, { scale: 1 + 0.03 * t.value }] }));
-  return <Animated.View style={s}>{children}</Animated.View>;
-}
-
-function Floaty({
-  emoji,
-  size,
-  delay,
-  left,
-  top,
-  range,
-}: {
-  emoji: string;
-  size: number;
-  delay: number;
-  left: string;
-  top: string;
-  range: number;
-}) {
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withDelay(
-      delay,
-      withRepeat(withTiming(1, { duration: 1900, easing: Easing.inOut(Easing.quad) }), -1, true),
-    );
-  }, [t, delay]);
-  const s = useAnimatedStyle(() => ({
-    transform: [{ translateY: -range * t.value }],
-    opacity: 0.55 + 0.45 * t.value,
-  }));
-  return (
-    <Animated.Text style={[{ position: 'absolute', left: left as any, top: top as any, fontSize: size }, s]}>
-      {emoji}
-    </Animated.Text>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.cream },
-  body: { flex: 1, padding: spacing.xl, paddingTop: spacing.xxl },
-  heroWrap: { alignItems: 'center' },
-  hero: {
+  bg: { flex: 1, width: '100%', backgroundColor: '#3a2c1c' },
+  bgImage: { width: '100%', height: '100%' },
+  safe: { flex: 1 },
+  body: {
+    flex: 1,
+    padding: spacing.xl,
+    paddingTop: spacing.xxl,
     width: '100%',
-    height: 280,
-    borderRadius: radius.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    ...shadow.card,
+    maxWidth: 560,
+    alignSelf: 'center',
   },
-  heroImg: { width: '100%', height: 280 },
-  heroPaw: { fontSize: 120 },
+  bodyCompact: { paddingTop: spacing.lg, paddingBottom: spacing.lg },
 
-  brand: { fontSize: 44, fontWeight: '900', color: colors.forest, textAlign: 'center', marginTop: spacing.xl },
-  tagline: {
-    fontSize: font.body,
-    color: colors.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginTop: spacing.sm,
+  logo: {
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+    color: CREAM,
   },
-  featureRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'center',
+  headline: {
+    fontSize: 36,
+    lineHeight: 50,
+    fontWeight: '600',
+    color: CREAM,
+    marginTop: spacing.xl,
+    paddingRight: spacing.xxl,
+  },
+  headlineCompact: {
+    fontSize: 28,
+    lineHeight: 39,
     marginTop: spacing.lg,
   },
-  pill: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  sub: {
+    fontSize: font.body,
+    lineHeight: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: spacing.xl,
+    paddingRight: spacing.xxl,
   },
-  pillText: { fontSize: font.small, fontWeight: '700', color: colors.charcoal },
+  subCompact: {
+    fontSize: font.small,
+    lineHeight: 20,
+    marginTop: spacing.md,
+  },
 
+  ctaWrap: { alignItems: 'center' },
   cta: {
-    height: 54,
-    borderRadius: radius.lg,
+    minWidth: 300,
+    maxWidth: '100%',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
+    borderRadius: radius.pill,
     backgroundColor: colors.forest,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.soft,
+    ...shadow.card,
   },
-  ctaText: { color: '#fff', fontWeight: '800', fontSize: font.heading },
-  fine: { fontSize: font.tiny, color: colors.faint, textAlign: 'center', lineHeight: 16 },
+  ctaCompact: { minWidth: 260, paddingVertical: spacing.md },
+  ctaText: { color: '#fff', fontWeight: '800', fontSize: 26 },
+  ctaTextCompact: { fontSize: 21 },
 });

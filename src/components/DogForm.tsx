@@ -14,8 +14,20 @@ import {
   SIZES,
   SOCIAL_LEVELS,
 } from '@/data/options';
+import {
+  JP_ENERGY,
+  JP_INTENT,
+  JP_MEETUP,
+  JP_PERSONALITY,
+  JP_PLAY_STYLE,
+  JP_RECALL,
+  JP_SEX,
+  JP_SIZE,
+  JP_SOCIAL,
+  jp,
+} from '@/lib/jp';
 import { pickPhoto } from '@/lib/media';
-import { colors, font, radius, spacing } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
 import type { Energy, GoodWith, Intent, MeetupType, Recall, Sex, Size, SocialLevel } from '@/types';
 
 const RECALL_OPTIONS: Recall[] = ['reliable', 'improving', 'on-leash only'];
@@ -85,15 +97,15 @@ export function DogForm({
 
   const submit = () => {
     const next: Record<string, string> = {};
-    if (name.trim().length < 1) next.name = "Enter your dog's name";
-    if (breed.trim().length < 2) next.breed = 'Enter a breed or mix';
+    if (name.trim().length < 1) next.name = 'お名前を入力してください';
+    if (breed.trim().length < 2) next.breed = '犬種またはミックスを入力してください';
     const ageNum = Number(age);
-    if (!age || Number.isNaN(ageNum) || ageNum < 0 || ageNum > 30) next.age = 'Enter an age in years';
-    if (!sex) next.sex = 'Select one';
-    if (!size) next.size = 'Select one';
-    if (!energy) next.energy = 'Select one';
-    if (personality.length === 0) next.personality = 'Pick at least one';
-    if (playStyle.length === 0) next.playStyle = 'Pick at least one';
+    if (!age || Number.isNaN(ageNum) || ageNum < 0 || ageNum > 30) next.age = '年齢（歳）を入力してください';
+    if (!sex) next.sex = '選択してください';
+    if (!size) next.size = '選択してください';
+    if (!energy) next.energy = '選択してください';
+    if (personality.length === 0) next.personality = '1つ以上選んでください';
+    if (playStyle.length === 0) next.playStyle = '1つ以上選んでください';
     setErrors(next);
     if (Object.keys(next).length > 0 || !sex || !size || !energy) return;
 
@@ -123,54 +135,54 @@ export function DogForm({
   return (
     <>
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle>Photos</SectionTitle>
+        <SectionTitle>写真</SectionTitle>
         <View style={styles.photoRow}>
           {photos.map((uri, i) => (
             <Image key={i} source={{ uri }} style={styles.photoThumb} contentFit="cover" />
           ))}
-          <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel="Add photo">
+          <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel="写真を追加">
             <Text style={styles.addPhotoPlus}>＋</Text>
-            <Text style={styles.addPhotoText}>Add</Text>
+            <Text style={styles.addPhotoText}>追加</Text>
           </Pressable>
         </View>
-        <Text style={styles.photoHint}>Optional — no photo? We'll show a friendly avatar.</Text>
+        <Text style={styles.photoHint}>任意 — 写真がなくてもかわいいアバターを表示します。</Text>
       </Card>
 
-      <Field label="Name *" value={name} onChangeText={setName} placeholder="e.g. Biscuit" error={errors.name} />
-      <Field label="Breed or mix *" value={breed} onChangeText={setBreed} placeholder="e.g. Labrador mix" error={errors.breed} />
+      <Field label="お名前 *" value={name} onChangeText={setName} placeholder="例：ビスケット" error={errors.name} />
+      <Field label="犬種・ミックス *" value={breed} onChangeText={setBreed} placeholder="例：ラブラドールミックス" error={errors.breed} />
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
-        <Field label="Age (years) *" value={age} onChangeText={setAge} placeholder="3" keyboardType="numeric" error={errors.age} containerStyle={{ flex: 1 }} />
-        <Field label="Weight (kg)" value={weight} onChangeText={setWeight} placeholder="18" keyboardType="numeric" containerStyle={{ flex: 1 }} />
+        <Field label="年齢（歳）*" value={age} onChangeText={setAge} placeholder="3" keyboardType="numeric" error={errors.age} containerStyle={{ flex: 1 }} />
+        <Field label="体重（kg）" value={weight} onChangeText={setWeight} placeholder="18" keyboardType="numeric" containerStyle={{ flex: 1 }} />
       </View>
 
-      <ChipGroup label="Sex *" options={SEXES} selected={sex ? [sex] : []} onToggle={(v) => setSex(v)} error={errors.sex} />
-      <ChipGroup label="Size *" options={SIZES} selected={size ? [size] : []} onToggle={(v) => setSize(v)} error={errors.size} />
-      <ChipGroup label="Energy level *" options={ENERGY_LEVELS} selected={energy ? [energy] : []} onToggle={(v) => setEnergy(v)} error={errors.energy} />
-      <ChipGroup label="Socialisation" options={SOCIAL_LEVELS} selected={[social]} onToggle={(v) => setSocial(v)} />
+      <ChipGroup label="性別 *" options={SEXES} selected={sex ? [sex] : []} onToggle={(v) => setSex(v)} error={errors.sex} format={(v) => jp(JP_SEX, v)} />
+      <ChipGroup label="サイズ *" options={SIZES} selected={size ? [size] : []} onToggle={(v) => setSize(v)} error={errors.size} format={(v) => jp(JP_SIZE, v)} />
+      <ChipGroup label="元気さ *" options={ENERGY_LEVELS} selected={energy ? [energy] : []} onToggle={(v) => setEnergy(v)} error={errors.energy} format={(v) => jp(JP_ENERGY, v)} />
+      <ChipGroup label="社交性" options={SOCIAL_LEVELS} selected={[social]} onToggle={(v) => setSocial(v)} format={(v) => jp(JP_SOCIAL, v)} />
 
-      <ChipGroup label="Personality * (pick a few)" options={PERSONALITY_TAGS} selected={personality} onToggle={(v) => toggleTag(personality, setPersonality, v)} error={errors.personality} />
-      <ChipGroup label="Play style *" options={PLAY_STYLE_TAGS} selected={playStyle} onToggle={(v) => toggleTag(playStyle, setPlayStyle, v)} error={errors.playStyle} />
-      <ChipGroup label="Recall" options={RECALL_OPTIONS} selected={[recall]} onToggle={(v) => setRecall(v)} />
-      <ChipGroup label="Ideal meetup" options={MEETUP_TYPES} selected={[meetupPref]} onToggle={(v) => setMeetupPref(v)} />
-      <ChipGroup label="Looking for" options={INTENTS} selected={intents} onToggle={(v) => setIntents((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))} />
+      <ChipGroup label="性格 *（いくつでも）" options={PERSONALITY_TAGS} selected={personality} onToggle={(v) => toggleTag(personality, setPersonality, v)} error={errors.personality} format={(v) => jp(JP_PERSONALITY, v)} />
+      <ChipGroup label="遊び方 *" options={PLAY_STYLE_TAGS} selected={playStyle} onToggle={(v) => toggleTag(playStyle, setPlayStyle, v)} error={errors.playStyle} format={(v) => jp(JP_PLAY_STYLE, v)} />
+      <ChipGroup label="呼び戻し" options={RECALL_OPTIONS} selected={[recall]} onToggle={(v) => setRecall(v)} format={(v) => jp(JP_RECALL, v)} />
+      <ChipGroup label="希望の会い方" options={MEETUP_TYPES} selected={[meetupPref]} onToggle={(v) => setMeetupPref(v)} format={(v) => jp(JP_MEETUP, v)} />
+      <ChipGroup label="探しているもの" options={INTENTS} selected={intents} onToggle={(v) => setIntents((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))} format={(v) => jp(JP_INTENT, v)} />
 
       <Card style={{ gap: spacing.sm }}>
-        <SectionTitle>Health & comfort</SectionTitle>
-        <ToggleRow label="Vaccinations up to date" value={vaccinated} onValueChange={setVaccinated} />
-        <ToggleRow label="Neutered / spayed" value={neutered} onValueChange={setNeutered} />
-        <ToggleRow label="Good with small dogs" value={goodWith.smallDogs} onValueChange={(v) => setGoodWith({ ...goodWith, smallDogs: v })} />
-        <ToggleRow label="Good with large dogs" value={goodWith.largeDogs} onValueChange={(v) => setGoodWith({ ...goodWith, largeDogs: v })} />
-        <ToggleRow label="Good with puppies" value={goodWith.puppies} onValueChange={(v) => setGoodWith({ ...goodWith, puppies: v })} />
-        <ToggleRow label="Good with senior dogs" value={goodWith.seniors} onValueChange={(v) => setGoodWith({ ...goodWith, seniors: v })} />
-        <ToggleRow label="Good with children" value={goodWith.children} onValueChange={(v) => setGoodWith({ ...goodWith, children: v })} />
+        <SectionTitle>健康・相性</SectionTitle>
+        <ToggleRow label="ワクチン接種済み" value={vaccinated} onValueChange={setVaccinated} />
+        <ToggleRow label="去勢・避妊済み" value={neutered} onValueChange={setNeutered} />
+        <ToggleRow label="小型犬と仲良くできる" value={goodWith.smallDogs} onValueChange={(v) => setGoodWith({ ...goodWith, smallDogs: v })} />
+        <ToggleRow label="大型犬と仲良くできる" value={goodWith.largeDogs} onValueChange={(v) => setGoodWith({ ...goodWith, largeDogs: v })} />
+        <ToggleRow label="子犬と仲良くできる" value={goodWith.puppies} onValueChange={(v) => setGoodWith({ ...goodWith, puppies: v })} />
+        <ToggleRow label="シニア犬と仲良くできる" value={goodWith.seniors} onValueChange={(v) => setGoodWith({ ...goodWith, seniors: v })} />
+        <ToggleRow label="子どもと仲良くできる" value={goodWith.children} onValueChange={(v) => setGoodWith({ ...goodWith, children: v })} />
       </Card>
 
-      <Field label="Behaviour notes" value={notes} onChangeText={setNotes} placeholder="How your dog likes to meet new friends" multiline numberOfLines={2} />
-      <Field label="Triggers / situations to avoid" value={avoid} onChangeText={setAvoid} placeholder="Anything a match should know" multiline numberOfLines={2} />
+      <Field label="性格・行動メモ" value={notes} onChangeText={setNotes} placeholder="新しい友だちと会うときの様子など" multiline numberOfLines={2} />
+      <Field label="苦手なこと・避けたい状況" value={avoid} onChangeText={setAvoid} placeholder="相手に知っておいてほしいこと" multiline numberOfLines={2} />
 
       <Text style={styles.disclaimer}>
-        You are responsible for supervising your dog and deciding whether any meetup is appropriate.
-        A compatibility score never means a dog is guaranteed safe or friendly.
+        愛犬の見守りと、ミートアップが適切かどうかの判断は飼い主さまの責任です。
+        相性スコアは、犬の安全性やフレンドリーさを保証するものではありません。
       </Text>
 
       <Button label={submitLabel} onPress={submit} />
@@ -179,21 +191,22 @@ export function DogForm({
 }
 
 const styles = StyleSheet.create({
-  disclaimer: { fontSize: font.tiny, color: colors.muted, lineHeight: 16 },
+  disclaimer: { fontSize: font.tiny, color: night.muted, lineHeight: 16 },
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  photoThumb: { width: 72, height: 90, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  photoThumb: { width: 72, height: 90, borderRadius: radius.md, backgroundColor: night.surface },
   addPhoto: {
     width: 72,
     height: 90,
     borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.forest,
+    borderColor: night.pink,
     borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
+    backgroundColor: night.surface,
   },
-  addPhotoPlus: { fontSize: 24, color: colors.forest, fontWeight: '700', lineHeight: 26 },
-  addPhotoText: { fontSize: font.tiny, color: colors.forest, fontWeight: '700' },
-  photoHint: { fontSize: font.tiny, color: colors.faint },
+  addPhotoPlus: { fontSize: 24, color: night.pink, fontWeight: '700', lineHeight: 26 },
+  addPhotoText: { fontSize: font.tiny, color: night.pink, fontWeight: '700' },
+  photoHint: { fontSize: font.tiny, color: night.faint },
 });

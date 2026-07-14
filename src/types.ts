@@ -39,6 +39,12 @@ export type Intent =
   | 'Group events'
   | 'Owner dating';
 
+/**
+ * Whether the owner has a dog (full pet-profile flow), another pet, or no pet.
+ * Optional on persisted profiles from older builds — treat missing as 'has-dog'.
+ */
+export type PetStatus = 'has-dog' | 'has-other-pet' | 'no-pet-meet' | 'no-pet-future';
+
 export interface OwnerProfile {
   id: string;
   firstName: string;
@@ -49,6 +55,10 @@ export interface OwnerProfile {
   availability: string[];
   verified: boolean;
   photo?: string; // owner's own photo uri (from picker)
+  petStatus?: PetStatus;
+  otherPetType?: string; // when petStatus === 'has-other-pet' (user-entered, ≤30 chars)
+  /** Show my owner profile to people I've matched with (default true). */
+  showProfileToMatches?: boolean;
 }
 
 export interface DogProfile {

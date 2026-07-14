@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, font, spacing } from '@/theme';
+import { font, night, spacing } from '@/theme';
 
 /**
- * Standard screen shell: safe-area aware, optional title + back button, and an
- * optional scrolling body. Keeps padding and headers consistent everywhere.
+ * Standard screen shell (night theme): safe-area aware, optional title + back
+ * button, optional scrolling body. Bottom padding clears the floating tab bar.
  */
 export function Screen({
   children,
@@ -28,7 +28,7 @@ export function Screen({
   const header = (title || onBack || right) && (
     <View style={styles.header}>
       {onBack ? (
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Go back" hitSlop={12}>
+        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="戻る" hitSlop={12}>
           <Text style={styles.back}>‹</Text>
         </Pressable>
       ) : (
@@ -65,7 +65,7 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.cream },
+  safe: { flex: 1, backgroundColor: night.bg },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -75,9 +75,10 @@ const styles = StyleSheet.create({
   },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerRight: { minWidth: 28, alignItems: 'flex-end' },
-  back: { fontSize: 34, color: colors.forest, lineHeight: 34, fontWeight: '300' },
-  title: { fontSize: font.heading, fontWeight: '800', color: colors.charcoal },
-  subtitle: { fontSize: font.tiny, color: colors.faint, fontWeight: '600' },
-  body: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
-  bodyFlex: { flex: 1, padding: spacing.lg },
+  back: { fontSize: 34, color: night.text, lineHeight: 34, fontWeight: '300' },
+  title: { fontSize: font.heading, fontWeight: '800', color: night.text },
+  subtitle: { fontSize: font.tiny, color: night.faint, fontWeight: '600' },
+  // paddingBottom clears the floating pill tab bar
+  body: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 120 },
+  bodyFlex: { flex: 1, padding: spacing.lg, paddingBottom: 96 },
 });

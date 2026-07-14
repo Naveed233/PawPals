@@ -1,32 +1,30 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 
 import {
   AuthScreen,
-  DarkCheckbox,
   DarkField,
   LimeButton,
   OrDivider,
   SocialRow,
-  dark,
   demoProviderSignIn,
 } from '@/components/auth';
 import { useStore } from '@/store';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function SignIn() {
+export default function SignUp() {
   const router = useRouter();
   const signIn = useStore((s) => s.signIn);
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(true);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const submit = () => {
     const next: typeof errors = {};
+    if (name.trim().length < 1) next.name = 'お名前を入力してください';
     if (!EMAIL_RE.test(email)) next.email = '有効なメールアドレスを入力してください';
     if (password.length < 6) next.password = 'パスワードは6文字以上で入力してください';
     setErrors(next);
@@ -44,12 +42,20 @@ export default function SignIn() {
 
   return (
     <AuthScreen
-      title="おかえりなさい！"
-      subtitle="サインインして、愛犬にぴったりの遊び友達を見つけよう。"
-      footerPrompt="アカウントをお持ちでないですか？"
-      footerAction="新規登録"
-      onFooterPress={() => router.push('/sign-up')}
+      title="アカウントを作成"
+      subtitle="登録して、近くのワンちゃんとの新しい出会いを始めよう。"
+      footerPrompt="すでにアカウントをお持ちですか？"
+      footerAction="サインイン"
+      onFooterPress={() => router.push('/sign-in')}
     >
+      <DarkField
+        label="お名前*"
+        value={name}
+        onChangeText={setName}
+        placeholder="山田 太郎"
+        autoComplete="name"
+        error={errors.name}
+      />
       <DarkField
         label="メールアドレス*"
         value={email}
@@ -69,47 +75,11 @@ export default function SignIn() {
         error={errors.password}
       />
 
-      <View style={styles.row}>
-        <DarkCheckbox
-          checked={remember}
-          onToggle={() => setRemember((r) => !r)}
-          label="ログイン状態を保持"
-        />
-        <Text
-          accessibilityRole="link"
-          style={styles.forgot}
-          onPress={() => router.push('/forgot-password')}
-        >
-          パスワードをお忘れですか？
-        </Text>
-      </View>
-
-      <LimeButton label="サインイン" onPress={submit} />
+      <LimeButton label="登録する" onPress={submit} />
 
       <OrDivider />
 
       <SocialRow onGoogle={() => provider('Google')} onApple={() => provider('Apple')} />
-
-      <Text style={styles.note}>
-        デモ版：アカウントはこの端末内にのみ保存されます。実際のサーバーやパスワード確認はありません。
-      </Text>
     </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: -2,
-  },
-  forgot: { color: dark.text, fontSize: 13, fontWeight: '700' },
-  note: {
-    color: dark.placeholder,
-    fontSize: 11,
-    lineHeight: 16,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-});

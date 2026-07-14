@@ -10,9 +10,9 @@ export default function DogOnboarding() {
   const addDog = useStore((s) => s.addDog);
 
   return (
-    <Screen title="Your dog" subtitle="Step 2 of 2 · Dog profile">
+    <Screen title="あなたのワンちゃん" subtitle="ステップ2/2・ペットプロフィール">
       <DogForm
-        submitLabel="Finish & start matching"
+        submitLabel="完了してマッチングを始める"
         onSubmit={(v) => {
           if (!owner) return;
           addDog({

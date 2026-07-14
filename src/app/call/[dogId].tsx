@@ -6,9 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PersonAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
+import { Icon, IconName } from '@/components/icons';
 import { SEED_DOGS } from '@/data/seed';
 import { useStore } from '@/store';
-import { colors, font, radius, spacing } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
 
 export default function Call() {
   const router = useRouter();
@@ -36,11 +37,16 @@ export default function Call() {
 
   if (!dog) {
     return (
-      <LinearGradient colors={[colors.forest, colors.forestDark]} style={styles.fill}>
+      <LinearGradient colors={[night.bgTop, night.bg]} style={styles.fill}>
         <SafeAreaView style={[styles.fill, styles.center]}>
-          <Text style={styles.name}>Call unavailable</Text>
-          <Pressable onPress={() => router.back()} accessibilityLabel="Close" style={styles.ctrl}>
-            <Text style={styles.ctrlIcon}>✕</Text>
+          <Text style={styles.name}>通話を利用できません</Text>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="閉じる"
+            style={styles.ctrl}
+          >
+            <Icon name="x" color="#fff" size={24} />
           </Pressable>
         </SafeAreaView>
       </LinearGradient>
@@ -50,31 +56,41 @@ export default function Call() {
   const mmss = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
   return (
-    <LinearGradient colors={[colors.forest, colors.forestDark]} style={styles.fill}>
+    <LinearGradient colors={[night.bgTop, night.bg]} style={styles.fill}>
       <SafeAreaView style={styles.fill}>
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            Demo call — not a real connection. Live {isVideo ? 'video' : 'voice'} needs a backend (WebRTC).
+            デモ通話 — 実際には接続されていません。ライブ{isVideo ? 'ビデオ' : '音声'}
+            通話にはバックエンド（WebRTC）が必要です。
           </Text>
         </View>
 
         <View style={styles.center}>
-          <DogPhoto dog={dog} style={styles.bigAvatar} rounded={radius.xl} emojiSize={96} />
+          <View style={styles.avatarRing}>
+            <DogPhoto dog={dog} style={styles.bigAvatar} rounded={radius.xl} emojiSize={96} />
+          </View>
           <Text style={styles.name}>{dog.name}</Text>
-          <Text style={styles.owner}>with {dog.ownerName}</Text>
-          <Text style={styles.status}>{connected ? mmss : `${isVideo ? 'Video' : 'Voice'} calling…`}</Text>
+          <Text style={styles.owner}>{dog.ownerName}さんと</Text>
+          <Text style={styles.status}>
+            {connected ? mmss : isVideo ? 'ビデオ通話を発信中…' : '音声通話を発信中…'}
+          </Text>
         </View>
 
         {isVideo && (
           <View style={styles.selfTile}>
             {videoOff ? (
               <View style={styles.selfOff}>
-                <Text style={styles.selfOffText}>Camera off</Text>
+                <Text style={styles.selfOffText}>カメラオフ</Text>
               </View>
             ) : (
               <>
-                <PersonAvatar name={owner?.firstName ?? 'You'} style={styles.selfAvatar} rounded={radius.md} size={40} />
-                <Text style={styles.selfLabel}>You</Text>
+                <PersonAvatar
+                  name={owner?.firstName ?? 'あなた'}
+                  style={styles.selfAvatar}
+                  rounded={radius.md}
+                  size={40}
+                />
+                <Text style={styles.selfLabel}>あなた</Text>
               </>
             )}
           </View>
@@ -82,20 +98,20 @@ export default function Call() {
 
         <View style={styles.controls}>
           <CallButton
-            label={muted ? 'Unmute' : 'Mute'}
-            icon={muted ? '🔇' : '🎙️'}
+            label={muted ? 'ミュート解除' : 'ミュート'}
+            icon="chat"
             active={muted}
             onPress={() => setMuted((m) => !m)}
           />
           {isVideo && (
             <CallButton
-              label={videoOff ? 'Camera on' : 'Camera off'}
-              icon={videoOff ? '📷' : '🎥'}
+              label={videoOff ? 'カメラをオン' : 'カメラをオフ'}
+              icon="video"
               active={videoOff}
               onPress={() => setVideoOff((v) => !v)}
             />
           )}
-          <CallButton label="End" icon="📵" danger onPress={() => router.back()} />
+          <CallButton label="終了" icon="phone" rotate danger onPress={() => router.back()} />
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -108,23 +124,30 @@ function CallButton({
   onPress,
   active,
   danger,
+  rotate,
 }: {
   label: string;
-  icon: string;
+  icon: IconName;
   onPress: () => void;
   active?: boolean;
   danger?: boolean;
+  rotate?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityLabel={label} style={styles.ctrlWrap}>
-      <View
-        style={[
-          styles.ctrl,
-          active && styles.ctrlActive,
-          danger && styles.ctrlDanger,
-        ]}
-      >
-        <Text style={styles.ctrlIcon}>{icon}</Text>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!active }}
+      style={styles.ctrlWrap}
+    >
+      <View style={[styles.ctrl, active && styles.ctrlActive, danger && styles.ctrlDanger]}>
+        <Icon
+          name={icon}
+          color={active ? night.bg : '#fff'}
+          size={26}
+          style={rotate ? styles.rotated : undefined}
+        />
       </View>
       <Text style={styles.ctrlLabel}>{label}</Text>
     </Pressable>
@@ -135,18 +158,26 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   banner: {
     margin: spacing.md,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: radius.md,
+    backgroundColor: night.surface,
+    borderWidth: 1,
+    borderColor: night.border,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  bannerText: { color: '#fff', fontSize: font.tiny, textAlign: 'center', opacity: 0.95 },
+  bannerText: { color: night.muted, fontSize: font.tiny, textAlign: 'center' },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  avatarRing: {
+    padding: 4,
+    borderWidth: 2,
+    borderColor: night.pink,
+    borderRadius: radius.xl + 8,
+  },
   bigAvatar: { width: 160, height: 160 },
-  name: { color: '#fff', fontSize: font.display, fontWeight: '900', marginTop: spacing.md },
-  owner: { color: '#fff', fontSize: font.body, opacity: 0.85 },
-  status: { color: '#fff', fontSize: font.heading, fontWeight: '700', marginTop: spacing.sm, opacity: 0.95 },
+  name: { color: night.text, fontSize: font.display, fontWeight: '900', marginTop: spacing.md },
+  owner: { color: night.muted, fontSize: font.body, fontWeight: '600' },
+  status: { color: night.text, fontSize: font.heading, fontWeight: '700', marginTop: spacing.sm },
 
   selfTile: {
     position: 'absolute',
@@ -155,30 +186,38 @@ const styles = StyleSheet.create({
     width: 96,
     height: 128,
     borderRadius: radius.md,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: night.border,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
   },
   selfAvatar: { width: 56, height: 56 },
-  selfLabel: { color: '#fff', fontSize: font.tiny, fontWeight: '700' },
+  selfLabel: { color: night.text, fontSize: font.tiny, fontWeight: '700' },
   selfOff: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  selfOffText: { color: '#fff', fontSize: font.tiny, opacity: 0.8 },
+  selfOffText: { color: night.muted, fontSize: font.tiny, fontWeight: '600' },
 
-  controls: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xl, paddingBottom: spacing.xxl, paddingTop: spacing.lg },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.xl,
+    paddingBottom: spacing.xxl,
+    paddingTop: spacing.lg,
+  },
   ctrlWrap: { alignItems: 'center', gap: spacing.xs },
   ctrl: {
     width: 64,
     height: 64,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: night.surfaceHi,
+    borderWidth: 1,
+    borderColor: night.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctrlActive: { backgroundColor: 'rgba(255,255,255,0.4)' },
-  ctrlDanger: { backgroundColor: colors.danger },
-  ctrlIcon: { fontSize: 26 },
-  ctrlLabel: { color: '#fff', fontSize: font.tiny, fontWeight: '700' },
+  ctrlActive: { backgroundColor: '#fff', borderColor: '#fff' },
+  ctrlDanger: { backgroundColor: night.danger, borderColor: night.danger },
+  rotated: { transform: [{ rotate: '135deg' }] },
+  ctrlLabel: { color: night.text, fontSize: font.tiny, fontWeight: '700' },
 });

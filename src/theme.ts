@@ -28,6 +28,7 @@ export const colors = {
   blueSoft: '#E5EEF7',
 
   charcoal: '#2B2B2B',
+  ink: '#1C1B19',
   muted: '#6E6A60',
   faint: '#9C978B',
 
@@ -38,6 +39,50 @@ export const colors = {
 
   overlayLike: 'rgba(63,157,107,0.85)',
   overlayPass: 'rgba(215,80,60,0.85)',
+
+  // Welcome-screen hero gradient: sunny gold → tangerine → coral pink
+  sunrise: ['#FFD86F', '#FF9D5C', '#FF6F7E'],
+} as const;
+
+/**
+ * Night theme — the main app's dark magenta look (discover, messages, map,
+ * onboarding, profile...). Welcome/auth screens keep their own palettes.
+ */
+export const night = {
+  bg: '#160409',
+  bgTop: '#360A1E', // gradient wash for screen tops
+  card: '#251019',
+  surface: 'rgba(255,255,255,0.08)',
+  surfaceHi: 'rgba(255,255,255,0.14)',
+  border: 'rgba(255,255,255,0.12)',
+  input: 'rgba(255,255,255,0.06)',
+  text: '#FFFFFF',
+  muted: '#C2A5B1',
+  faint: '#8E7280',
+  pink: '#F72E63',
+  pinkDeep: '#C71E4E',
+  pinkSoft: 'rgba(247,46,99,0.20)',
+  navy: '#1C2333', // map background
+  navyLine: '#2B3448', // map streets
+  success: '#4CD98A',
+  danger: '#FF6B5E',
+  tabBar: 'rgba(24,8,15,0.94)',
+} as const;
+
+/** Pastel palette for the light pet-profile page (dog/[id]). */
+export const pastel = {
+  hero: '#EBC5AC',
+  sheet: '#FFFFFF',
+  lavender: '#E4D9F7',
+  lavenderText: '#4B3A6E',
+  butter: '#FBF0C4',
+  butterText: '#7A6420',
+  mint: '#D9EED2',
+  mintText: '#3F6B34',
+  ink: '#171513',
+  mutedInk: '#8A857E',
+  orange: '#F09E4C',
+  dashed: '#D8D2C8',
 } as const;
 
 export const spacing = {

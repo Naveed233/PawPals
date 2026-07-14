@@ -15,12 +15,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Entrance } from '@/components/anim';
 import { DogPhoto } from '@/components/DogPhoto';
+import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { replyFor, SUGGESTED_OPENERS } from '@/data/chat';
 import { SEED_DOGS } from '@/data/seed';
 import { pickPhoto } from '@/lib/media';
 import { useStore } from '@/store';
-import { colors, font, radius, shadow, spacing } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
+
+/**
+ * 定型オープナーの日本語訳。保存データ（data/chat.ts）は英語のままなので、
+ * 表示と送信時にここで翻訳する（未知の値はそのまま表示）。
+ */
+const JP_OPENERS: Record<string, string> = {
+  'Would you like to meet for a short walk?': '短いお散歩でお会いしませんか？',
+  'What kind of play does your dog enjoy?': 'ワンちゃんはどんな遊びが好きですか？',
+  'Would your dog be comfortable meeting in a quiet area?': '静かな場所での顔合わせは大丈夫そうですか？',
+  'Are you available this weekend?': '今週末のご都合はいかがですか？',
+  'Would you prefer a walk before off-leash play?': 'まずはリード散歩から始めるのはいかがですか？',
+};
+
+const fmtTime = (at: number) => {
+  const d = new Date(at);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 
 export default function Chat() {
   const router = useRouter();
@@ -40,7 +58,7 @@ export default function Chat() {
   if (!dog) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.missing}>This conversation is unavailable.</Text>
+        <Text style={styles.missing}>このチャットは利用できません。</Text>
       </SafeAreaView>
     );
   }
@@ -69,11 +87,17 @@ export default function Chat() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      {/* Header (glass) */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Go back">
-          <Text style={styles.back}>‹</Text>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="戻る"
+          style={styles.backBtn}
+        >
+          <Icon name="arrowLeft" color={night.text} size={22} />
         </Pressable>
         <DogPhoto dog={dog} style={styles.avatar} rounded={radius.pill} emojiSize={22} />
         <View style={{ flex: 1 }}>
@@ -81,24 +105,26 @@ export default function Chat() {
             {dog.name}
           </Text>
           <Text style={styles.sub} numberOfLines={1}>
-            with {dog.ownerName} · {dog.ownerArea}
+            {dog.ownerName}さん · {dog.ownerArea}
           </Text>
         </View>
         <Pressable
           onPress={() => router.push(`/call/${dog.id}?mode=voice`)}
           hitSlop={10}
-          accessibilityLabel="Voice call"
+          accessibilityRole="button"
+          accessibilityLabel="音声通話"
           style={styles.callBtn}
         >
-          <Text style={styles.callIcon}>📞</Text>
+          <Icon name="phone" color={night.text} size={18} />
         </Pressable>
         <Pressable
           onPress={() => router.push(`/call/${dog.id}?mode=video`)}
           hitSlop={10}
-          accessibilityLabel="Video call"
+          accessibilityRole="button"
+          accessibilityLabel="ビデオ通話"
           style={styles.callBtn}
         >
-          <Text style={styles.callIcon}>🎥</Text>
+          <Icon name="video" color={night.text} size={18} />
         </Pressable>
       </View>
 
@@ -114,15 +140,16 @@ export default function Chat() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.dayNote}>
-            <Text style={styles.dayNoteText}>You matched with {dog.name} 🎉 Say hello!</Text>
+            <Text style={styles.dayNoteText}>{dog.name}とマッチしました 🎉 あいさつしてみましょう！</Text>
           </View>
 
           {messages.length === 0 && (
             <View style={styles.openers}>
-              <Text style={styles.openersTitle}>Suggested openers</Text>
-              {SUGGESTED_OPENERS.map((o) => (
-                <Chip key={o} label={o} onPress={() => send(o)} />
-              ))}
+              <Text style={styles.openersTitle}>おすすめの最初のメッセージ</Text>
+              {SUGGESTED_OPENERS.map((o) => {
+                const label = JP_OPENERS[o] ?? o;
+                return <Chip key={o} label={label} onPress={() => send(label)} />;
+              })}
             </View>
           )}
 
@@ -131,14 +158,15 @@ export default function Chat() {
             return (
               <Entrance key={m.id} distance={8}>
                 <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowTheirs]}>
-                  <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-                    {m.kind === 'image' && m.uri ? (
-                      <Image source={{ uri: m.uri }} style={styles.bubbleImage} contentFit="cover" />
-                    ) : (
-                      <Text style={[styles.bubbleText, mine ? styles.textMine : styles.textTheirs]}>
-                        {m.text}
-                      </Text>
-                    )}
+                  <View style={[styles.msgCol, mine ? styles.colMine : styles.colTheirs]}>
+                    <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+                      {m.kind === 'image' && m.uri ? (
+                        <Image source={{ uri: m.uri }} style={styles.bubbleImage} contentFit="cover" />
+                      ) : (
+                        <Text style={styles.bubbleText}>{m.text}</Text>
+                      )}
+                    </View>
+                    <Text style={styles.msgTime}>{fmtTime(m.at)}</Text>
                   </View>
                 </View>
               </Entrance>
@@ -148,34 +176,40 @@ export default function Chat() {
           {typing && (
             <View style={[styles.bubbleRow, styles.rowTheirs]}>
               <View style={[styles.bubble, styles.bubbleTheirs]}>
-                <Text style={styles.typing}>{dog.name}'s owner is typing…</Text>
+                <Text style={styles.typing}>{dog.name}の飼い主さんが入力中…</Text>
               </View>
             </View>
           )}
         </ScrollView>
 
-        {/* Input bar */}
+        {/* Input bar (dark glass) */}
         <View style={styles.inputBar}>
-          <Pressable onPress={attachImage} style={styles.attach} accessibilityLabel="Send a photo">
-            <Text style={styles.attachIcon}>📷</Text>
+          <Pressable
+            onPress={attachImage}
+            style={styles.attach}
+            accessibilityRole="button"
+            accessibilityLabel="写真を送る"
+          >
+            <Icon name="camera" color={night.text} size={20} />
           </Pressable>
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Message…"
-            placeholderTextColor={colors.faint}
+            placeholder="メッセージを入力…"
+            placeholderTextColor={night.faint}
             style={styles.input}
             multiline
             onSubmitEditing={() => send(input)}
-            accessibilityLabel="Message input"
+            accessibilityLabel="メッセージ入力"
           />
           <Pressable
             onPress={() => send(input)}
             disabled={!input.trim()}
             style={[styles.sendBtn, !input.trim() && styles.sendDisabled]}
-            accessibilityLabel="Send message"
+            accessibilityRole="button"
+            accessibilityLabel="送信"
           >
-            <Text style={styles.sendIcon}>↑</Text>
+            <Icon name="send" color="#fff" size={18} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -184,9 +218,9 @@ export default function Chat() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.cream },
+  safe: { flex: 1, backgroundColor: night.bg },
   flex: { flex: 1 },
-  missing: { textAlign: 'center', marginTop: spacing.xxl, color: colors.muted },
+  missing: { textAlign: 'center', marginTop: spacing.xxl, color: night.muted },
 
   header: {
     flexDirection: 'row',
@@ -195,29 +229,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
+    borderBottomColor: night.border,
+    backgroundColor: night.surface,
   },
-  back: { fontSize: 34, color: colors.forest, lineHeight: 34, fontWeight: '300', paddingHorizontal: 4 },
-  avatar: { width: 40, height: 40 },
-  name: { fontSize: font.heading, fontWeight: '800', color: colors.charcoal },
-  sub: { fontSize: font.tiny, color: colors.faint, fontWeight: '600' },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatar: { width: 40, height: 40, borderWidth: 2, borderColor: night.pink },
+  name: { fontSize: font.heading, fontWeight: '800', color: night.text },
+  sub: { fontSize: font.tiny, color: night.muted, fontWeight: '600' },
   callBtn: {
     width: 40,
     height: 40,
     borderRadius: radius.pill,
-    backgroundColor: colors.forestSoft,
+    backgroundColor: night.surfaceHi,
+    borderWidth: 1,
+    borderColor: night.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  callIcon: { fontSize: 18 },
 
   messages: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xl },
   dayNote: { alignItems: 'center', marginBottom: spacing.sm },
   dayNoteText: {
     fontSize: font.tiny,
-    color: colors.muted,
-    backgroundColor: colors.surfaceAlt,
+    color: night.muted,
+    backgroundColor: night.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.pill,
@@ -225,19 +266,35 @@ const styles = StyleSheet.create({
   },
 
   openers: { gap: spacing.sm, marginTop: spacing.md, alignItems: 'flex-start' },
-  openersTitle: { fontSize: font.small, fontWeight: '800', color: colors.faint, textTransform: 'uppercase' },
+  openersTitle: {
+    fontSize: font.small,
+    fontWeight: '800',
+    color: night.faint,
+    letterSpacing: 0.6,
+  },
 
   bubbleRow: { flexDirection: 'row' },
   rowMine: { justifyContent: 'flex-end' },
   rowTheirs: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: '78%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, ...shadow.soft },
-  bubbleMine: { backgroundColor: colors.forest, borderBottomRightRadius: 4 },
-  bubbleTheirs: { backgroundColor: colors.surface, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: colors.border },
-  bubbleText: { fontSize: font.body, lineHeight: 21 },
-  textMine: { color: '#fff' },
-  textTheirs: { color: colors.charcoal },
+  msgCol: { maxWidth: '78%', gap: 3 },
+  colMine: { alignItems: 'flex-end' },
+  colTheirs: { alignItems: 'flex-start' },
+  bubble: {
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  bubbleMine: { backgroundColor: night.pink, borderBottomRightRadius: 6 },
+  bubbleTheirs: {
+    backgroundColor: night.surface,
+    borderWidth: 1,
+    borderColor: night.border,
+    borderBottomLeftRadius: 6,
+  },
+  bubbleText: { fontSize: font.body, lineHeight: 21, color: night.text },
   bubbleImage: { width: 200, height: 240, borderRadius: radius.md },
-  typing: { fontSize: font.small, color: colors.muted, fontStyle: 'italic' },
+  msgTime: { fontSize: 10, color: night.faint, fontWeight: '600' },
+  typing: { fontSize: font.small, color: night.muted, fontStyle: 'italic' },
 
   inputBar: {
     flexDirection: 'row',
@@ -246,40 +303,40 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     paddingHorizontal: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
+    borderTopColor: night.border,
+    backgroundColor: night.bg,
   },
   attach: {
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: night.surfaceHi,
+    borderWidth: 1,
+    borderColor: night.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  attachIcon: { fontSize: 20 },
   input: {
     flex: 1,
     maxHeight: 120,
     minHeight: 44,
-    backgroundColor: colors.cream,
+    backgroundColor: night.input,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: night.border,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     fontSize: font.body,
-    color: colors.charcoal,
+    color: night.text,
   },
   sendBtn: {
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: colors.forest,
+    backgroundColor: night.pink,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendDisabled: { opacity: 0.4 },
-  sendIcon: { color: '#fff', fontSize: 22, fontWeight: '900' },
 });
