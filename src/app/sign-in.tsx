@@ -129,8 +129,8 @@ export default function SignIn() {
 
       <Text style={styles.note}>
         {tx(
-          'デモ版：アカウントはこの端末内にのみ保存されます。実際のサーバーやパスワード確認はありません。',
-          'Demo build: accounts are stored only on this device. No real server or password check is involved.',
+          'アカウントとプロフィールは安全に保存され、どの端末からでもサインインできます。',
+          'Your account and profile are stored securely — sign in from any device.',
         )}
       </Text>
     </AuthScreen>
