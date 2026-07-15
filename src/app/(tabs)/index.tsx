@@ -1,11 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HeartBurst } from '@/components/anim';
-import { OwnerAvatar } from '@/components/Avatar';
 import { Icon } from '@/components/icons';
 import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
@@ -15,10 +14,6 @@ import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
-
-// The map tab route is part of the tab-bar work; the cast keeps possibly
-// stale generated route types compiling either way.
-const MAP_ROUTE = '/(tabs)/map' as unknown as Href;
 
 export default function Discover() {
   const router = useRouter();
@@ -69,29 +64,6 @@ export default function Discover() {
     <View style={styles.root}>
       <LinearGradient colors={[night.bgTop, night.bg]} style={styles.wash} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        {/* Slim header: owner avatar left, map shortcut right */}
-        <View style={styles.header}>
-          <View style={styles.avatarRing}>
-            <OwnerAvatar
-              ownerId={owner?.id ?? 'me'}
-              name={owner?.firstName ?? '?'}
-              uri={owner?.photo}
-              style={styles.avatar}
-              rounded={radius.pill}
-              size={18}
-            />
-          </View>
-          <Pressable
-            onPress={() => router.push(MAP_ROUTE)}
-            accessibilityRole="button"
-            accessibilityLabel={tx('マップ', 'Map')}
-            hitSlop={8}
-            style={({ pressed }) => [styles.mapBtn, pressed && styles.pressedScale]}
-          >
-            <Icon name="pin" color={night.bg} size={20} />
-          </Pressable>
-        </View>
-
         <View style={styles.deckArea}>
           {deck === null ? (
             <View style={styles.center}>
@@ -109,15 +81,16 @@ export default function Discover() {
               />
               {burstKey > 0 && <HeartBurst key={burstKey} count={10} size={24} />}
 
-              {/* Floating pass button — card top-right */}
+              {/* Floating pass pill — card top-right, labelled for visibility */}
               <Pressable
                 onPress={() => deckRef.current?.swipe('pass')}
                 accessibilityRole="button"
                 accessibilityLabel={tx('パス', 'Pass')}
                 hitSlop={6}
-                style={({ pressed }) => [styles.glassCircle, styles.passBtn, pressed && styles.pressedScale]}
+                style={({ pressed }) => [styles.passPill, pressed && styles.pressedScale]}
               >
-                <Icon name="x" color="#fff" size={20} />
+                <Icon name="x" color="#fff" size={16} strokeWidth={2.6} />
+                <Text style={styles.passPillText}>{tx('パス', 'Pass')}</Text>
               </Pressable>
 
               {/* Right-side floating action rail */}
@@ -166,37 +139,6 @@ export default function Discover() {
                 </Pressable>
               </View>
 
-              {/* Bottom pass / like pair */}
-              <View style={styles.bottomActions} pointerEvents="box-none">
-                <Pressable
-                  onPress={() => deckRef.current?.swipe('pass')}
-                  accessibilityRole="button"
-                  accessibilityLabel={tx('パス', 'Pass')}
-                  hitSlop={6}
-                  style={({ pressed }) => [
-                    styles.glassCircle,
-                    styles.bigAction,
-                    styles.passBig,
-                    pressed && styles.pressedScale,
-                  ]}
-                >
-                  <Icon name="x" color={night.danger} size={28} />
-                </Pressable>
-                <Pressable
-                  onPress={() => deckRef.current?.swipe('like')}
-                  accessibilityRole="button"
-                  accessibilityLabel={tx('いいね', 'Like')}
-                  hitSlop={6}
-                  style={({ pressed }) => [
-                    styles.glassCircle,
-                    styles.bigAction,
-                    styles.likeBig,
-                    pressed && styles.pressedScale,
-                  ]}
-                >
-                  <Icon name="heartFill" color="#fff" size={28} />
-                </Pressable>
-              </View>
             </>
           ) : (
             <View style={styles.center}>
@@ -229,35 +171,13 @@ const styles = StyleSheet.create({
   wash: { position: 'absolute', top: 0, left: 0, right: 0, height: 280 },
   safe: { flex: 1, backgroundColor: 'transparent' },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  avatarRing: {
-    padding: 2,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: night.border,
-  },
-  avatar: { width: 36, height: 36 },
-  mapBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // Custom layout: clear the floating pill tab bar overlaying the bottom.
+  // Full-bleed deck: the card is the screen. Only the floating tab bar is
+  // cleared at the bottom.
   deckArea: {
     flex: 1,
-    marginHorizontal: spacing.md,
+    marginHorizontal: spacing.sm,
     marginTop: spacing.xs,
-    marginBottom: 110,
+    marginBottom: 96,
   },
 
   glassCircle: {
@@ -270,7 +190,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  passBtn: { position: 'absolute', top: spacing.lg, right: spacing.lg, width: 44, height: 44 },
+  passPill: {
+    position: 'absolute',
+    top: spacing.lg,
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(22,6,13,0.62)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,107,94,0.7)',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  passPillText: { color: '#fff', fontSize: font.small, fontWeight: '800', letterSpacing: 0.3 },
   sideStack: {
     position: 'absolute',
     right: spacing.lg,
@@ -290,22 +224,6 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.35 },
   pressedScale: { transform: [{ scale: 0.92 }] },
-
-  bottomActions: {
-    position: 'absolute',
-    bottom: spacing.lg,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xxl,
-  },
-  bigAction: { width: 62, height: 62 },
-  passBig: {
-    backgroundColor: 'rgba(22,6,13,0.65)',
-    borderColor: 'rgba(255,107,94,0.6)',
-  },
-  likeBig: { backgroundColor: night.pink, borderColor: night.pink },
 
   center: {
     flex: 1,

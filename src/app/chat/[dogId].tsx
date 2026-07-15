@@ -103,15 +103,22 @@ export default function Chat() {
         >
           <Icon name="arrowLeft" color={night.text} size={22} />
         </Pressable>
-        <DogPhoto dog={dog} style={styles.avatar} rounded={radius.pill} emojiSize={22} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name} numberOfLines={1}>
-            {dog.name}
-          </Text>
-          <Text style={styles.sub} numberOfLines={1}>
-            {tx(`${dog.ownerName}さん · ${dog.ownerArea}`, `${dog.ownerName} · ${dog.ownerArea}`)}
-          </Text>
-        </View>
+        <Pressable
+          onPress={() => router.push(`/dog/${dog.id}`)}
+          accessibilityRole="button"
+          accessibilityLabel={tx(`${dog.name}のプロフィールを開く`, `Open ${dog.name}'s profile`)}
+          style={({ pressed }) => [styles.identity, pressed && { opacity: 0.7 }]}
+        >
+          <DogPhoto dog={dog} style={styles.avatar} rounded={radius.pill} emojiSize={22} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.name} numberOfLines={1}>
+              {dog.name}
+            </Text>
+            <Text style={styles.sub} numberOfLines={1}>
+              {tx(`${dog.ownerName}さん · ${dog.ownerArea}`, `${dog.ownerName} · ${dog.ownerArea}`)}
+            </Text>
+          </View>
+        </Pressable>
         <Pressable
           onPress={() => router.push(`/call/${dog.id}?mode=voice`)}
           hitSlop={10}
@@ -252,6 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  identity: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: { width: 40, height: 40, borderWidth: 2, borderColor: night.pink },
   name: { fontSize: font.heading, fontWeight: '800', color: night.text },
   sub: { fontSize: font.tiny, color: night.muted, fontWeight: '600' },

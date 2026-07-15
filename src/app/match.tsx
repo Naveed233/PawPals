@@ -21,7 +21,8 @@ export default function MatchCelebration() {
 
   // Edge case: the matched dog couldn't be resolved. Show a dismissible state
   // rather than navigating during render (which would warn / risk a loop).
-  if (!dog || !myDog) {
+  // (A missing OWN dog is fine — pet-less users can match too.)
+  if (!dog) {
     return (
       <View style={styles.backdrop}>
         <Pressable
@@ -49,14 +50,18 @@ export default function MatchCelebration() {
       <Pop style={styles.card}>
         <Text style={styles.kicker}>{tx('🎉 マッチしました！', "🎉 It's a match!")}</Text>
         <Text style={styles.title}>
-          {tx(
-            `${myDog.name}と${dog.name}、お互いに会いたがっています`,
-            `${myDog.name} and ${dog.name} want to meet each other`,
-          )}
+          {myDog
+            ? tx(
+                `${myDog.name}と${dog.name}、お互いに会いたがっています`,
+                `${myDog.name} and ${dog.name} want to meet each other`,
+              )
+            : tx(`${dog.name}とマッチしました！`, `You matched with ${dog.name}!`)}
         </Text>
 
         <View style={styles.photos}>
-          <DogPhoto dog={myDog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
+          {myDog && (
+            <DogPhoto dog={myDog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
+          )}
           <View style={styles.heart}>
             <Icon name="heartFill" color={night.pink} size={26} />
           </View>

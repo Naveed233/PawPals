@@ -263,9 +263,18 @@ export default function DogDetail() {
             </View>
           )}
 
-          {/* owner strip — the owner's profile stays private until a match */}
+          {/* owner strip — tap to open the owner's profile; stays private
+              until a match */}
           {isMatched && (
-            <View style={styles.ownerStrip}>
+            <Pressable
+              onPress={() => router.push(`/owner/${dog.ownerId}`)}
+              accessibilityRole="button"
+              accessibilityLabel={tx(
+                `${dog.ownerName}さんのプロフィールを開く`,
+                `Open ${dog.ownerName}'s profile`,
+              )}
+              style={({ pressed }) => [styles.ownerStrip, pressed && { opacity: 0.75 }]}
+            >
               <OwnerAvatar
                 ownerId={dog.ownerId}
                 name={dog.ownerName}
@@ -280,7 +289,8 @@ export default function DogDetail() {
                 )}
               </Text>
               {dog.ownerVerified && <VerifiedBadge />}
-            </View>
+              <Icon name="chevronRight" color={pastel.mutedInk} size={18} />
+            </Pressable>
           )}
         </View>
       </ScrollView>
