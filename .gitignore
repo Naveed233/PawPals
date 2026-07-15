@@ -41,3 +41,7 @@ example
 # generated native folders
 /ios
 /android
+
+# Personal files that live in this folder but never belong in the repo
+Screenshot*.png
+PawPair-Architecture.html
