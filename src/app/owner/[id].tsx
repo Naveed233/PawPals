@@ -15,6 +15,7 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { VerifiedBadge } from '@/components/ui';
+import { SEED_OWNER_PROFILES, type BiText } from '@/data/owners';
 import { SEED_DOGS } from '@/data/seed';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -28,36 +29,54 @@ import { useStore } from '@/store';
 import { font, pastel, radius, spacing } from '@/theme';
 
 /**
- * Owner profile — the human behind the dogs. Same pastel, full-screen-photo
- * treatment as the pet page. Privacy rule: another owner's profile is only
- * visible once you've matched with one of their dogs (your own is always
- * visible to you, so you can see exactly what matches will see).
+ * Owner profile — the human behind the dogs, built to make meeting feel safe:
+ * social proof (tenure, events, verification), a voice-y bio, prompt cards
+ * that invite a first message, shared ground with the viewer, and safety
+ * guidance. Visible only to matches (or yourself); locked otherwise.
  */
 export default function OwnerDetail() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { tx, tv } = useI18n();
+  const { lang, tx, tv } = useI18n();
 
   const me = useStore((s) => s.owner);
   const myDogs = useStore((s) => s.dogs);
   const matches = useStore((s) => s.matches);
 
-  const isSelf = !!me && (id === me.id || id === 'me');
+  const pick = (t: BiText) => (lang === 'ja' ? t.ja : t.en);
 
-  // Seed owners are derived from their dogs (the owner is supporting info).
+  const isSelf = !!me && (id === me.id || id === 'me');
   const seedDogs = SEED_DOGS.filter((d) => d.ownerId === id);
   const seedInfo = seedDogs[0];
+  const rich = !isSelf && id ? SEED_OWNER_PROFILES[id] : undefined;
 
   const name = isSelf ? me!.firstName : (seedInfo?.ownerName ?? '');
   const area = isSelf ? me!.area : (seedInfo?.ownerArea ?? '');
   const verified = isSelf ? me!.verified : !!seedInfo?.ownerVerified;
+  const ageRange = isSelf ? me!.ageRange : rich?.ageRange;
+  const bio = isSelf ? me!.bio : rich ? pick(rich.bio) : '';
+  const languages = isSelf ? me!.languages : (rich?.languages ?? []);
+  const availability = isSelf ? me!.availability : (rich?.availability ?? []);
   const dogs = isSelf ? myDogs : seedDogs;
+  const distanceKm = seedDogs.length
+    ? Math.min(...seedDogs.map((d) => d.distanceKm))
+    : null;
   const heroHeight = Math.round(windowHeight * 0.42);
 
   const isMatched = seedDogs.some((d) => matches.some((m) => m.dogId === d.id));
   const canView = isSelf || isMatched;
+  const matchedDog = seedDogs.find((d) => matches.some((m) => m.dogId === d.id));
+
+  // Shared ground with the viewer — similarity is the fastest rapport builder.
+  const sharedLangs = !isSelf && me ? languages.filter((l) => me.languages.includes(l)) : [];
+  const sharedAvail = !isSelf && me
+    ? availability.filter((a) => me.availability.includes(a))
+    : [];
+  const bothHaveDogs =
+    !isSelf && myDogs.length > 0 && (me?.petStatus ?? 'has-dog') === 'has-dog';
+  const hasShared = sharedLangs.length + sharedAvail.length > 0 || bothHaveDogs;
 
   if (!isSelf && !seedInfo) {
     return (
@@ -82,7 +101,7 @@ export default function OwnerDetail() {
         <Text style={styles.mutedCenter}>
           {tx(
             '飼い主のプロフィールは、お互いのワンちゃんがマッチした後にのみ表示されます。',
-            "Owner profiles are only visible after your dogs match with each other.",
+            'Owner profiles are only visible after your dogs match with each other.',
           )}
         </Text>
         <BackPill onPress={() => router.back()} label={tx('戻る', 'Back')} />
@@ -118,36 +137,126 @@ export default function OwnerDetail() {
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={2}>
               {name}
+              {!!ageRange && <Text style={styles.age}>　{ageRange}</Text>}
             </Text>
             {verified && <VerifiedBadge />}
           </View>
           <View style={styles.areaRow}>
             <Icon name="pin" color={pastel.mutedInk} size={15} />
-            <Text style={styles.areaText}>{area}</Text>
+            <Text style={styles.areaText}>
+              {area}
+              {distanceKm != null && !isSelf
+                ? tx(`・約${distanceKm}km先`, ` · about ${distanceKm} km away`)
+                : ''}
+            </Text>
           </View>
 
-          {isSelf && !!me!.bio && <Text style={styles.bio}>{me!.bio}</Text>}
-
-          {isSelf && (
-            <View style={styles.chipRow}>
-              <View style={[styles.chip, { backgroundColor: pastel.lavender }]}>
-                <Text style={[styles.chipText, { color: pastel.lavenderText }]}>
-                  🐾 {tx(
-                    JP_PET_STATUS[me!.petStatus ?? 'has-dog'],
-                    EN_PET_STATUS[me!.petStatus ?? 'has-dog'],
-                  )}
+          {/* Trust row: tenure · events · verification */}
+          {(rich || isSelf) && (
+            <View style={styles.trustRow}>
+              {rich && (
+                <View style={styles.trustTile}>
+                  <Text style={styles.trustValue}>{pick(rich.memberSince)}</Text>
+                  <Text style={styles.trustLabel}>{tx('メンバー歴', 'Member')}</Text>
+                </View>
+              )}
+              {rich && (
+                <View style={styles.trustTile}>
+                  <Text style={styles.trustValue}>
+                    {tx(`${rich.eventsJoined}回`, `${rich.eventsJoined}×`)}
+                  </Text>
+                  <Text style={styles.trustLabel}>{tx('イベント参加', 'Events joined')}</Text>
+                </View>
+              )}
+              <View style={styles.trustTile}>
+                <Text style={styles.trustValue}>{verified ? '✓' : '—'}</Text>
+                <Text style={styles.trustLabel}>
+                  {verified ? tx('本人確認済み', 'ID verified') : tx('未認証', 'Not verified')}
                 </Text>
               </View>
-              {me!.languages.map((l) => (
+              {isSelf && (
+                <View style={styles.trustTile}>
+                  <Text style={styles.trustValue}>🐾</Text>
+                  <Text style={styles.trustLabel}>
+                    {tx(
+                      JP_PET_STATUS[me!.petStatus ?? 'has-dog'],
+                      EN_PET_STATUS[me!.petStatus ?? 'has-dog'],
+                    )}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Bio */}
+          {!!bio && <Text style={styles.bio}>{bio}</Text>}
+
+          {/* Shared ground with the viewer */}
+          {hasShared && (
+            <>
+              <Text style={styles.sectionHeader}>
+                {tx('あなたとの共通点', 'What you two share')}
+              </Text>
+              <View style={styles.chipRow}>
+                {bothHaveDogs && (
+                  <View style={[styles.chip, { backgroundColor: pastel.mint }]}>
+                    <Text style={[styles.chipText, { color: pastel.mintText }]}>
+                      {tx('🐾 犬好き同士', '🐾 Both dog people')}
+                    </Text>
+                  </View>
+                )}
+                {sharedLangs.map((l) => (
+                  <View key={l} style={[styles.chip, { backgroundColor: pastel.mint }]}>
+                    <Text style={[styles.chipText, { color: pastel.mintText }]}>
+                      {tx(`✓ ${tv(JP_LANGUAGE, l)}で話せる`, `✓ You both speak ${l}`)}
+                    </Text>
+                  </View>
+                ))}
+                {sharedAvail.map((a) => (
+                  <View key={a} style={[styles.chip, { backgroundColor: pastel.mint }]}>
+                    <Text style={[styles.chipText, { color: pastel.mintText }]}>
+                      {tx(`✓ ${tv(JP_AVAILABILITY, a)}が空いてる`, `✓ Both free ${a.toLowerCase()}`)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+
+          {/* Prompt cards — the conversation starters */}
+          {rich?.prompts.map((p, i) => (
+            <View
+              key={i}
+              style={[
+                styles.promptCard,
+                { backgroundColor: i % 2 === 0 ? pastel.lavender : pastel.butter },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.promptQ,
+                  { color: i % 2 === 0 ? pastel.lavenderText : pastel.butterText },
+                ]}
+              >
+                {pick(p.q)}
+              </Text>
+              <Text style={styles.promptA}>{pick(p.a)}</Text>
+            </View>
+          ))}
+
+          {/* Languages & availability */}
+          {(languages.length > 0 || availability.length > 0) && (
+            <View style={styles.chipRow}>
+              {languages.map((l) => (
                 <View key={l} style={[styles.chip, { backgroundColor: pastel.butter }]}>
                   <Text style={[styles.chipText, { color: pastel.butterText }]}>
                     {tv(JP_LANGUAGE, l)}
                   </Text>
                 </View>
               ))}
-              {me!.availability.map((a) => (
-                <View key={a} style={[styles.chip, { backgroundColor: pastel.mint }]}>
-                  <Text style={[styles.chipText, { color: pastel.mintText }]}>
+              {availability.map((a) => (
+                <View key={a} style={[styles.chip, { backgroundColor: pastel.lavender }]}>
+                  <Text style={[styles.chipText, { color: pastel.lavenderText }]}>
                     {tv(JP_AVAILABILITY, a)}
                   </Text>
                 </View>
@@ -155,11 +264,12 @@ export default function OwnerDetail() {
             </View>
           )}
 
+          {/* Looking for (seed: from their dog's intents) */}
           {!isSelf && seedInfo && seedInfo.intents.length > 0 && (
             <View style={styles.chipRow}>
               {seedInfo.intents.map((it) => (
-                <View key={it} style={[styles.chip, { backgroundColor: pastel.lavender }]}>
-                  <Text style={[styles.chipText, { color: pastel.lavenderText }]}>
+                <View key={it} style={[styles.chip, styles.chipOutline]}>
+                  <Text style={[styles.chipText, { color: pastel.mutedInk }]}>
                     {tv(JP_INTENT, it)}
                   </Text>
                 </View>
@@ -167,10 +277,13 @@ export default function OwnerDetail() {
             </View>
           )}
 
+          {/* Pets */}
           {dogs.length > 0 && (
             <>
               <Text style={styles.sectionHeader}>
-                {isSelf ? tx('あなたのペット', 'Your pets') : tx(`${name}さんのペット`, `${name}'s pets`)}
+                {isSelf
+                  ? tx('あなたのペット', 'Your pets')
+                  : tx(`${name}さんのペット`, `${name}'s pets`)}
               </Text>
               <View style={styles.dogRow}>
                 {dogs.map((dog) => (
@@ -197,6 +310,21 @@ export default function OwnerDetail() {
             </>
           )}
 
+          {/* Safety guidance — trust through transparency */}
+          {!isSelf && (
+            <View style={styles.safetyCard}>
+              <Text style={styles.safetyTitle}>
+                {tx('🛡️ はじめて会うときは', '🛡️ Meeting for the first time')}
+              </Text>
+              <Text style={styles.safetyText}>
+                {tx(
+                  '犬同伴OKの公共の場所で、明るい時間帯に。行き先を友人に伝えておくと安心です。',
+                  'Pick a public, dog-friendly spot in daylight — and let a friend know where you are.',
+                )}
+              </Text>
+            </View>
+          )}
+
           {isSelf && (
             <Text style={styles.selfNote}>
               {tx(
@@ -207,6 +335,24 @@ export default function OwnerDetail() {
           )}
         </View>
       </ScrollView>
+
+      {/* Message CTA for matched owners */}
+      {!isSelf && matchedDog && (
+        <View style={[styles.ctaWrap, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+          <Pressable
+            onPress={() => router.push(`/chat/${matchedDog.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={tx(
+              `${name}さんにメッセージを送る`,
+              `Send ${name} a message`,
+            )}
+            style={({ pressed }) => [styles.ctaBtn, pressed && { transform: [{ scale: 0.98 }] }]}
+          >
+            <Icon name="chat" color="#fff" size={18} />
+            <Text style={styles.ctaText}>{tx('メッセージを送る', 'Send a message')}</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Floating back button */}
       <View style={[styles.floatRow, { top: insets.top + spacing.sm }]} pointerEvents="box-none">
@@ -266,17 +412,28 @@ const styles = StyleSheet.create({
     marginTop: -28,
     padding: spacing.xl,
     gap: spacing.lg,
-    minHeight: 420,
+    minHeight: 480,
   },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap' },
   name: { fontSize: font.display, fontWeight: '900', color: pastel.ink },
+  age: { fontSize: font.title, fontWeight: '700', color: pastel.mutedInk },
   areaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -spacing.sm },
   areaText: { fontSize: font.small, color: pastel.mutedInk, fontWeight: '700' },
-  bio: { fontSize: font.body, color: pastel.ink, lineHeight: 22 },
 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: { borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
-  chipText: { fontSize: font.small, fontWeight: '700' },
+  trustRow: { flexDirection: 'row', gap: spacing.sm },
+  trustTile: {
+    flex: 1,
+    backgroundColor: '#FAF7F2',
+    borderRadius: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+    gap: 2,
+  },
+  trustValue: { fontSize: font.body, fontWeight: '900', color: pastel.ink, textAlign: 'center' },
+  trustLabel: { fontSize: 10, fontWeight: '700', color: pastel.mutedInk, textAlign: 'center' },
+
+  bio: { fontSize: font.body, color: pastel.ink, lineHeight: 23 },
 
   sectionHeader: {
     fontSize: font.small,
@@ -285,6 +442,20 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  chip: { borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
+  chipOutline: { borderWidth: 1.5, borderColor: pastel.dashed, backgroundColor: 'transparent' },
+  chipText: { fontSize: font.small, fontWeight: '700' },
+
+  promptCard: { borderRadius: 20, padding: spacing.lg, gap: spacing.sm },
+  promptQ: {
+    fontSize: font.tiny,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  promptA: { fontSize: font.heading, fontWeight: '700', color: pastel.ink, lineHeight: 26 },
+
   dogRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   dogCard: {
     width: 128,
@@ -298,7 +469,37 @@ const styles = StyleSheet.create({
   dogName: { fontSize: font.body, fontWeight: '800', color: pastel.ink },
   dogBreed: { fontSize: font.tiny, color: pastel.mutedInk },
 
+  safetyCard: {
+    backgroundColor: '#FAF7F2',
+    borderRadius: 18,
+    padding: spacing.lg,
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderColor: pastel.dashed,
+  },
+  safetyTitle: { fontSize: font.small, fontWeight: '800', color: pastel.ink },
+  safetyText: { fontSize: font.small, color: pastel.mutedInk, lineHeight: 20 },
+
   selfNote: { fontSize: font.tiny, color: pastel.mutedInk, textAlign: 'center', lineHeight: 16 },
+
+  ctaWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: pastel.ink,
+    borderRadius: radius.pill,
+    height: 54,
+  },
+  ctaText: { color: '#fff', fontWeight: '800', fontSize: font.body },
 
   floatRow: { position: 'absolute', left: spacing.lg, right: spacing.lg, flexDirection: 'row' },
   floatBtn: {
