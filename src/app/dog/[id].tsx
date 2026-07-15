@@ -18,8 +18,10 @@ import { Icon } from '@/components/icons';
 import { VerifiedBadge } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { computeCompatibility } from '@/lib/compatibility';
+import { useI18n } from '@/lib/i18n';
 import {
   JP_ENERGY,
+  EN_GOOD_WITH,
   JP_GOOD_WITH,
   JP_INTENT,
   JP_MEETUP,
@@ -28,7 +30,6 @@ import {
   JP_RECALL,
   JP_SEX,
   JP_SOCIAL,
-  jp,
 } from '@/lib/jp';
 import { displayPhotos } from '@/lib/photos';
 import { useStore } from '@/store';
@@ -41,6 +42,7 @@ export default function DogDetail() {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { lang, tx, tv } = useI18n();
 
   const myDog = useStore((s) => s.dogs[0]);
   const myDogs = useStore((s) => s.dogs);
@@ -56,21 +58,23 @@ export default function DogDetail() {
     return (
       <View style={[styles.page, styles.missingWrap, { paddingTop: insets.top + spacing.xl }]}>
         <StatusBar style="dark" />
-        <Text style={styles.notFound}>このプロフィールは表示できません。</Text>
+        <Text style={styles.notFound}>
+          {tx('このプロフィールは表示できません。', 'This profile isn’t available.')}
+        </Text>
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="戻る"
+          accessibilityLabel={tx('戻る', 'Back')}
           style={styles.missingBack}
         >
-          <Text style={styles.missingBackText}>戻る</Text>
+          <Text style={styles.missingBackText}>{tx('戻る', 'Back')}</Text>
         </Pressable>
       </View>
     );
   }
 
   const isMine = myDogs.some((d) => d.id === dog.id);
-  const compat = myDog && !isMine ? computeCompatibility(myDog, dog) : null;
+  const compat = myDog && !isMine ? computeCompatibility(myDog, dog, lang) : null;
   const inDeck = (deck ?? []).includes(dog.id);
   const isSaved = saved.includes(dog.id);
   const isMatched = matches.some((m) => m.dogId === dog.id);
@@ -82,21 +86,32 @@ export default function DogDetail() {
   };
 
   const report = () =>
-    Alert.alert('通報・ブロック', `${dog.name}のプロフィールについて、どうしますか？`, [
-      { text: 'キャンセル', style: 'cancel' },
-      {
-        text: 'プロフィールを通報',
-        onPress: () => Alert.alert('ありがとうございます', 'モデレーションチームが確認します。'),
-      },
-      {
-        text: 'ブロック',
-        style: 'destructive',
-        onPress: () => {
-          if (inDeck) swipe(dog.id, 'pass');
-          router.back();
+    Alert.alert(
+      tx('通報・ブロック', 'Report or block'),
+      tx(
+        `${dog.name}のプロフィールについて、どうしますか？`,
+        `What would you like to do about ${dog.name}’s profile?`,
+      ),
+      [
+        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
+        {
+          text: tx('プロフィールを通報', 'Report profile'),
+          onPress: () =>
+            Alert.alert(
+              tx('ありがとうございます', 'Thank you'),
+              tx('モデレーションチームが確認します。', 'Our moderation team will take a look.'),
+            ),
         },
-      },
-    ]);
+        {
+          text: tx('ブロック', 'Block'),
+          style: 'destructive',
+          onPress: () => {
+            if (inDeck) swipe(dog.id, 'pass');
+            router.back();
+          },
+        },
+      ],
+    );
 
   const hero = displayPhotos(dog, 1)[0];
   const heroHeight = Math.round(windowHeight * 0.45);
@@ -139,22 +154,24 @@ export default function DogDetail() {
           </Text>
           <View style={styles.distanceRow}>
             <Icon name="pin" color={pastel.mutedInk} size={15} />
-            <Text style={styles.distanceText}>{dog.distanceKm} km 先</Text>
+            <Text style={styles.distanceText}>
+              {tx(`${dog.distanceKm} km 先`, `${dog.distanceKm} km away`)}
+            </Text>
           </View>
 
           {/* stat chips */}
           <View style={styles.statRow}>
-            <StatChip bg={pastel.lavender} fg={pastel.lavenderText} value={jp(JP_SEX, dog.sex)} label="性別" />
-            <StatChip bg={pastel.butter} fg={pastel.butterText} value={`${dog.ageYears}歳`} label="年齢" />
-            <StatChip bg={pastel.mint} fg={pastel.mintText} value={dog.breed} label="犬種" />
+            <StatChip bg={pastel.lavender} fg={pastel.lavenderText} value={tv(JP_SEX, dog.sex)} label={tx('性別', 'Sex')} />
+            <StatChip bg={pastel.butter} fg={pastel.butterText} value={tx(`${dog.ageYears}歳`, `${dog.ageYears} yrs`)} label={tx('年齢', 'Age')} />
+            <StatChip bg={pastel.mint} fg={pastel.mintText} value={dog.breed} label={tx('犬種', 'Breed')} />
           </View>
 
           {/* about card */}
           <View style={styles.aboutCard}>
-            <Text style={styles.aboutTitle}>{dog.name}について</Text>
+            <Text style={styles.aboutTitle}>{tx(`${dog.name}について`, `About ${dog.name}`)}</Text>
             {!!dog.notes && <Text style={styles.aboutBody}>{dog.notes}</Text>}
             <View style={styles.tagRow}>
-              {[...dog.personality.map((t) => jp(JP_PERSONALITY, t)), ...dog.playStyle.map((t) => jp(JP_PLAY_STYLE, t))].map(
+              {[...dog.personality.map((t) => tv(JP_PERSONALITY, t)), ...dog.playStyle.map((t) => tv(JP_PLAY_STYLE, t))].map(
                 (label, i) => {
                   const tone = chipTones[i % chipTones.length];
                   return (
@@ -167,11 +184,11 @@ export default function DogDetail() {
             </View>
             {dog.intents.length > 0 && (
               <View style={styles.intentRow}>
-                <Text style={styles.intentLabel}>目的：</Text>
+                <Text style={styles.intentLabel}>{tx('目的：', 'Looking for:')}</Text>
                 <View style={[styles.tagRow, { flex: 1 }]}>
                   {dog.intents.map((it) => (
                     <View key={it} style={[styles.miniChip, { backgroundColor: pastel.lavender }]}>
-                      <Text style={[styles.miniChipText, { color: pastel.lavenderText }]}>{jp(JP_INTENT, it)}</Text>
+                      <Text style={[styles.miniChipText, { color: pastel.lavenderText }]}>{tv(JP_INTENT, it)}</Text>
                     </View>
                   ))}
                 </View>
@@ -180,7 +197,7 @@ export default function DogDetail() {
           </View>
 
           {/* compatibility / stats */}
-          <Text style={styles.sectionHeader}>相性スコア</Text>
+          <Text style={styles.sectionHeader}>{tx('相性スコア', 'Compatibility')}</Text>
           <View style={styles.statsCard}>
             {compat ? (
               <>
@@ -194,26 +211,34 @@ export default function DogDetail() {
                       </View>
                     ))}
                     {compat.reasons.length === 0 && (
-                      <Text style={styles.reasonText}>共通点は少なめですが、会ってみる価値はあるかも。</Text>
+                      <Text style={styles.reasonText}>
+                        {tx(
+                          '共通点は少なめですが、会ってみる価値はあるかも。',
+                          'Not a lot in common, but a meet-up could still be worth it.',
+                        )}
+                      </Text>
                     )}
                   </View>
                 </View>
                 <Text style={styles.scoreNote}>
-                  スコアは好みの一致度を示すものです。安全性やフレンドリーさを保証するものではありません。
+                  {tx(
+                    'スコアは好みの一致度を示すものです。安全性やフレンドリーさを保証するものではありません。',
+                    'The score shows how well preferences line up — it’s not a guarantee of safety or friendliness.',
+                  )}
                 </Text>
                 <View style={styles.divider} />
               </>
             ) : null}
 
-            <StatLine label="エネルギー" value={jp(JP_ENERGY, dog.energy)} />
-            <StatLine label="社交性" value={jp(JP_SOCIAL, dog.social)} />
-            <StatLine label="呼び戻し" value={jp(JP_RECALL, dog.recall)} />
-            <StatLine label="体重" value={dog.weightKg ? `${dog.weightKg} kg` : '—'} />
-            <StatLine label="ワクチン接種" value={dog.vaccinated ? '済み' : '未'} />
-            <StatLine label="去勢・避妊" value={dog.neutered ? '済み' : '未'} />
-            <StatLine label="希望の会い方" value={jp(JP_MEETUP, dog.meetupPref)} />
+            <StatLine label={tx('エネルギー', 'Energy')} value={tv(JP_ENERGY, dog.energy)} />
+            <StatLine label={tx('社交性', 'Social style')} value={tv(JP_SOCIAL, dog.social)} />
+            <StatLine label={tx('呼び戻し', 'Recall')} value={tv(JP_RECALL, dog.recall)} />
+            <StatLine label={tx('体重', 'Weight')} value={dog.weightKg ? `${dog.weightKg} kg` : '—'} />
+            <StatLine label={tx('ワクチン接種', 'Vaccinated')} value={dog.vaccinated ? tx('済み', 'Yes') : tx('未', 'Not yet')} />
+            <StatLine label={tx('去勢・避妊', 'Neutered')} value={dog.neutered ? tx('済み', 'Yes') : tx('未', 'Not yet')} />
+            <StatLine label={tx('希望の会い方', 'Preferred meetup')} value={tv(JP_MEETUP, dog.meetupPref)} />
 
-            <Text style={styles.goodWithLabel}>一緒に遊べる相手</Text>
+            <Text style={styles.goodWithLabel}>{tx('一緒に遊べる相手', 'Gets along with')}</Text>
             <View style={styles.tagRow}>
               {goodWithEntries.map((key) => {
                 const ok = dog.goodWith[key];
@@ -223,7 +248,7 @@ export default function DogDetail() {
                     style={[styles.miniChip, { backgroundColor: ok ? pastel.mint : '#F1EEE9' }]}
                   >
                     <Text style={[styles.miniChipText, { color: ok ? pastel.mintText : pastel.mutedInk }]}>
-                      {ok ? '✓' : '✕'} {JP_GOOD_WITH[key]}
+                      {ok ? '✓' : '✕'} {tx(JP_GOOD_WITH[key], EN_GOOD_WITH[key] ?? key)}
                     </Text>
                   </View>
                 );
@@ -233,7 +258,7 @@ export default function DogDetail() {
 
           {!!dog.avoid && (
             <View style={styles.warnCard}>
-              <Text style={styles.warnTitle}>ご注意</Text>
+              <Text style={styles.warnTitle}>{tx('ご注意', 'Heads up')}</Text>
               <Text style={styles.warnText}>⚠️ {dog.avoid}</Text>
             </View>
           )}
@@ -249,7 +274,10 @@ export default function DogDetail() {
                 size={22}
               />
               <Text style={styles.ownerText} numberOfLines={1}>
-                飼い主：{dog.ownerName}・{dog.ownerArea}
+                {tx(
+                  `飼い主：${dog.ownerName}・${dog.ownerArea}`,
+                  `Owner: ${dog.ownerName} · ${dog.ownerArea}`,
+                )}
               </Text>
               {dog.ownerVerified && <VerifiedBadge />}
             </View>
@@ -262,7 +290,7 @@ export default function DogDetail() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="戻る"
+          accessibilityLabel={tx('戻る', 'Back')}
           hitSlop={8}
           style={({ pressed }) => [styles.floatBtn, pressed && styles.floatBtnPressed]}
         >
@@ -273,7 +301,7 @@ export default function DogDetail() {
             <Pressable
               onPress={report}
               accessibilityRole="button"
-              accessibilityLabel="通報・ブロック"
+              accessibilityLabel={tx('通報・ブロック', 'Report or block')}
               hitSlop={8}
               style={({ pressed }) => [styles.floatBtn, pressed && styles.floatBtnPressed]}
             >
@@ -283,7 +311,9 @@ export default function DogDetail() {
           <Pressable
             onPress={() => toggleSave(dog.id)}
             accessibilityRole="button"
-            accessibilityLabel={isSaved ? '保存を取り消す' : 'プロフィールを保存'}
+            accessibilityLabel={
+              isSaved ? tx('保存を取り消す', 'Remove from saved') : tx('プロフィールを保存', 'Save profile')
+            }
             accessibilityState={{ selected: isSaved }}
             hitSlop={8}
             style={({ pressed }) => [styles.floatBtn, pressed && styles.floatBtnPressed]}
@@ -301,7 +331,7 @@ export default function DogDetail() {
               <Pressable
                 onPress={() => router.push(`/call/${dog.id}`)}
                 accessibilityRole="button"
-                accessibilityLabel="電話をかける"
+                accessibilityLabel={tx('電話をかける', 'Start a call')}
                 style={({ pressed }) => [styles.roundBtn, pressed && styles.floatBtnPressed]}
               >
                 <Icon name="phone" color="#fff" size={20} />
@@ -309,7 +339,7 @@ export default function DogDetail() {
               <Pressable
                 onPress={() => router.push(`/chat/${dog.id}`)}
                 accessibilityRole="button"
-                accessibilityLabel="チャットを開く"
+                accessibilityLabel={tx('チャットを開く', 'Open chat')}
                 style={({ pressed }) => [styles.roundBtn, pressed && styles.floatBtnPressed]}
               >
                 <Icon name="chat" color="#fff" size={20} />
@@ -320,7 +350,9 @@ export default function DogDetail() {
             onPress={isMatched ? () => router.push(`/chat/${dog.id}`) : like}
             disabled={!isMatched && !inDeck}
             accessibilityRole="button"
-            accessibilityLabel={isMatched ? 'マッチ済み。チャットを開く' : '会いたい！'}
+            accessibilityLabel={
+              isMatched ? tx('マッチ済み。チャットを開く', 'Matched — open chat') : tx('会いたい！', 'Let’s meet!')
+            }
             accessibilityState={{ disabled: !isMatched && !inDeck }}
             style={({ pressed }) => [
               styles.ctaPill,
@@ -329,7 +361,9 @@ export default function DogDetail() {
             ]}
           >
             <Icon name="pawFill" color="#fff" size={20} />
-            <Text style={styles.ctaText}>{isMatched ? 'マッチ済み ✓' : '会いたい！'}</Text>
+            <Text style={styles.ctaText}>
+              {isMatched ? tx('マッチ済み ✓', 'Matched ✓') : tx('会いたい！', 'Let’s meet!')}
+            </Text>
           </Pressable>
         </View>
       )}

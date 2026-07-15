@@ -10,8 +10,11 @@ import {
   OrDivider,
   SocialRow,
   dark,
-  demoProviderSignIn,
+  providerUnavailableNotice,
 } from '@/components/auth';
+import { useI18n } from '@/lib/i18n';
+import { supabase } from '@/lib/supabase';
+import { fetchRemoteState } from '@/lib/sync';
 import { useStore } from '@/store';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,39 +22,67 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function SignIn() {
   const router = useRouter();
   const signIn = useStore((s) => s.signIn);
+  const { lang, tx } = useI18n();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
 
-  const submit = () => {
+  const submit = async () => {
     const next: typeof errors = {};
-    if (!EMAIL_RE.test(email)) next.email = '有効なメールアドレスを入力してください';
-    if (password.length < 6) next.password = 'パスワードは6文字以上で入力してください';
+    if (!EMAIL_RE.test(email))
+      next.email = tx('有効なメールアドレスを入力してください', 'Enter a valid email address');
+    if (password.length < 6)
+      next.password = tx(
+        'パスワードは6文字以上で入力してください',
+        'Password must be at least 6 characters',
+      );
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setBusy(false);
+      const m = error.message.toLowerCase();
+      setErrors({
+        form: m.includes('invalid')
+          ? tx('メールアドレスまたはパスワードが違います', 'Incorrect email or password')
+          : m.includes('confirm')
+            ? tx(
+                'メールが確認されていません。受信トレイをご確認ください。',
+                'Email not confirmed yet — check your inbox.',
+              )
+            : error.message,
+      });
+      return;
+    }
+
+    // Pull the profile/dogs this account saved before (any device).
+    const remote = await fetchRemoteState();
+    if (remote?.owner) useStore.setState({ owner: remote.owner, dogs: remote.dogs });
     signIn(email);
+    setBusy(false);
     router.replace('/');
   };
 
-  const provider = (name: string) =>
-    demoProviderSignIn(name, () => {
-      signIn(`demo@${name.toLowerCase()}.pawpair`);
-      router.replace('/');
-    });
+  const provider = (name: string) => providerUnavailableNotice(name, lang);
 
   return (
     <AuthScreen
-      title="おかえりなさい！"
-      subtitle="サインインして、愛犬にぴったりの遊び友達を見つけよう。"
-      footerPrompt="アカウントをお持ちでないですか？"
-      footerAction="新規登録"
+      title={tx('おかえりなさい！', 'Welcome back!')}
+      subtitle={tx(
+        'サインインして、愛犬にぴったりの遊び友達を見つけよう。',
+        'Sign in to find the perfect playmates for your dog.',
+      )}
+      footerPrompt={tx('アカウントをお持ちでないですか？', "Don't have an account?")}
+      footerAction={tx('新規登録', 'Sign up')}
       onFooterPress={() => router.push('/sign-up')}
     >
       <DarkField
-        label="メールアドレス*"
+        label={tx('メールアドレス*', 'Email address*')}
         value={email}
         onChangeText={setEmail}
         placeholder="you@example.com"
@@ -61,10 +92,10 @@ export default function SignIn() {
         error={errors.email}
       />
       <DarkField
-        label="パスワード*"
+        label={tx('パスワード*', 'Password*')}
         value={password}
         onChangeText={setPassword}
-        placeholder="6文字以上"
+        placeholder={tx('6文字以上', 'At least 6 characters')}
         secureToggle
         error={errors.password}
       />
@@ -73,25 +104,34 @@ export default function SignIn() {
         <DarkCheckbox
           checked={remember}
           onToggle={() => setRemember((r) => !r)}
-          label="ログイン状態を保持"
+          label={tx('ログイン状態を保持', 'Remember me')}
         />
         <Text
           accessibilityRole="link"
           style={styles.forgot}
           onPress={() => router.push('/forgot-password')}
         >
-          パスワードをお忘れですか？
+          {tx('パスワードをお忘れですか？', 'Forgot password?')}
         </Text>
       </View>
 
-      <LimeButton label="サインイン" onPress={submit} />
+      {!!errors.form && <Text style={styles.formError}>{errors.form}</Text>}
+
+      <LimeButton
+        label={busy ? tx('サインイン中…', 'Signing in…') : tx('サインイン', 'Sign in')}
+        onPress={() => void submit()}
+        disabled={busy}
+      />
 
       <OrDivider />
 
       <SocialRow onGoogle={() => provider('Google')} onApple={() => provider('Apple')} />
 
       <Text style={styles.note}>
-        デモ版：アカウントはこの端末内にのみ保存されます。実際のサーバーやパスワード確認はありません。
+        {tx(
+          'デモ版：アカウントはこの端末内にのみ保存されます。実際のサーバーやパスワード確認はありません。',
+          'Demo build: accounts are stored only on this device. No real server or password check is involved.',
+        )}
       </Text>
     </AuthScreen>
   );
@@ -105,6 +145,7 @@ const styles = StyleSheet.create({
     marginTop: -2,
   },
   forgot: { color: dark.text, fontSize: 13, fontWeight: '700' },
+  formError: { color: dark.danger, fontSize: 13, fontWeight: '600', textAlign: 'center' },
   note: {
     color: dark.placeholder,
     fontSize: 11,

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { dogEmojiFor } from '@/lib/avatars';
+import { useI18n } from '@/lib/i18n';
 import { heroPhoto } from '@/lib/photos';
 import { night } from '@/theme';
 import type { DisplayPhoto, DogProfile } from '@/types';
@@ -44,6 +45,7 @@ export function PhotoView({
   emojiSize?: number;
 }) {
   const [failed, setFailed] = useState(false);
+  const { tx } = useI18n();
   const source = photo.uri ? { uri: photo.uri } : photo.module != null ? photo.module : null;
 
   if (source && !failed) {
@@ -53,7 +55,7 @@ export function PhotoView({
         style={[style as StyleProp<ImageStyle>, rounded != null ? { borderRadius: rounded } : null]}
         contentFit="cover"
         onError={() => setFailed(true)}
-        accessibilityLabel={`${name}の写真`}
+        accessibilityLabel={tx(`${name}の写真`, `Photo of ${name}`)}
       />
     );
   }
@@ -80,13 +82,14 @@ function DarkDogPlaceholder({
   rounded?: number;
   emojiSize?: number;
 }) {
+  const { tx } = useI18n();
   return (
     <LinearGradient
       colors={[night.bgTop, night.card]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.placeholder, rounded != null ? { borderRadius: rounded } : null, style]}
-      accessibilityLabel={`${name}のプレースホルダー画像`}
+      accessibilityLabel={tx(`${name}のプレースホルダー画像`, `Placeholder image for ${name}`)}
     >
       <Text style={[styles.emoji, { fontSize: emojiSize }]}>{dogEmojiFor(seed)}</Text>
     </LinearGradient>

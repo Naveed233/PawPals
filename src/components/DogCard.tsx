@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import type { CompatibilityResult } from '@/lib/compatibility';
+import { useI18n } from '@/lib/i18n';
 import { font, night, radius, shadow, spacing } from '@/theme';
 import type { DogProfile } from '@/types';
 
@@ -13,6 +14,7 @@ import type { DogProfile } from '@/types';
  * has no dog profile — the compatibility pill is simply skipped.
  */
 export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult | null }) {
+  const { tx } = useI18n();
   return (
     // pointerEvents="none": the card is purely visual — the SwipeDeck's
     // GestureDetector (our parent) handles pan/tap. Critically, on web this
@@ -30,7 +32,9 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
         {compat && (
           <View style={[styles.glassPill, styles.compatPill]}>
             <Icon name="pawFill" color="#fff" size={13} />
-            <Text style={styles.pillText}>相性 {compat.score}%</Text>
+            <Text style={styles.pillText}>
+              {tx(`相性 ${compat.score}%`, `${compat.score}% match`)}
+            </Text>
           </View>
         )}
       </View>
@@ -41,26 +45,28 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
         style={styles.scrim}
         pointerEvents="none"
       >
-        <Text style={styles.distance}>{dog.distanceKm}km先</Text>
+        <Text style={styles.distance}>
+          {tx(`${dog.distanceKm}km先`, `${dog.distanceKm} km away`)}
+        </Text>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
             {dog.name}
           </Text>
           {dog.ownerVerified && (
-            <View style={styles.verifiedDot} accessibilityLabel="認証済み">
+            <View style={styles.verifiedDot} accessibilityLabel={tx('認証済み', 'Verified')}>
               <Icon name="check" color="#fff" size={11} strokeWidth={3.5} />
             </View>
           )}
         </View>
         <Text style={styles.breed} numberOfLines={1}>
-          {dog.breed}・{dog.ageYears}歳
+          {tx(`${dog.breed}・${dog.ageYears}歳`, `${dog.breed} · ${dog.ageYears} yrs`)}
         </Text>
         {!!dog.notes && (
           <Text style={styles.notes} numberOfLines={2}>
             {dog.notes}
           </Text>
         )}
-        <Text style={styles.more}>もっと見る</Text>
+        <Text style={styles.more}>{tx('もっと見る', 'See more')}</Text>
       </LinearGradient>
     </View>
   );

@@ -1,3 +1,4 @@
+import { type Lang, txFor } from '@/lib/i18n';
 import { JP_MEETUP, JP_PLAY_STYLE, JP_SIZE, jp } from '@/lib/jp';
 import type { DogProfile, Energy, Size } from '@/types';
 
@@ -5,8 +6,9 @@ import type { DogProfile, Energy, Size } from '@/types';
  * Deterministic compatibility score between MY dog and ANOTHER dog.
  *
  * This is a transparent heuristic, NOT a safety guarantee. It returns a 5-99
- * score plus the specific reasons (in Japanese) that pushed it up, so the UI
- * can explain itself (「エネルギーレベルが近い」「遊び方の相性◎」...).
+ * score plus the specific reasons (in the requested language, Japanese by
+ * default) that pushed it up, so the UI can explain itself
+ * (「エネルギーレベルが近い」「遊び方の相性◎」...).
  *
  * Design notes:
  *  - Pure function: same inputs -> same output. Easy to unit test.
@@ -27,17 +29,26 @@ function overlap(a: string[], b: string[]): string[] {
   return a.filter((x) => set.has(x.toLowerCase()));
 }
 
-export function computeCompatibility(mine: DogProfile, theirs: DogProfile): CompatibilityResult {
+export function computeCompatibility(
+  mine: DogProfile,
+  theirs: DogProfile,
+  lang: Lang = 'ja',
+): CompatibilityResult {
+  const t = txFor(lang);
   let score = 50;
   const reasons: string[] = [];
 
   // Distance — closer is better.
   if (theirs.distanceKm <= 3) {
     score += 15;
-    reasons.push(`とても近い（${theirs.distanceKm}km先）`);
+    reasons.push(
+      t(`とても近い（${theirs.distanceKm}km先）`, `Very close by (${theirs.distanceKm} km away)`),
+    );
   } else if (theirs.distanceKm <= 8) {
     score += 8;
-    reasons.push(`わりと近い（${theirs.distanceKm}km先）`);
+    reasons.push(
+      t(`わりと近い（${theirs.distanceKm}km先）`, `Pretty close (${theirs.distanceKm} km away)`),
+    );
   } else if (theirs.distanceKm > 15) {
     score -= 10;
   }
@@ -46,7 +57,7 @@ export function computeCompatibility(mine: DogProfile, theirs: DogProfile): Comp
   const sizeGap = Math.abs(ORDER_SIZE[mine.size] - ORDER_SIZE[theirs.size]);
   if (sizeGap === 0) {
     score += 10;
-    reasons.push(`どちらも${jp(JP_SIZE, mine.size)}犬`);
+    reasons.push(t(`どちらも${jp(JP_SIZE, mine.size)}犬`, `Both are ${mine.size} dogs`));
   } else if (sizeGap === 1) {
     score += 4;
   } else {
@@ -57,7 +68,7 @@ export function computeCompatibility(mine: DogProfile, theirs: DogProfile): Comp
   const energyGap = Math.abs(ORDER_ENERGY[mine.energy] - ORDER_ENERGY[theirs.energy]);
   if (energyGap === 0) {
     score += 12;
-    reasons.push('エネルギーレベルが近い');
+    reasons.push(t('エネルギーレベルが近い', 'Similar energy levels'));
   } else if (energyGap === 1) {
     score += 5;
   } else {
@@ -68,7 +79,12 @@ export function computeCompatibility(mine: DogProfile, theirs: DogProfile): Comp
   const sharedPlay = overlap(mine.playStyle, theirs.playStyle);
   if (sharedPlay.length > 0) {
     score += Math.min(sharedPlay.length, 3) * 5;
-    reasons.push(`遊び方の相性◎（${sharedPlay.slice(0, 2).map((s) => jp(JP_PLAY_STYLE, s)).join('・')}）`);
+    reasons.push(
+      t(
+        `遊び方の相性◎（${sharedPlay.slice(0, 2).map((s) => jp(JP_PLAY_STYLE, s)).join('・')}）`,
+        `Matching play styles (${sharedPlay.slice(0, 2).join(', ')})`,
+      ),
+    );
   }
 
   // Personality overlap (lighter weight).
@@ -89,7 +105,12 @@ export function computeCompatibility(mine: DogProfile, theirs: DogProfile): Comp
   // Preferred meetup type.
   if (mine.meetupPref === theirs.meetupPref) {
     score += 8;
-    reasons.push(`お互い「${jp(JP_MEETUP, mine.meetupPref)}」が好み`);
+    reasons.push(
+      t(
+        `お互い「${jp(JP_MEETUP, mine.meetupPref)}」が好み`,
+        `You both prefer "${mine.meetupPref}"`,
+      ),
+    );
   }
 
   // Size tolerance — does their dog get on with dogs my size?
@@ -99,7 +120,7 @@ export function computeCompatibility(mine: DogProfile, theirs: DogProfile): Comp
     mine.size === 'medium';
   if (wantsMine) {
     score += 5;
-    reasons.push(`${jp(JP_SIZE, mine.size)}犬にもフレンドリー`);
+    reasons.push(t(`${jp(JP_SIZE, mine.size)}犬にもフレンドリー`, `Friendly with ${mine.size} dogs`));
   }
 
   const clamped = Math.max(5, Math.min(99, Math.round(score)));

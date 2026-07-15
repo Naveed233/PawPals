@@ -14,6 +14,7 @@ import {
   SIZES,
   SOCIAL_LEVELS,
 } from '@/data/options';
+import { useI18n } from '@/lib/i18n';
 import {
   JP_ENERGY,
   JP_INTENT,
@@ -24,7 +25,6 @@ import {
   JP_SEX,
   JP_SIZE,
   JP_SOCIAL,
-  jp,
 } from '@/lib/jp';
 import { pickPhoto } from '@/lib/media';
 import { font, night, radius, spacing } from '@/theme';
@@ -64,6 +64,7 @@ export function DogForm({
   submitLabel: string;
   onSubmit: (values: DogFormValues) => void;
 }) {
+  const { tx, tv } = useI18n();
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const [intents, setIntents] = useState<Intent[]>(initial?.intents ?? ['Dog playdates']);
   const [name, setName] = useState(initial?.name ?? '');
@@ -97,15 +98,15 @@ export function DogForm({
 
   const submit = () => {
     const next: Record<string, string> = {};
-    if (name.trim().length < 1) next.name = 'お名前を入力してください';
-    if (breed.trim().length < 2) next.breed = '犬種またはミックスを入力してください';
+    if (name.trim().length < 1) next.name = tx('お名前を入力してください', "Please enter your dog's name");
+    if (breed.trim().length < 2) next.breed = tx('犬種またはミックスを入力してください', 'Please enter a breed or mix');
     const ageNum = Number(age);
-    if (!age || Number.isNaN(ageNum) || ageNum < 0 || ageNum > 30) next.age = '年齢（歳）を入力してください';
-    if (!sex) next.sex = '選択してください';
-    if (!size) next.size = '選択してください';
-    if (!energy) next.energy = '選択してください';
-    if (personality.length === 0) next.personality = '1つ以上選んでください';
-    if (playStyle.length === 0) next.playStyle = '1つ以上選んでください';
+    if (!age || Number.isNaN(ageNum) || ageNum < 0 || ageNum > 30) next.age = tx('年齢（歳）を入力してください', 'Please enter an age in years');
+    if (!sex) next.sex = tx('選択してください', 'Please select one');
+    if (!size) next.size = tx('選択してください', 'Please select one');
+    if (!energy) next.energy = tx('選択してください', 'Please select one');
+    if (personality.length === 0) next.personality = tx('1つ以上選んでください', 'Pick at least one');
+    if (playStyle.length === 0) next.playStyle = tx('1つ以上選んでください', 'Pick at least one');
     setErrors(next);
     if (Object.keys(next).length > 0 || !sex || !size || !energy) return;
 
@@ -135,54 +136,56 @@ export function DogForm({
   return (
     <>
       <Card style={{ gap: spacing.md }}>
-        <SectionTitle>写真</SectionTitle>
+        <SectionTitle>{tx('写真', 'Photos')}</SectionTitle>
         <View style={styles.photoRow}>
           {photos.map((uri, i) => (
             <Image key={i} source={{ uri }} style={styles.photoThumb} contentFit="cover" />
           ))}
-          <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel="写真を追加">
+          <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel={tx('写真を追加', 'Add photo')}>
             <Text style={styles.addPhotoPlus}>＋</Text>
-            <Text style={styles.addPhotoText}>追加</Text>
+            <Text style={styles.addPhotoText}>{tx('追加', 'Add')}</Text>
           </Pressable>
         </View>
-        <Text style={styles.photoHint}>任意 — 写真がなくてもかわいいアバターを表示します。</Text>
+        <Text style={styles.photoHint}>{tx('任意 — 写真がなくてもかわいいアバターを表示します。', 'Optional — no photo? We’ll show a cute avatar instead.')}</Text>
       </Card>
 
-      <Field label="お名前 *" value={name} onChangeText={setName} placeholder="例：ビスケット" error={errors.name} />
-      <Field label="犬種・ミックス *" value={breed} onChangeText={setBreed} placeholder="例：ラブラドールミックス" error={errors.breed} />
+      <Field label={tx('お名前 *', 'Name *')} value={name} onChangeText={setName} placeholder={tx('例：ビスケット', 'e.g. Biscuit')} error={errors.name} />
+      <Field label={tx('犬種・ミックス *', 'Breed or mix *')} value={breed} onChangeText={setBreed} placeholder={tx('例：ラブラドールミックス', 'e.g. Labrador mix')} error={errors.breed} />
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
-        <Field label="年齢（歳）*" value={age} onChangeText={setAge} placeholder="3" keyboardType="numeric" error={errors.age} containerStyle={{ flex: 1 }} />
-        <Field label="体重（kg）" value={weight} onChangeText={setWeight} placeholder="18" keyboardType="numeric" containerStyle={{ flex: 1 }} />
+        <Field label={tx('年齢（歳）*', 'Age (years) *')} value={age} onChangeText={setAge} placeholder="3" keyboardType="numeric" error={errors.age} containerStyle={{ flex: 1 }} />
+        <Field label={tx('体重（kg）', 'Weight (kg)')} value={weight} onChangeText={setWeight} placeholder="18" keyboardType="numeric" containerStyle={{ flex: 1 }} />
       </View>
 
-      <ChipGroup label="性別 *" options={SEXES} selected={sex ? [sex] : []} onToggle={(v) => setSex(v)} error={errors.sex} format={(v) => jp(JP_SEX, v)} />
-      <ChipGroup label="サイズ *" options={SIZES} selected={size ? [size] : []} onToggle={(v) => setSize(v)} error={errors.size} format={(v) => jp(JP_SIZE, v)} />
-      <ChipGroup label="元気さ *" options={ENERGY_LEVELS} selected={energy ? [energy] : []} onToggle={(v) => setEnergy(v)} error={errors.energy} format={(v) => jp(JP_ENERGY, v)} />
-      <ChipGroup label="社交性" options={SOCIAL_LEVELS} selected={[social]} onToggle={(v) => setSocial(v)} format={(v) => jp(JP_SOCIAL, v)} />
+      <ChipGroup label={tx('性別 *', 'Sex *')} options={SEXES} selected={sex ? [sex] : []} onToggle={(v) => setSex(v)} error={errors.sex} format={(v) => tv(JP_SEX, v)} />
+      <ChipGroup label={tx('サイズ *', 'Size *')} options={SIZES} selected={size ? [size] : []} onToggle={(v) => setSize(v)} error={errors.size} format={(v) => tv(JP_SIZE, v)} />
+      <ChipGroup label={tx('元気さ *', 'Energy *')} options={ENERGY_LEVELS} selected={energy ? [energy] : []} onToggle={(v) => setEnergy(v)} error={errors.energy} format={(v) => tv(JP_ENERGY, v)} />
+      <ChipGroup label={tx('社交性', 'Sociability')} options={SOCIAL_LEVELS} selected={[social]} onToggle={(v) => setSocial(v)} format={(v) => tv(JP_SOCIAL, v)} />
 
-      <ChipGroup label="性格 *（いくつでも）" options={PERSONALITY_TAGS} selected={personality} onToggle={(v) => toggleTag(personality, setPersonality, v)} error={errors.personality} format={(v) => jp(JP_PERSONALITY, v)} />
-      <ChipGroup label="遊び方 *" options={PLAY_STYLE_TAGS} selected={playStyle} onToggle={(v) => toggleTag(playStyle, setPlayStyle, v)} error={errors.playStyle} format={(v) => jp(JP_PLAY_STYLE, v)} />
-      <ChipGroup label="呼び戻し" options={RECALL_OPTIONS} selected={[recall]} onToggle={(v) => setRecall(v)} format={(v) => jp(JP_RECALL, v)} />
-      <ChipGroup label="希望の会い方" options={MEETUP_TYPES} selected={[meetupPref]} onToggle={(v) => setMeetupPref(v)} format={(v) => jp(JP_MEETUP, v)} />
-      <ChipGroup label="探しているもの" options={INTENTS} selected={intents} onToggle={(v) => setIntents((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))} format={(v) => jp(JP_INTENT, v)} />
+      <ChipGroup label={tx('性格 *（いくつでも）', 'Personality * (pick any)')} options={PERSONALITY_TAGS} selected={personality} onToggle={(v) => toggleTag(personality, setPersonality, v)} error={errors.personality} format={(v) => tv(JP_PERSONALITY, v)} />
+      <ChipGroup label={tx('遊び方 *', 'Play style *')} options={PLAY_STYLE_TAGS} selected={playStyle} onToggle={(v) => toggleTag(playStyle, setPlayStyle, v)} error={errors.playStyle} format={(v) => tv(JP_PLAY_STYLE, v)} />
+      <ChipGroup label={tx('呼び戻し', 'Recall')} options={RECALL_OPTIONS} selected={[recall]} onToggle={(v) => setRecall(v)} format={(v) => tv(JP_RECALL, v)} />
+      <ChipGroup label={tx('希望の会い方', 'Preferred first meetup')} options={MEETUP_TYPES} selected={[meetupPref]} onToggle={(v) => setMeetupPref(v)} format={(v) => tv(JP_MEETUP, v)} />
+      <ChipGroup label={tx('探しているもの', 'Looking for')} options={INTENTS} selected={intents} onToggle={(v) => setIntents((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]))} format={(v) => tv(JP_INTENT, v)} />
 
       <Card style={{ gap: spacing.sm }}>
-        <SectionTitle>健康・相性</SectionTitle>
-        <ToggleRow label="ワクチン接種済み" value={vaccinated} onValueChange={setVaccinated} />
-        <ToggleRow label="去勢・避妊済み" value={neutered} onValueChange={setNeutered} />
-        <ToggleRow label="小型犬と仲良くできる" value={goodWith.smallDogs} onValueChange={(v) => setGoodWith({ ...goodWith, smallDogs: v })} />
-        <ToggleRow label="大型犬と仲良くできる" value={goodWith.largeDogs} onValueChange={(v) => setGoodWith({ ...goodWith, largeDogs: v })} />
-        <ToggleRow label="子犬と仲良くできる" value={goodWith.puppies} onValueChange={(v) => setGoodWith({ ...goodWith, puppies: v })} />
-        <ToggleRow label="シニア犬と仲良くできる" value={goodWith.seniors} onValueChange={(v) => setGoodWith({ ...goodWith, seniors: v })} />
-        <ToggleRow label="子どもと仲良くできる" value={goodWith.children} onValueChange={(v) => setGoodWith({ ...goodWith, children: v })} />
+        <SectionTitle>{tx('健康・相性', 'Health & compatibility')}</SectionTitle>
+        <ToggleRow label={tx('ワクチン接種済み', 'Vaccinated')} value={vaccinated} onValueChange={setVaccinated} />
+        <ToggleRow label={tx('去勢・避妊済み', 'Spayed/neutered')} value={neutered} onValueChange={setNeutered} />
+        <ToggleRow label={tx('小型犬と仲良くできる', 'Good with small dogs')} value={goodWith.smallDogs} onValueChange={(v) => setGoodWith({ ...goodWith, smallDogs: v })} />
+        <ToggleRow label={tx('大型犬と仲良くできる', 'Good with large dogs')} value={goodWith.largeDogs} onValueChange={(v) => setGoodWith({ ...goodWith, largeDogs: v })} />
+        <ToggleRow label={tx('子犬と仲良くできる', 'Good with puppies')} value={goodWith.puppies} onValueChange={(v) => setGoodWith({ ...goodWith, puppies: v })} />
+        <ToggleRow label={tx('シニア犬と仲良くできる', 'Good with senior dogs')} value={goodWith.seniors} onValueChange={(v) => setGoodWith({ ...goodWith, seniors: v })} />
+        <ToggleRow label={tx('子どもと仲良くできる', 'Good with children')} value={goodWith.children} onValueChange={(v) => setGoodWith({ ...goodWith, children: v })} />
       </Card>
 
-      <Field label="性格・行動メモ" value={notes} onChangeText={setNotes} placeholder="新しい友だちと会うときの様子など" multiline numberOfLines={2} />
-      <Field label="苦手なこと・避けたい状況" value={avoid} onChangeText={setAvoid} placeholder="相手に知っておいてほしいこと" multiline numberOfLines={2} />
+      <Field label={tx('性格・行動メモ', 'Personality & behaviour notes')} value={notes} onChangeText={setNotes} placeholder={tx('新しい友だちと会うときの様子など', 'How they act when meeting new friends')} multiline numberOfLines={2} />
+      <Field label={tx('苦手なこと・避けたい状況', 'Dislikes & situations to avoid')} value={avoid} onChangeText={setAvoid} placeholder={tx('相手に知っておいてほしいこと', 'Anything other owners should know')} multiline numberOfLines={2} />
 
       <Text style={styles.disclaimer}>
-        愛犬の見守りと、ミートアップが適切かどうかの判断は飼い主さまの責任です。
-        相性スコアは、犬の安全性やフレンドリーさを保証するものではありません。
+        {tx(
+          '愛犬の見守りと、ミートアップが適切かどうかの判断は飼い主さまの責任です。 相性スコアは、犬の安全性やフレンドリーさを保証するものではありません。',
+          'You are responsible for supervising your dog and deciding whether a meetup is appropriate. Compatibility scores are no guarantee of a dog’s safety or friendliness.',
+        )}
       </Text>
 
       <Button label={submitLabel} onPress={submit} />

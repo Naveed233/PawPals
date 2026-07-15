@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useI18n } from '@/lib/i18n';
 import { font, night, spacing } from '@/theme';
 
 /**
@@ -25,10 +26,16 @@ export function Screen({
   scroll?: boolean;
   contentStyle?: object;
 }) {
+  const { tx } = useI18n();
   const header = (title || onBack || right) && (
     <View style={styles.header}>
       {onBack ? (
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="戻る" hitSlop={12}>
+        <Pressable
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel={tx('戻る', 'Back')}
+          hitSlop={12}
+        >
           <Text style={styles.back}>‹</Text>
         </Pressable>
       ) : (

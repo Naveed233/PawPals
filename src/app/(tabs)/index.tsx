@@ -10,6 +10,8 @@ import { Icon } from '@/components/icons';
 import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
+import { recordSwipeRemote } from '@/lib/sync';
+import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
@@ -21,6 +23,7 @@ const MAP_ROUTE = '/(tabs)/map' as unknown as Href;
 export default function Discover() {
   const router = useRouter();
   const deckRef = useRef<SwipeDeckHandle>(null);
+  const { tx } = useI18n();
 
   const owner = useStore((s) => s.owner);
   const myDog = useStore((s) => s.dogs[0]);
@@ -56,6 +59,7 @@ export default function Discover() {
   const handleSwipe = (dog: DogProfile, dir: SwipeDirection) => {
     if (dir === 'like') setBurstKey((k) => k + 1);
     const match = swipe(dog.id, dir);
+    recordSwipeRemote(dog.id, dir);
     if (match) router.push({ pathname: '/match', params: { dogId: dog.id } });
   };
 
@@ -80,7 +84,7 @@ export default function Discover() {
           <Pressable
             onPress={() => router.push(MAP_ROUTE)}
             accessibilityRole="button"
-            accessibilityLabel="マップ"
+            accessibilityLabel={tx('マップ', 'Map')}
             hitSlop={8}
             style={({ pressed }) => [styles.mapBtn, pressed && styles.pressedScale]}
           >
@@ -92,7 +96,7 @@ export default function Discover() {
           {deck === null ? (
             <View style={styles.center}>
               <ActivityIndicator color={night.pink} size="large" />
-              <Text style={styles.loadingText}>読み込み中…</Text>
+              <Text style={styles.loadingText}>{tx('読み込み中…', 'Loading…')}</Text>
             </View>
           ) : top ? (
             <>
@@ -109,7 +113,7 @@ export default function Discover() {
               <Pressable
                 onPress={() => deckRef.current?.swipe('pass')}
                 accessibilityRole="button"
-                accessibilityLabel="パス"
+                accessibilityLabel={tx('パス', 'Pass')}
                 hitSlop={6}
                 style={({ pressed }) => [styles.glassCircle, styles.passBtn, pressed && styles.pressedScale]}
               >
@@ -121,7 +125,7 @@ export default function Discover() {
                 <Pressable
                   onPress={() => deckRef.current?.swipe('like')}
                   accessibilityRole="button"
-                  accessibilityLabel="いいね"
+                  accessibilityLabel={tx('いいね', 'Like')}
                   hitSlop={6}
                   style={({ pressed }) => [
                     styles.glassCircle,
@@ -135,7 +139,7 @@ export default function Discover() {
                   onPress={undo}
                   disabled={swipeCount === 0}
                   accessibilityRole="button"
-                  accessibilityLabel="元に戻す"
+                  accessibilityLabel={tx('元に戻す', 'Undo')}
                   accessibilityState={{ disabled: swipeCount === 0 }}
                   hitSlop={6}
                   style={({ pressed }) => [
@@ -149,7 +153,7 @@ export default function Discover() {
                 <Pressable
                   onPress={() => toggleSave(top.id)}
                   accessibilityRole="button"
-                  accessibilityLabel="保存"
+                  accessibilityLabel={tx('保存', 'Save')}
                   accessibilityState={{ selected: isSaved }}
                   hitSlop={6}
                   style={({ pressed }) => [
@@ -167,7 +171,7 @@ export default function Discover() {
                 <Pressable
                   onPress={() => deckRef.current?.swipe('pass')}
                   accessibilityRole="button"
-                  accessibilityLabel="パス"
+                  accessibilityLabel={tx('パス', 'Pass')}
                   hitSlop={6}
                   style={({ pressed }) => [
                     styles.glassCircle,
@@ -181,7 +185,7 @@ export default function Discover() {
                 <Pressable
                   onPress={() => deckRef.current?.swipe('like')}
                   accessibilityRole="button"
-                  accessibilityLabel="いいね"
+                  accessibilityLabel={tx('いいね', 'Like')}
                   hitSlop={6}
                   style={({ pressed }) => [
                     styles.glassCircle,
@@ -197,12 +201,17 @@ export default function Discover() {
           ) : (
             <View style={styles.center}>
               <Text style={styles.emptyEmoji}>🦴</Text>
-              <Text style={styles.emptyTitle}>今日の出会いはここまで</Text>
+              <Text style={styles.emptyTitle}>
+                {tx('今日の出会いはここまで', "That's everyone for today")}
+              </Text>
               <Text style={styles.emptyBody}>
-                近くのわんちゃんをすべてチェックしました。また後でのぞいてみてください。デモ用にデッキをリセットすることもできます。
+                {tx(
+                  '近くのわんちゃんをすべてチェックしました。また後でのぞいてみてください。デモ用にデッキをリセットすることもできます。',
+                  "You've met all the dogs nearby. Check back later — or reset the deck to demo again.",
+                )}
               </Text>
               <Button
-                label="デッキをリセット"
+                label={tx('デッキをリセット', 'Reset deck')}
                 variant="outline"
                 onPress={resetDemo}
                 style={{ marginTop: spacing.md, alignSelf: 'stretch' }}

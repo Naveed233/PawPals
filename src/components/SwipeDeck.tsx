@@ -13,6 +13,7 @@ import Animated, {
 
 import { DogCard } from '@/components/DogCard';
 import { computeCompatibility } from '@/lib/compatibility';
+import { useI18n } from '@/lib/i18n';
 import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
 
@@ -36,12 +37,14 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
   const THRESHOLD = width * 0.26;
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
+  // `tx` is taken by the translateX shared value above — alias the translator.
+  const { lang, tx: t } = useI18n();
 
   const top = dogs[0];
   const next = dogs[1];
 
   // Compatibility needs the user's own dog; null hides the badge entirely.
-  const compatFor = (dog: DogProfile) => (myDog ? computeCompatibility(myDog, dog) : null);
+  const compatFor = (dog: DogProfile) => (myDog ? computeCompatibility(myDog, dog, lang) : null);
 
   // Runs on the JS thread once a card has flown off-screen.
   const finish = (dog: DogProfile, dir: SwipeDirection) => {
@@ -117,10 +120,10 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
           <DogCard dog={top} compat={compatFor(top)} />
 
           <Animated.View style={[styles.stamp, styles.likeStamp, likeStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: night.pink }]}>いいね</Text>
+            <Text style={[styles.stampText, { color: night.pink }]}>{t('いいね', 'LIKE')}</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.passStamp, passStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: night.danger }]}>パス</Text>
+            <Text style={[styles.stampText, { color: night.danger }]}>{t('パス', 'PASS')}</Text>
           </Animated.View>
         </Animated.View>
       </GestureDetector>

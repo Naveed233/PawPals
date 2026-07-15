@@ -6,11 +6,13 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
+import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
 export default function MatchCelebration() {
   const router = useRouter();
+  const { tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
   const myDog = useStore((s) => s.dogs[0]);
   const dog = SEED_DOGS.find((d) => d.id === dogId);
@@ -22,10 +24,16 @@ export default function MatchCelebration() {
   if (!dog || !myDog) {
     return (
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="閉じる" />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={close}
+          accessibilityLabel={tx('閉じる', 'Close')}
+        />
         <View style={styles.card}>
-          <Text style={styles.title}>このマッチは表示できません</Text>
-          <Button label="閉じる" onPress={close} />
+          <Text style={styles.title}>
+            {tx('このマッチは表示できません', "This match can't be shown")}
+          </Text>
+          <Button label={tx('閉じる', 'Close')} onPress={close} />
         </View>
       </View>
     );
@@ -33,11 +41,18 @@ export default function MatchCelebration() {
 
   return (
     <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="閉じる" />
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={close}
+        accessibilityLabel={tx('閉じる', 'Close')}
+      />
       <Pop style={styles.card}>
-        <Text style={styles.kicker}>🎉 マッチしました！</Text>
+        <Text style={styles.kicker}>{tx('🎉 マッチしました！', "🎉 It's a match!")}</Text>
         <Text style={styles.title}>
-          {myDog.name}と{dog.name}、お互いに会いたがっています
+          {tx(
+            `${myDog.name}と${dog.name}、お互いに会いたがっています`,
+            `${myDog.name} and ${dog.name} want to meet each other`,
+          )}
         </Text>
 
         <View style={styles.photos}>
@@ -50,26 +65,29 @@ export default function MatchCelebration() {
         </View>
 
         <Text style={styles.body}>
-          {dog.ownerName}さんとミートアップの計画を立てられます。初めて会うときは、必ず犬同伴OKの公共の場所で。
+          {tx(
+            `${dog.ownerName}さんとミートアップの計画を立てられます。初めて会うときは、必ず犬同伴OKの公共の場所で。`,
+            `You can now plan a meetup with ${dog.ownerName}. For a first meeting, always pick a public, dog-friendly spot.`,
+          )}
         </Text>
 
         <View style={{ gap: spacing.md, width: '100%' }}>
           <Button
-            label="メッセージを送る"
+            label={tx('メッセージを送る', 'Send a message')}
             onPress={() => {
               close();
               router.push(`/chat/${dog.id}`);
             }}
           />
           <Button
-            label={`${dog.name}のプロフィールを見る`}
+            label={tx(`${dog.name}のプロフィールを見る`, `View ${dog.name}'s profile`)}
             variant="outline"
             onPress={() => {
               close();
               router.push(`/dog/${dog.id}`);
             }}
           />
-          <Button label="スワイプを続ける" variant="ghost" onPress={close} />
+          <Button label={tx('スワイプを続ける', 'Keep swiping')} variant="ghost" onPress={close} />
         </View>
       </Pop>
     </View>

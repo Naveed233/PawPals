@@ -19,6 +19,7 @@ import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { replyFor, SUGGESTED_OPENERS } from '@/data/chat';
 import { SEED_DOGS } from '@/data/seed';
+import { useI18n } from '@/lib/i18n';
 import { pickPhoto } from '@/lib/media';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
@@ -42,6 +43,7 @@ const fmtTime = (at: number) => {
 
 export default function Chat() {
   const router = useRouter();
+  const { lang, tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
   const dog = SEED_DOGS.find((d) => d.id === dogId);
 
@@ -58,7 +60,9 @@ export default function Chat() {
   if (!dog) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.missing}>このチャットは利用できません。</Text>
+        <Text style={styles.missing}>
+          {tx('このチャットは利用できません。', 'This chat is unavailable.')}
+        </Text>
       </SafeAreaView>
     );
   }
@@ -94,7 +98,7 @@ export default function Chat() {
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="戻る"
+          accessibilityLabel={tx('戻る', 'Back')}
           style={styles.backBtn}
         >
           <Icon name="arrowLeft" color={night.text} size={22} />
@@ -105,14 +109,14 @@ export default function Chat() {
             {dog.name}
           </Text>
           <Text style={styles.sub} numberOfLines={1}>
-            {dog.ownerName}さん · {dog.ownerArea}
+            {tx(`${dog.ownerName}さん · ${dog.ownerArea}`, `${dog.ownerName} · ${dog.ownerArea}`)}
           </Text>
         </View>
         <Pressable
           onPress={() => router.push(`/call/${dog.id}?mode=voice`)}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="音声通話"
+          accessibilityLabel={tx('音声通話', 'Voice call')}
           style={styles.callBtn}
         >
           <Icon name="phone" color={night.text} size={18} />
@@ -121,7 +125,7 @@ export default function Chat() {
           onPress={() => router.push(`/call/${dog.id}?mode=video`)}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="ビデオ通話"
+          accessibilityLabel={tx('ビデオ通話', 'Video call')}
           style={styles.callBtn}
         >
           <Icon name="video" color={night.text} size={18} />
@@ -140,14 +144,21 @@ export default function Chat() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.dayNote}>
-            <Text style={styles.dayNoteText}>{dog.name}とマッチしました 🎉 あいさつしてみましょう！</Text>
+            <Text style={styles.dayNoteText}>
+              {tx(
+                `${dog.name}とマッチしました 🎉 あいさつしてみましょう！`,
+                `You matched with ${dog.name} 🎉 Say hello!`,
+              )}
+            </Text>
           </View>
 
           {messages.length === 0 && (
             <View style={styles.openers}>
-              <Text style={styles.openersTitle}>おすすめの最初のメッセージ</Text>
+              <Text style={styles.openersTitle}>
+                {tx('おすすめの最初のメッセージ', 'SUGGESTED OPENERS')}
+              </Text>
               {SUGGESTED_OPENERS.map((o) => {
-                const label = JP_OPENERS[o] ?? o;
+                const label = lang === 'ja' ? JP_OPENERS[o] ?? o : o;
                 return <Chip key={o} label={label} onPress={() => send(label)} />;
               })}
             </View>
@@ -176,7 +187,9 @@ export default function Chat() {
           {typing && (
             <View style={[styles.bubbleRow, styles.rowTheirs]}>
               <View style={[styles.bubble, styles.bubbleTheirs]}>
-                <Text style={styles.typing}>{dog.name}の飼い主さんが入力中…</Text>
+                <Text style={styles.typing}>
+                  {tx(`${dog.name}の飼い主さんが入力中…`, `${dog.name}'s owner is typing…`)}
+                </Text>
               </View>
             </View>
           )}
@@ -188,26 +201,26 @@ export default function Chat() {
             onPress={attachImage}
             style={styles.attach}
             accessibilityRole="button"
-            accessibilityLabel="写真を送る"
+            accessibilityLabel={tx('写真を送る', 'Send a photo')}
           >
             <Icon name="camera" color={night.text} size={20} />
           </Pressable>
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="メッセージを入力…"
+            placeholder={tx('メッセージを入力…', 'Type a message…')}
             placeholderTextColor={night.faint}
             style={styles.input}
             multiline
             onSubmitEditing={() => send(input)}
-            accessibilityLabel="メッセージ入力"
+            accessibilityLabel={tx('メッセージ入力', 'Message input')}
           />
           <Pressable
             onPress={() => send(input)}
             disabled={!input.trim()}
             style={[styles.sendBtn, !input.trim() && styles.sendDisabled]}
             accessibilityRole="button"
-            accessibilityLabel="送信"
+            accessibilityLabel={tx('送信', 'Send')}
           >
             <Icon name="send" color="#fff" size={18} />
           </Pressable>

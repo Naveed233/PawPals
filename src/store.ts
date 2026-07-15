@@ -27,6 +27,9 @@ const newMessageId = (dogId: string) => `m-${dogId}-${Date.now()}-${msgCounter++
 interface AppState {
   _hasHydrated: boolean;
 
+  /** UI language — a device preference, so it survives sign-out. */
+  language: 'ja' | 'en';
+
   session: { email: string } | null;
   owner: OwnerProfile | null;
   dogs: DogProfile[];
@@ -49,6 +52,7 @@ interface AppState {
   rsvps: Record<string, boolean>;
 
   setHasHydrated: (v: boolean) => void;
+  setLanguage: (language: 'ja' | 'en') => void;
   signIn: (email: string) => void;
   signOut: () => void;
   setOwner: (owner: OwnerProfile) => void;
@@ -81,6 +85,8 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       _hasHydrated: false,
 
+      language: 'ja' as const,
+
       session: null,
       owner: null,
       dogs: [],
@@ -99,6 +105,8 @@ export const useStore = create<AppState>()(
       rsvps: {},
 
       setHasHydrated: (v) => set({ _hasHydrated: v }),
+
+      setLanguage: (language) => set({ language }),
 
       signIn: (email) => set({ session: { email: email.trim().toLowerCase() } }),
 

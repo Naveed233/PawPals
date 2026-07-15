@@ -5,7 +5,8 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { ChipGroup } from '@/components/form';
 import { Button, Field } from '@/components/ui';
 import { AGE_RANGES, AVAILABILITY, LANGUAGES } from '@/data/options';
-import { JP_AVAILABILITY, JP_LANGUAGE, JP_PET_STATUS, jp } from '@/lib/jp';
+import { useI18n } from '@/lib/i18n';
+import { EN_PET_STATUS, JP_AVAILABILITY, JP_LANGUAGE, JP_PET_STATUS } from '@/lib/jp';
 import { pickPhoto } from '@/lib/media';
 import { font, night, radius, spacing } from '@/theme';
 import type { PetStatus } from '@/types';
@@ -25,9 +26,9 @@ export interface OwnerFormValues {
 const PET_STATUS_OPTIONS: PetStatus[] = ['has-dog', 'has-other-pet', 'no-pet-meet', 'no-pet-future'];
 
 /** Secondary line for the no-pet options (main label comes from JP_PET_STATUS). */
-const PET_STATUS_NOTE: Partial<Record<PetStatus, string>> = {
-  'no-pet-meet': '飼っていない',
-  'no-pet-future': '今は飼っていない',
+const PET_STATUS_NOTE: Partial<Record<PetStatus, [ja: string, en: string]>> = {
+  'no-pet-meet': ['飼っていない', "Doesn't have a pet"],
+  'no-pet-future': ['今は飼っていない', 'No pet right now'],
 };
 
 /** Shared owner profile form, used for both onboarding and editing. */
@@ -43,6 +44,7 @@ export function OwnerForm({
   /** Optional: lets the onboarding screen react to the pet-status choice. */
   onPetStatusChange?: (status: PetStatus) => void;
 }) {
+  const { tx, tv } = useI18n();
   const [firstName, setFirstName] = useState(initial?.firstName ?? '');
   const [area, setArea] = useState(initial?.area ?? '');
   const [zip, setZip] = useState('');
@@ -71,7 +73,7 @@ export function OwnerForm({
   const lookupZip = async () => {
     const digits = zip.replace(/[-ー−\s]/g, '');
     if (!/^\d{7}$/.test(digits)) {
-      setZipError('7桁の郵便番号を入力してください（例：150-0002）');
+      setZipError(tx('7桁の郵便番号を入力してください（例：150-0002）', 'Enter a 7-digit postal code (e.g. 150-0002)'));
       return;
     }
     setZipError(undefined);
@@ -86,10 +88,10 @@ export function OwnerForm({
         setArea(`${hit.address1}${hit.address2}${hit.address3}`);
         setErrors((e) => ({ ...e, area: undefined }));
       } else {
-        setZipError('該当する住所が見つかりませんでした');
+        setZipError(tx('該当する住所が見つかりませんでした', 'No address found for that postal code'));
       }
     } catch {
-      setZipError('検索に失敗しました。エリアを直接入力してください。');
+      setZipError(tx('検索に失敗しました。エリアを直接入力してください。', 'Lookup failed. Please type your area instead.'));
     } finally {
       setZipLoading(false);
     }
@@ -113,10 +115,14 @@ export function OwnerForm({
 
   const submit = () => {
     const next: typeof errors = {};
-    if (firstName.trim().length < 2) next.firstName = '名前を入力してください';
-    if (area.trim().length < 2) next.area = 'おおまかなエリアを入力してください（正確な住所は不要です）';
+    if (firstName.trim().length < 2) next.firstName = tx('名前を入力してください', 'Please enter your name');
+    if (area.trim().length < 2)
+      next.area = tx(
+        'おおまかなエリアを入力してください（正確な住所は不要です）',
+        'Please enter your general area (no exact address needed)',
+      );
     if (petStatus === 'has-other-pet' && otherPetType.trim().length === 0)
-      next.otherPetType = 'ペットの種類を入力してください';
+      next.otherPetType = tx('ペットの種類を入力してください', 'Please enter the type of pet');
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     onSubmit({
@@ -135,20 +141,20 @@ export function OwnerForm({
   return (
     <>
       <View style={styles.photoRow}>
-        <OwnerAvatar ownerId="owner-1" name={firstName || 'あなた'} uri={photo} style={styles.avatar} rounded={radius.pill} size={48} />
-        <Pressable onPress={changePhoto} style={styles.photoBtn} accessibilityRole="button" accessibilityLabel="プロフィール写真を変更">
-          <Text style={styles.photoBtnText}>{photo ? '写真を変更' : '写真を追加'}</Text>
+        <OwnerAvatar ownerId="owner-1" name={firstName || tx('あなた', 'You')} uri={photo} style={styles.avatar} rounded={radius.pill} size={48} />
+        <Pressable onPress={changePhoto} style={styles.photoBtn} accessibilityRole="button" accessibilityLabel={tx('プロフィール写真を変更', 'Change profile photo')}>
+          <Text style={styles.photoBtnText}>{photo ? tx('写真を変更', 'Change photo') : tx('写真を追加', 'Add photo')}</Text>
         </Pressable>
       </View>
 
-      <Field label="お名前 *" value={firstName} onChangeText={setFirstName} placeholder="例：あかり" error={errors.firstName} />
+      <Field label={tx('お名前 *', 'Name *')} value={firstName} onChangeText={setFirstName} placeholder={tx('例：あかり', 'e.g. Akari')} error={errors.firstName} />
 
       <View style={styles.zipRow}>
         <Field
-          label="郵便番号（日本）"
+          label={tx('郵便番号（日本）', 'Postal code (Japan)')}
           value={zip}
           onChangeText={setZip}
-          placeholder="例：150-0002"
+          placeholder={tx('例：150-0002', 'e.g. 150-0002')}
           maxLength={8}
           inputMode="numeric"
           error={zipError}
@@ -158,33 +164,34 @@ export function OwnerForm({
           onPress={lookupZip}
           disabled={zipLoading}
           accessibilityRole="button"
-          accessibilityLabel="郵便番号から住所を検索"
+          accessibilityLabel={tx('郵便番号から住所を検索', 'Look up address from postal code')}
           accessibilityState={{ disabled: zipLoading }}
           style={[styles.zipBtn, zipLoading && { opacity: 0.6 }]}
         >
-          <Text style={styles.zipBtnText}>{zipLoading ? '検索中…' : '住所検索'}</Text>
+          <Text style={styles.zipBtnText}>{zipLoading ? tx('検索中…', 'Searching…') : tx('住所検索', 'Find address')}</Text>
         </Pressable>
       </View>
 
       <Field
-        label="おおまかなエリア *"
+        label={tx('おおまかなエリア *', 'General area *')}
         value={area}
         onChangeText={setArea}
-        placeholder="郵便番号から自動入力（編集もできます）"
+        placeholder={tx('郵便番号から自動入力（編集もできます）', 'Auto-filled from postal code (editable)')}
         error={errors.area}
       />
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={styles.groupLabel}>ペットについて</Text>
+        <Text style={styles.groupLabel}>{tx('ペットについて', 'About your pets')}</Text>
         <View style={{ gap: spacing.sm }} accessibilityRole="radiogroup">
           {PET_STATUS_OPTIONS.map((status) => {
             const selected = petStatus === status;
+            const note = PET_STATUS_NOTE[status];
             return (
               <Pressable
                 key={status}
                 onPress={() => selectPetStatus(status)}
                 accessibilityRole="radio"
-                accessibilityLabel={jp(JP_PET_STATUS, status)}
+                accessibilityLabel={tx(JP_PET_STATUS[status] ?? status, EN_PET_STATUS[status] ?? status)}
                 accessibilityState={{ selected }}
                 style={[styles.statusCard, selected && styles.statusCardOn]}
               >
@@ -193,11 +200,9 @@ export function OwnerForm({
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.statusText, selected && styles.statusTextOn]}>
-                    {jp(JP_PET_STATUS, status)}
+                    {tx(JP_PET_STATUS[status] ?? status, EN_PET_STATUS[status] ?? status)}
                   </Text>
-                  {!!PET_STATUS_NOTE[status] && (
-                    <Text style={styles.statusNote}>{PET_STATUS_NOTE[status]}</Text>
-                  )}
+                  {!!note && <Text style={styles.statusNote}>{tx(note[0], note[1])}</Text>}
                 </View>
               </Pressable>
             );
@@ -205,46 +210,46 @@ export function OwnerForm({
         </View>
         {petStatus === 'has-other-pet' && (
           <Field
-            label="ペットの種類 *"
+            label={tx('ペットの種類 *', 'Type of pet *')}
             value={otherPetType}
             onChangeText={setOtherPetType}
-            placeholder="例：猫、うさぎ"
+            placeholder={tx('例：猫、うさぎ', 'e.g. cat, rabbit')}
             maxLength={30}
             error={errors.otherPetType}
           />
         )}
       </View>
 
-      <Field label="ひとこと自己紹介" value={bio} onChangeText={setBio} placeholder="あなたのことや、どんなふうに会いたいかをひとこと" multiline numberOfLines={3} />
+      <Field label={tx('ひとこと自己紹介', 'Short intro')} value={bio} onChangeText={setBio} placeholder={tx('あなたのことや、どんなふうに会いたいかをひとこと', 'A little about you and how you like to meet up')} multiline numberOfLines={3} />
 
-      <ChipGroup label="年齢層（任意）" options={AGE_RANGES} selected={ageRange ? [ageRange] : []} onToggle={(v) => setAgeRange((cur) => (cur === v ? undefined : v))} format={(v) => v} />
+      <ChipGroup label={tx('年齢層（任意）', 'Age range (optional)')} options={AGE_RANGES} selected={ageRange ? [ageRange] : []} onToggle={(v) => setAgeRange((cur) => (cur === v ? undefined : v))} format={(v) => v} />
 
       <View style={{ gap: spacing.sm }}>
-        <ChipGroup label="話せる言語" options={languageOptions} selected={languages} onToggle={(v) => toggle(languages, setLanguages, v)} format={(v) => jp(JP_LANGUAGE, v)} />
+        <ChipGroup label={tx('話せる言語', 'Languages you speak')} options={languageOptions} selected={languages} onToggle={(v) => toggle(languages, setLanguages, v)} format={(v) => tv(JP_LANGUAGE, v)} />
         <View style={styles.customLangRow}>
           <TextInput
             value={customLanguage}
             onChangeText={setCustomLanguage}
-            placeholder="その他の言語を入力"
+            placeholder={tx('その他の言語を入力', 'Add another language')}
             placeholderTextColor={night.faint}
             maxLength={30}
             style={styles.customLangInput}
-            accessibilityLabel="その他の言語を入力"
+            accessibilityLabel={tx('その他の言語を入力', 'Add another language')}
             onSubmitEditing={addCustomLanguage}
             returnKeyType="done"
           />
           <Pressable
             onPress={addCustomLanguage}
             accessibilityRole="button"
-            accessibilityLabel="言語を追加"
+            accessibilityLabel={tx('言語を追加', 'Add language')}
             style={styles.addLangBtn}
           >
-            <Text style={styles.addLangBtnText}>追加</Text>
+            <Text style={styles.addLangBtnText}>{tx('追加', 'Add')}</Text>
           </Pressable>
         </View>
       </View>
 
-      <ChipGroup label="よく空いている時間帯" options={AVAILABILITY} selected={availability} onToggle={(v) => toggle(availability, setAvailability, v)} format={(v) => jp(JP_AVAILABILITY, v)} />
+      <ChipGroup label={tx('よく空いている時間帯', 'When you’re usually free')} options={AVAILABILITY} selected={availability} onToggle={(v) => toggle(availability, setAvailability, v)} format={(v) => tv(JP_AVAILABILITY, v)} />
 
       <Button label={submitLabel} onPress={submit} />
     </>

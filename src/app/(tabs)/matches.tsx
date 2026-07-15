@@ -8,12 +8,14 @@ import { Icon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
+import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 import type { Message } from '@/types';
 
 /** 時刻ラベル: 今日 → 14:05 / 昨日 / それ以前 → 7/12 */
-function timeLabel(at: number): string {
+function timeLabel(at: number, lang: Lang): string {
+  const t = txFor(lang);
   const d = new Date(at);
   const now = new Date();
   if (d.toDateString() === now.toDateString()) {
@@ -21,7 +23,7 @@ function timeLabel(at: number): string {
   }
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return '昨日';
+  if (d.toDateString() === yesterday.toDateString()) return t('昨日', 'Yesterday');
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
@@ -37,6 +39,7 @@ function unreadCount(messages: Message[]): number {
 
 export default function Matches() {
   const router = useRouter();
+  const { lang, tx } = useI18n();
   const matches = useStore((s) => s.matches);
   const conversations = useStore((s) => s.conversations);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -57,8 +60,13 @@ export default function Matches() {
   return (
     <Screen>
       <View style={{ gap: 2 }}>
-        <Text style={styles.pageTitle}>メッセージ</Text>
-        <Text style={styles.pageSub}>{matches.length}件のマッチ</Text>
+        <Text style={styles.pageTitle}>{tx('メッセージ', 'Messages')}</Text>
+        <Text style={styles.pageSub}>
+          {tx(
+            `${matches.length}件のマッチ`,
+            `${matches.length} ${matches.length === 1 ? 'match' : 'matches'}`,
+          )}
+        </Text>
       </View>
 
       {matches.length === 0 ? (
@@ -66,16 +74,23 @@ export default function Matches() {
           <View style={styles.emptyIcon}>
             <Icon name="chat" color={night.pink} size={32} />
           </View>
-          <Text style={styles.emptyTitle}>まだマッチがありません</Text>
+          <Text style={styles.emptyTitle}>{tx('まだマッチがありません', 'No matches yet')}</Text>
           <Text style={styles.emptyBody}>
-            おたがいに「いいね」するとここに表示され、チャットやミートアップの相談ができます。
+            {tx(
+              'おたがいに「いいね」するとここに表示され、チャットやミートアップの相談ができます。',
+              'When you like each other, they show up here so you can chat and plan a meetup.',
+            )}
           </Text>
-          <Button label="相手を探す" onPress={() => router.push('/(tabs)')} style={styles.emptyCta} />
+          <Button
+            label={tx('相手を探す', 'Find matches')}
+            onPress={() => router.push('/(tabs)')}
+            style={styles.emptyCta}
+          />
         </View>
       ) : (
         <>
           <View style={{ gap: spacing.sm }}>
-            <Text style={styles.sectionLabel}>ステータス</Text>
+            <Text style={styles.sectionLabel}>{tx('ステータス', 'STATUS')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -85,14 +100,14 @@ export default function Matches() {
               <Pressable
                 onPress={() => router.push('/(tabs)')}
                 accessibilityRole="button"
-                accessibilityLabel="相手を探す"
+                accessibilityLabel={tx('相手を探す', 'Find matches')}
                 style={({ pressed }) => [styles.statusItem, pressed && { opacity: 0.8 }]}
               >
                 <View style={styles.plusRing}>
                   <Icon name="plus" color={night.pink} size={26} />
                 </View>
                 <Text style={styles.statusName} numberOfLines={1}>
-                  相手を探す
+                  {tx('相手を探す', 'Find matches')}
                 </Text>
               </Pressable>
 
@@ -101,7 +116,7 @@ export default function Matches() {
                   key={match.id}
                   onPress={() => router.push(`/chat/${dog.id}`)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${dog.name}とチャット`}
+                  accessibilityLabel={tx(`${dog.name}とチャット`, `Chat with ${dog.name}`)}
                   style={({ pressed }) => [styles.statusItem, pressed && { opacity: 0.8 }]}
                 >
                   <View style={styles.photoRing}>
@@ -116,27 +131,44 @@ export default function Matches() {
           </View>
 
           <View style={styles.filters}>
-            <Chip label="すべて" selected={filter === 'all'} onPress={() => setFilter('all')} />
-            <Chip label="未読" selected={filter === 'unread'} onPress={() => setFilter('unread')} />
+            <Chip
+              label={tx('すべて', 'All')}
+              selected={filter === 'all'}
+              onPress={() => setFilter('all')}
+            />
+            <Chip
+              label={tx('未読', 'Unread')}
+              selected={filter === 'unread'}
+              onPress={() => setFilter('unread')}
+            />
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Text style={styles.sectionLabel}>チャット</Text>
+            <Text style={styles.sectionLabel}>{tx('チャット', 'CHATS')}</Text>
 
             {visible.length === 0 ? (
               <Text style={styles.noneText}>
-                {filter === 'unread' ? '未読のメッセージはありません。' : 'チャットはまだありません。'}
+                {filter === 'unread'
+                  ? tx('未読のメッセージはありません。', 'No unread messages.')
+                  : tx('チャットはまだありません。', 'No chats yet.')}
               </Text>
             ) : (
               <View style={styles.chatList}>
                 {visible.map(({ match, dog, last, unread }, i) => {
-                  const preview = last ? (last.kind === 'image' ? '📷 写真' : last.text ?? '') : null;
+                  const preview = last
+                    ? last.kind === 'image'
+                      ? tx('📷 写真', '📷 Photo')
+                      : last.text ?? ''
+                    : null;
                   return (
                     <Entrance key={match.id} delay={i * 60}>
                       <Pressable
                         onPress={() => router.push(`/chat/${dog.id}`)}
                         accessibilityRole="button"
-                        accessibilityLabel={`${dog.name}のチャットを開く`}
+                        accessibilityLabel={tx(
+                          `${dog.name}のチャットを開く`,
+                          `Open chat with ${dog.name}`,
+                        )}
                         style={({ pressed }) => [styles.row, pressed && { opacity: 0.85 }]}
                       >
                         <DogPhoto dog={dog} style={styles.thumb} rounded={radius.pill} emojiSize={26} />
@@ -146,20 +178,20 @@ export default function Matches() {
                               {dog.name}
                             </Text>
                             <Text style={styles.owner} numberOfLines={1}>
-                              {dog.ownerName}さん
+                              {tx(`${dog.ownerName}さん`, dog.ownerName)}
                             </Text>
                           </View>
                           {preview !== null ? (
                             <Text style={styles.preview} numberOfLines={1}>
-                              {last?.sender === 'me' ? '自分: ' : ''}
+                              {last?.sender === 'me' ? tx('自分: ', 'You: ') : ''}
                               {preview}
                             </Text>
                           ) : (
-                            <Text style={styles.newMatch}>新しいマッチ！</Text>
+                            <Text style={styles.newMatch}>{tx('新しいマッチ！', 'New match!')}</Text>
                           )}
                         </View>
                         <View style={styles.rowRight}>
-                          {!!last && <Text style={styles.time}>{timeLabel(last.at)}</Text>}
+                          {!!last && <Text style={styles.time}>{timeLabel(last.at, lang)}</Text>}
                           {unread > 0 ? (
                             <View style={styles.badge}>
                               <Text style={styles.badgeText}>{unread}</Text>
@@ -176,7 +208,12 @@ export default function Matches() {
             )}
           </View>
 
-          <Text style={styles.footnote}>タップしてチャット・写真の共有・音声/ビデオ通話ができます。</Text>
+          <Text style={styles.footnote}>
+            {tx(
+              'タップしてチャット・写真の共有・音声/ビデオ通話ができます。',
+              'Tap to chat, share photos, or start a voice/video call.',
+            )}
+          </Text>
         </>
       )}
     </Screen>

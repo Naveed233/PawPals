@@ -8,11 +8,13 @@ import { PersonAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon, IconName } from '@/components/icons';
 import { SEED_DOGS } from '@/data/seed';
+import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
 export default function Call() {
   const router = useRouter();
+  const { tx } = useI18n();
   const { dogId, mode } = useLocalSearchParams<{ dogId: string; mode?: string }>();
   const isVideo = mode === 'video';
 
@@ -39,11 +41,11 @@ export default function Call() {
     return (
       <LinearGradient colors={[night.bgTop, night.bg]} style={styles.fill}>
         <SafeAreaView style={[styles.fill, styles.center]}>
-          <Text style={styles.name}>通話を利用できません</Text>
+          <Text style={styles.name}>{tx('通話を利用できません', 'Call unavailable')}</Text>
           <Pressable
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="閉じる"
+            accessibilityLabel={tx('閉じる', 'Close')}
             style={styles.ctrl}
           >
             <Icon name="x" color="#fff" size={24} />
@@ -60,8 +62,10 @@ export default function Call() {
       <SafeAreaView style={styles.fill}>
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            デモ通話 — 実際には接続されていません。ライブ{isVideo ? 'ビデオ' : '音声'}
-            通話にはバックエンド（WebRTC）が必要です。
+            {tx(
+              `デモ通話 — 実際には接続されていません。ライブ${isVideo ? 'ビデオ' : '音声'}通話にはバックエンド（WebRTC）が必要です。`,
+              `Demo call — nothing is actually connected. Live ${isVideo ? 'video' : 'voice'} calls need a backend (WebRTC).`,
+            )}
           </Text>
         </View>
 
@@ -70,9 +74,13 @@ export default function Call() {
             <DogPhoto dog={dog} style={styles.bigAvatar} rounded={radius.xl} emojiSize={96} />
           </View>
           <Text style={styles.name}>{dog.name}</Text>
-          <Text style={styles.owner}>{dog.ownerName}さんと</Text>
+          <Text style={styles.owner}>{tx(`${dog.ownerName}さんと`, `with ${dog.ownerName}`)}</Text>
           <Text style={styles.status}>
-            {connected ? mmss : isVideo ? 'ビデオ通話を発信中…' : '音声通話を発信中…'}
+            {connected
+              ? mmss
+              : isVideo
+                ? tx('ビデオ通話を発信中…', 'Starting video call…')
+                : tx('音声通話を発信中…', 'Calling…')}
           </Text>
         </View>
 
@@ -80,17 +88,17 @@ export default function Call() {
           <View style={styles.selfTile}>
             {videoOff ? (
               <View style={styles.selfOff}>
-                <Text style={styles.selfOffText}>カメラオフ</Text>
+                <Text style={styles.selfOffText}>{tx('カメラオフ', 'Camera off')}</Text>
               </View>
             ) : (
               <>
                 <PersonAvatar
-                  name={owner?.firstName ?? 'あなた'}
+                  name={owner?.firstName ?? tx('あなた', 'You')}
                   style={styles.selfAvatar}
                   rounded={radius.md}
                   size={40}
                 />
-                <Text style={styles.selfLabel}>あなた</Text>
+                <Text style={styles.selfLabel}>{tx('あなた', 'You')}</Text>
               </>
             )}
           </View>
@@ -98,20 +106,26 @@ export default function Call() {
 
         <View style={styles.controls}>
           <CallButton
-            label={muted ? 'ミュート解除' : 'ミュート'}
+            label={muted ? tx('ミュート解除', 'Unmute') : tx('ミュート', 'Mute')}
             icon="chat"
             active={muted}
             onPress={() => setMuted((m) => !m)}
           />
           {isVideo && (
             <CallButton
-              label={videoOff ? 'カメラをオン' : 'カメラをオフ'}
+              label={videoOff ? tx('カメラをオン', 'Camera on') : tx('カメラをオフ', 'Camera off')}
               icon="video"
               active={videoOff}
               onPress={() => setVideoOff((v) => !v)}
             />
           )}
-          <CallButton label="終了" icon="phone" rotate danger onPress={() => router.back()} />
+          <CallButton
+            label={tx('終了', 'End')}
+            icon="phone"
+            rotate
+            danger
+            onPress={() => router.back()}
+          />
         </View>
       </SafeAreaView>
     </LinearGradient>

@@ -17,6 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { type Lang, txFor, useI18n } from '@/lib/i18n';
+
 /*
  * Shared building blocks for the dark auth screens (sign-in / sign-up /
  * forgot-password). Local dark palette — the rest of the app keeps the
@@ -74,6 +77,7 @@ export function AuthScreen({
   onFooterPress?: () => void;
 }) {
   const router = useRouter();
+  const { tx } = useI18n();
   return (
     <View style={s.root}>
       <StatusBar style="light" />
@@ -96,7 +100,7 @@ export function AuthScreen({
               {router.canGoBack() && (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="戻る"
+                  accessibilityLabel={tx('戻る', 'Back')}
                   onPress={() => router.back()}
                   style={({ pressed }) => [s.back, pressed && s.pressed]}
                 >
@@ -104,12 +108,14 @@ export function AuthScreen({
                 </Pressable>
               )}
 
+              <LanguageToggle style={s.langToggle} />
+
               <View style={s.photoRing}>
                 <Image
                   source={DOGS}
                   style={s.photo}
                   contentFit="cover"
-                  accessibilityLabel="公園で遊ぶ2匹の犬"
+                  accessibilityLabel={tx('公園で遊ぶ2匹の犬', 'Two dogs playing in a park')}
                 />
               </View>
 
@@ -144,6 +150,7 @@ export function DarkField({
   ...props
 }: TextInputProps & { label: string; error?: string; secureToggle?: boolean }) {
   const [hidden, setHidden] = useState(true);
+  const { tx } = useI18n();
   return (
     <View style={s.fieldWrap}>
       <Text style={s.label}>{label}</Text>
@@ -157,7 +164,9 @@ export function DarkField({
         {secureToggle && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={hidden ? 'パスワードを表示' : 'パスワードを隠す'}
+            accessibilityLabel={
+              hidden ? tx('パスワードを表示', 'Show password') : tx('パスワードを隠す', 'Hide password')
+            }
             onPress={() => setHidden((h) => !h)}
             style={({ pressed }) => [s.eyeBtn, pressed && s.pressed]}
           >
@@ -175,13 +184,23 @@ export function DarkField({
 }
 
 /** Primary lime pill button. */
-export function LimeButton({ label, onPress }: { label: string; onPress: () => void }) {
+export function LimeButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       onPress={onPress}
-      style={({ pressed }) => [s.lime, pressed && s.pressed]}
+      disabled={disabled}
+      style={({ pressed }) => [s.lime, disabled && s.limeDisabled, pressed && s.pressed]}
     >
       <Text style={s.limeText}>{label}</Text>
     </Pressable>
@@ -214,12 +233,13 @@ export function DarkCheckbox({
   );
 }
 
-/** "または" divider. */
+/** "または" / "or" divider. */
 export function OrDivider() {
+  const { tx } = useI18n();
   return (
     <View style={s.divider}>
       <View style={s.line} />
-      <Text style={s.or}>または</Text>
+      <Text style={s.or}>{tx('または', 'or')}</Text>
       <View style={s.line} />
     </View>
   );
@@ -233,11 +253,12 @@ export function SocialRow({
   onGoogle: () => void;
   onApple: () => void;
 }) {
+  const { tx } = useI18n();
   return (
     <View style={s.socialRow}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Googleで続ける"
+        accessibilityLabel={tx('Googleで続ける', 'Continue with Google')}
         onPress={onGoogle}
         style={({ pressed }) => [s.socialBtn, pressed && s.pressed]}
       >
@@ -246,7 +267,7 @@ export function SocialRow({
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Appleで続ける"
+        accessibilityLabel={tx('Appleで続ける', 'Continue with Apple')}
         onPress={onApple}
         style={({ pressed }) => [s.socialBtn, pressed && s.pressed]}
       >
@@ -257,16 +278,20 @@ export function SocialRow({
   );
 }
 
-/** Demo social sign-in: confirm on web (RN Alert is a no-op there), Alert on native. */
-export function demoProviderSignIn(name: string, proceed: () => void) {
-  const msg = `実際の${name}ログインには開発者認証情報が必要なため、このデモではローカルでサインインします。続けますか？`;
+/**
+ * Google/Apple OAuth needs provider credentials configured in Supabase —
+ * until then the buttons explain themselves instead of faking a session.
+ */
+export function providerUnavailableNotice(name: string, lang: Lang) {
+  const tx = txFor(lang);
+  const msg = tx(
+    `${name}ログインはまだ設定されていません。メールアドレスでご登録ください。`,
+    `${name} sign-in isn't set up yet. Please use email instead.`,
+  );
   if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined' && window.confirm(msg)) proceed();
+    if (typeof window !== 'undefined') window.alert(msg);
   } else {
-    Alert.alert(`${name}ログイン（デモ）`, msg, [
-      { text: '続ける', onPress: proceed },
-      { text: 'キャンセル', style: 'cancel' },
-    ]);
+    Alert.alert(tx('未設定', 'Not available yet'), msg);
   }
 }
 
@@ -276,6 +301,12 @@ const s = StyleSheet.create({
   scroll: { flexGrow: 1, padding: 24, paddingTop: 12 },
   content: { flex: 1, width: '100%', maxWidth: 460, alignSelf: 'center' },
 
+  langToggle: {
+    position: 'absolute',
+    right: 0,
+    top: 4,
+    zIndex: 2,
+  },
   back: {
     position: 'absolute',
     left: 0,
@@ -355,6 +386,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 6,
   },
+  limeDisabled: { opacity: 0.55 },
   limeText: { color: dark.limeText, fontSize: 16, fontWeight: '800' },
 
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

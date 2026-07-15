@@ -1,26 +1,53 @@
 import { Redirect } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { useI18n } from '@/lib/i18n';
+import { supabase } from '@/lib/supabase';
+import { fetchRemoteState } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, spacing } from '@/theme';
 
 /**
  * Entry point. Acts as splash + router: waits for persisted state to hydrate,
- * then sends the user to the right place based on how far they've onboarded.
- * Owners without a dog (petStatus !== 'has-dog') skip dog onboarding.
+ * restores a Supabase session (and the account's server-side profile/dogs) if
+ * one exists, then routes by onboarding progress.
  */
 export default function Index() {
+  const { tx } = useI18n();
   const hydrated = useStore((s) => s._hasHydrated);
   const session = useStore((s) => s.session);
   const owner = useStore((s) => s.owner);
   const dogCount = useStore((s) => s.dogs.length);
+  const [restoring, setRestoring] = useState(true);
 
-  if (!hydrated) {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const s = useStore.getState();
+        if (data.session && !s.session) {
+          const remote = await fetchRemoteState();
+          if (cancelled) return;
+          if (remote?.owner) useStore.setState({ owner: remote.owner, dogs: remote.dogs });
+          s.signIn(data.session.user.email ?? 'user');
+        }
+      } finally {
+        if (!cancelled) setRestoring(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!hydrated || restoring) {
     return (
       <View style={styles.splash}>
         <Text style={styles.logo}>🐾</Text>
         <Text style={styles.brand}>PawPair</Text>
-        <Text style={styles.tag}>ワンちゃんの出会いアプリ</Text>
+        <Text style={styles.tag}>{tx('ワンちゃんの出会いアプリ', 'Where dogs make new friends')}</Text>
         <ActivityIndicator color={night.pink} style={{ marginTop: spacing.xl }} />
       </View>
     );

@@ -4,6 +4,8 @@ import { ImageBackground, StyleSheet, Text, View, useWindowDimensions } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable, Entrance } from '@/components/anim';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useI18n } from '@/lib/i18n';
 import { colors, font, radius, shadow, spacing } from '@/theme';
 
 /*
@@ -20,6 +22,7 @@ const CREAM = '#F3E3C2';
 
 export default function Welcome() {
   const router = useRouter();
+  const { tx } = useI18n();
   // Scale type/spacing down on short screens (e.g. iPhone SE) so the whole
   // screen fits without scrolling.
   const { height } = useWindowDimensions();
@@ -39,6 +42,7 @@ export default function Welcome() {
       />
 
       <SafeAreaView style={styles.safe}>
+        <LanguageToggle style={styles.langToggle} />
         <View style={[styles.body, compact && styles.bodyCompact]}>
           <Entrance delay={0}>
             <Text style={styles.logo}>PawPair</Text>
@@ -46,13 +50,16 @@ export default function Welcome() {
 
           <Entrance delay={150}>
             <Text style={[styles.headline, compact && styles.headlineCompact]}>
-              愛犬の、新しい親友を見つけよう。
+              {tx('愛犬の、新しい親友を見つけよう。', "Find your dog's new best friend.")}
             </Text>
           </Entrance>
 
           <Entrance delay={300}>
             <Text style={[styles.sub, compact && styles.subCompact]}>
-              近くのワンちゃんとつながろう。お散歩やプレイデート、新しい出会いを。
+              {tx(
+                '近くのワンちゃんとつながろう。お散歩やプレイデート、新しい出会いを。',
+                'Connect with pups nearby — walks, playdates, and brand-new friendships.',
+              )}
             </Text>
           </Entrance>
 
@@ -61,7 +68,7 @@ export default function Welcome() {
           <Entrance delay={500} style={styles.ctaWrap}>
             <AnimatedPressable
               onPress={() => router.push('/sign-in')}
-              accessibilityLabel="Get started"
+              accessibilityLabel={tx('はじめる', 'Get started')}
               style={[styles.cta, compact && styles.ctaCompact]}
             >
               <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>Download Free</Text>
@@ -77,6 +84,12 @@ const styles = StyleSheet.create({
   bg: { flex: 1, width: '100%', backgroundColor: '#3a2c1c' },
   bgImage: { width: '100%', height: '100%' },
   safe: { flex: 1 },
+  langToggle: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.xl,
+    zIndex: 10,
+  },
   body: {
     flex: 1,
     padding: spacing.xl,

@@ -105,11 +105,29 @@ export const JP_GOOD_WITH: Record<string, string> = {
   children: '子ども',
 };
 
+// GoodWith keys are camelCase slugs, so English needs its own labels too.
+export const EN_GOOD_WITH: Record<string, string> = {
+  smallDogs: 'small dogs',
+  largeDogs: 'large dogs',
+  puppies: 'puppies',
+  seniors: 'senior dogs',
+  children: 'children',
+};
+
 export const JP_PET_STATUS: Record<string, string> = {
   'has-dog': '犬を飼っている',
   'has-other-pet': 'ほかのペットを飼っている',
   'no-pet-meet': '犬を飼っている人と出会いたい',
   'no-pet-future': '将来、犬を飼いたい',
+};
+
+// Pet status is stored as slugs (not readable English like the other enums),
+// so English mode needs its own label map instead of the raw stored value.
+export const EN_PET_STATUS: Record<string, string> = {
+  'has-dog': 'I have a dog',
+  'has-other-pet': 'I have another pet',
+  'no-pet-meet': 'I want to meet dog owners',
+  'no-pet-future': 'I want a dog someday',
 };
 
 /** Translate a stored value; falls back to the raw value (e.g. user input). */

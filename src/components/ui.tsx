@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from 'react-native';
 
+import { useI18n } from '@/lib/i18n';
 import { colors, font, night, radius, shadow, spacing } from '@/theme';
 
 /* ---------------------------------------------------------------- Button */
@@ -146,9 +147,10 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 }
 
 export function VerifiedBadge() {
+  const { tx } = useI18n();
   return (
     <View style={styles.verified}>
-      <Text style={styles.verifiedText}>✓ 認証済み</Text>
+      <Text style={styles.verifiedText}>{tx('✓ 認証済み', '✓ Verified')}</Text>
     </View>
   );
 }

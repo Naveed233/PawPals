@@ -18,6 +18,7 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
+import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
@@ -59,6 +60,7 @@ export default function MapScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const owner = useStore((s) => s.owner);
+  const { tx } = useI18n();
 
   const [mode, setMode] = useState<Mode>('locating');
   const [center, setCenter] = useState<LatLon | null>(null);
@@ -107,14 +109,21 @@ export default function MapScreen() {
       const json = (await res.json()) as { lat: string; lon: string; display_name: string }[];
       const hit = json[0];
       if (!hit) {
-        setSearchError('場所が見つかりませんでした。別の地名で試してください。');
+        setSearchError(
+          tx(
+            '場所が見つかりませんでした。別の地名で試してください。',
+            'No results for that place. Try a different name.',
+          ),
+        );
         return;
       }
       setCenter({ lat: parseFloat(hit.lat), lon: parseFloat(hit.lon) });
       setPlaceName(hit.display_name.split(',')[0].trim() || q);
       setMode('ready');
     } catch {
-      setSearchError('検索に失敗しました。通信環境を確認してください。');
+      setSearchError(
+        tx('検索に失敗しました。通信環境を確認してください。', 'Search failed. Check your connection and try again.'),
+      );
     } finally {
       setSearching(false);
     }
@@ -196,7 +205,10 @@ export default function MapScreen() {
                 key={dog.id}
                 onPress={() => router.push(`/dog/${dog.id}`)}
                 accessibilityRole="button"
-                accessibilityLabel={`${dog.name}のプロフィールを開く（${dog.distanceKm}km先）`}
+                accessibilityLabel={tx(
+                  `${dog.name}のプロフィールを開く（${dog.distanceKm}km先）`,
+                  `Open ${dog.name}’s profile (${dog.distanceKm}km away)`,
+                )}
                 style={[
                   styles.pin,
                   {
@@ -215,7 +227,7 @@ export default function MapScreen() {
                 )}
                 <View style={styles.pinLabel}>
                   <Text style={styles.pinLabelText} numberOfLines={1}>
-                    {dog.name}・{dog.distanceKm}km
+                    {tx(`${dog.name}・${dog.distanceKm}km`, `${dog.name} · ${dog.distanceKm}km`)}
                   </Text>
                 </View>
               </Pressable>
@@ -232,29 +244,37 @@ export default function MapScreen() {
 
       {/* --------------------------------------------------------- Overlay */}
       <SafeAreaView style={styles.overlay} edges={['top']} pointerEvents="box-none">
-        <Text style={styles.title}>マップ</Text>
+        <Text style={styles.title}>{tx('マップ', 'Map')}</Text>
 
         {mode === 'locating' && (
           <View style={styles.card}>
             <ActivityIndicator color={night.pink} />
-            <Text style={styles.cardText}>位置情報を取得しています…（ブラウザの許可ダイアログをご確認ください）</Text>
+            <Text style={styles.cardText}>
+              {tx(
+                '位置情報を取得しています…（ブラウザの許可ダイアログをご確認ください）',
+                'Getting your location… (check your browser’s permission prompt)',
+              )}
+            </Text>
           </View>
         )}
 
         {mode === 'manual' && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>場所を入力してください</Text>
+            <Text style={styles.cardTitle}>{tx('場所を入力してください', 'Enter a location')}</Text>
             <Text style={styles.cardText}>
-              位置情報が利用できないため、地名や駅名から検索します（日本国内）。
+              {tx(
+                '位置情報が利用できないため、地名や駅名から検索します（日本国内）。',
+                'Location is unavailable, so search by place or station name (Japan only).',
+              )}
             </Text>
             <View style={styles.searchRow}>
               <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder="例：渋谷、横浜駅、札幌"
+                placeholder={tx('例：渋谷、横浜駅、札幌', 'e.g. Shibuya, Yokohama Station, Sapporo')}
                 placeholderTextColor={night.faint}
                 style={styles.searchInput}
-                accessibilityLabel="場所を検索"
+                accessibilityLabel={tx('場所を検索', 'Search for a place')}
                 onSubmitEditing={searchPlace}
                 returnKeyType="search"
               />
@@ -262,10 +282,12 @@ export default function MapScreen() {
                 onPress={searchPlace}
                 disabled={searching}
                 accessibilityRole="button"
-                accessibilityLabel="場所を検索する"
+                accessibilityLabel={tx('場所を検索する', 'Search for this place')}
                 style={[styles.searchBtn, searching && { opacity: 0.6 }]}
               >
-                <Text style={styles.searchBtnText}>{searching ? '検索中…' : '検索'}</Text>
+                <Text style={styles.searchBtnText}>
+                  {searching ? tx('検索中…', 'Searching…') : tx('検索', 'Search')}
+                </Text>
               </Pressable>
             </View>
             {!!searchError && <Text style={styles.searchError}>{searchError}</Text>}
@@ -277,7 +299,7 @@ export default function MapScreen() {
             <View style={styles.cardRow}>
               <OwnerAvatar
                 ownerId={owner?.id ?? 'me'}
-                name={owner?.firstName ?? 'あなた'}
+                name={owner?.firstName ?? tx('あなた', 'You')}
                 uri={owner?.photo}
                 style={styles.cardAvatar}
                 rounded={radius.pill}
@@ -285,12 +307,12 @@ export default function MapScreen() {
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardName} numberOfLines={1}>
-                  {owner?.firstName ? `${owner.firstName}さん` : 'あなた'}
+                  {owner?.firstName ? tx(`${owner.firstName}さん`, owner.firstName) : tx('あなた', 'You')}
                 </Text>
                 <View style={styles.placeRow}>
                   <Icon name="pin" color={night.muted} size={12} />
                   <Text style={styles.placeText} numberOfLines={1}>
-                    {placeName}
+                    {placeName === '現在地' ? tx('現在地', 'Current location') : placeName}
                   </Text>
                 </View>
               </View>
@@ -300,10 +322,10 @@ export default function MapScreen() {
                   setSearchError(undefined);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel="場所を変更"
+                accessibilityLabel={tx('場所を変更', 'Change location')}
                 style={styles.changeBtn}
               >
-                <Text style={styles.changeBtnText}>場所を変更</Text>
+                <Text style={styles.changeBtnText}>{tx('場所を変更', 'Change location')}</Text>
               </Pressable>
             </View>
 
@@ -312,7 +334,12 @@ export default function MapScreen() {
                 <Chip key={r} label={`${r}km`} selected={radiusKm === r} onPress={() => setRadiusKm(r)} />
               ))}
             </View>
-            <Text style={styles.countText}>{radiusKm}km以内に{count}人</Text>
+            <Text style={styles.countText}>
+              {tx(
+                `${radiusKm}km以内に${count}人`,
+                `${count} ${count === 1 ? 'person' : 'people'} within ${radiusKm}km`,
+              )}
+            </Text>
           </>
         )}
       </SafeAreaView>

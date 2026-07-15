@@ -5,15 +5,20 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { ToggleRow } from '@/components/form';
 import { Icon } from '@/components/icons';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag, VerifiedBadge } from '@/components/ui';
-import { JP_LANGUAGE, JP_PERSONALITY, JP_PET_STATUS, JP_SIZE, jp } from '@/lib/jp';
+import { useI18n } from '@/lib/i18n';
+import { EN_PET_STATUS, JP_LANGUAGE, JP_PERSONALITY, JP_PET_STATUS, JP_SIZE } from '@/lib/jp';
 import { pickPhoto } from '@/lib/media';
+import { supabase } from '@/lib/supabase';
+import { saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
 export default function Profile() {
   const router = useRouter();
+  const { tx, tv } = useI18n();
   const owner = useStore((s) => s.owner);
   const dogs = useStore((s) => s.dogs);
   const matches = useStore((s) => s.matches);
@@ -33,9 +38,13 @@ export default function Profile() {
   };
 
   const confirmSignOut = () => {
-    const title = 'サインアウトしますか？';
-    const message = 'この端末のローカルデモアカウントを消去します。';
+    const title = tx('サインアウトしますか？', 'Sign out?');
+    const message = tx(
+      'この端末のローカルデモアカウントを消去します。',
+      'This clears the local demo account on this device.',
+    );
     const proceed = () => {
+      void supabase.auth.signOut();
       signOut();
       router.replace('/');
     };
@@ -44,8 +53,8 @@ export default function Profile() {
       if (typeof window !== 'undefined' && window.confirm(`${title}\n${message}`)) proceed();
     } else {
       Alert.alert(title, message, [
-        { text: 'キャンセル', style: 'cancel' },
-        { text: 'サインアウト', style: 'destructive', onPress: proceed },
+        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
+        { text: tx('サインアウト', 'Sign out'), style: 'destructive', onPress: proceed },
       ]);
     }
   };
@@ -55,7 +64,7 @@ export default function Profile() {
   const petStatus = owner.petStatus ?? 'has-dog';
 
   return (
-    <Screen title="プロフィール">
+    <Screen title={tx('プロフィール', 'Profile')}>
       {/* ------------------------------------------------ Owner hero */}
       <View style={styles.hero}>
         <View style={styles.avatarRing}>
@@ -80,12 +89,12 @@ export default function Profile() {
         {owner.languages.length > 0 && (
           <View style={styles.tagRow}>
             {owner.languages.map((l) => (
-              <Tag key={l} label={jp(JP_LANGUAGE, l)} tone="blue" />
+              <Tag key={l} label={tv(JP_LANGUAGE, l)} tone="blue" />
             ))}
           </View>
         )}
         <Button
-          label="プロフィールを編集"
+          label={tx('プロフィールを編集', 'Edit profile')}
           variant="outline"
           icon={<Icon name="edit" color="#fff" size={16} />}
           onPress={() => router.push('/edit-owner')}
@@ -94,29 +103,42 @@ export default function Profile() {
       </View>
 
       {/* --------------------------------------------- Privacy */}
-      <SectionTitle>プライバシー</SectionTitle>
+      <SectionTitle>{tx('プライバシー', 'Privacy')}</SectionTitle>
       <Card>
         <ToggleRow
-          label="マッチした相手にプロフィールを公開"
+          label={tx('マッチした相手にプロフィールを公開', 'Show my profile to matches')}
           value={owner.showProfileToMatches ?? true}
-          onValueChange={(v) => updateOwner({ showProfileToMatches: v })}
+          onValueChange={(v) => {
+            updateOwner({ showProfileToMatches: v });
+            const next = useStore.getState().owner;
+            if (next) void saveProfileRemote(next);
+          }}
         />
         <Text style={styles.privacyNote}>
-          オンにすると、マッチした相手にだけあなたのプロフィール（名前・エリア・自己紹介）が表示されます。マッチする前は誰にも表示されません。
+          {tx(
+            'オンにすると、マッチした相手にだけあなたのプロフィール（名前・エリア・自己紹介）が表示されます。マッチする前は誰にも表示されません。',
+            'When this is on, only people you have matched with can see your profile (name, area, and bio). No one can see it before you match.',
+          )}
         </Text>
       </Card>
 
+      {/* --------------------------------------------- Language */}
+      <SectionTitle>{tx('言語', 'Language')}</SectionTitle>
+      <Card>
+        <LanguageToggle style={{ alignSelf: 'flex-start' }} />
+      </Card>
+
       {/* ------------------------------------------------ Stats */}
-      <SectionTitle>プロフィール統計</SectionTitle>
+      <SectionTitle>{tx('プロフィール統計', 'Profile stats')}</SectionTitle>
       <View style={styles.statsGrid}>
-        <Stat value={swipes.length} label="スワイプ" />
-        <Stat value={likeCount} label="いいね送信" />
-        <Stat value={matches.length} label="マッチ" />
-        <Stat value={rsvpCount} label="イベント参加" />
+        <Stat value={swipes.length} label={tx('スワイプ', 'Swipes')} />
+        <Stat value={likeCount} label={tx('いいね送信', 'Likes sent')} />
+        <Stat value={matches.length} label={tx('マッチ', 'Matches')} />
+        <Stat value={rsvpCount} label={tx('イベント参加', 'Events joined')} />
       </View>
 
       {/* ------------------------------------------------ Pets */}
-      <SectionTitle>ペット</SectionTitle>
+      <SectionTitle>{tx('ペット', 'Pets')}</SectionTitle>
       {dogs.length > 0 ? (
         dogs.map((dog) => (
           <Card key={dog.id} style={styles.dogCard}>
@@ -124,11 +146,14 @@ export default function Profile() {
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={styles.dogName}>{dog.name}</Text>
               <Text style={styles.dogMeta}>
-                {dog.breed}・{dog.ageYears}歳・{jp(JP_SIZE, dog.size)}
+                {tx(
+                  `${dog.breed}・${dog.ageYears}歳・${tv(JP_SIZE, dog.size)}`,
+                  `${dog.breed} · ${dog.ageYears} yrs · ${tv(JP_SIZE, dog.size)}`,
+                )}
               </Text>
               <View style={styles.tagRowLeft}>
                 {dog.personality.slice(0, 3).map((t) => (
-                  <Tag key={t} label={jp(JP_PERSONALITY, t)} />
+                  <Tag key={t} label={tv(JP_PERSONALITY, t)} />
                 ))}
               </View>
             </View>
@@ -137,19 +162,19 @@ export default function Profile() {
                 onPress={() => router.push(`/edit-dog/${dog.id}`)}
                 style={styles.smallBtn}
                 accessibilityRole="button"
-                accessibilityLabel={`${dog.name}を編集`}
+                accessibilityLabel={tx(`${dog.name}を編集`, `Edit ${dog.name}`)}
               >
                 <Icon name="edit" color="#fff" size={12} />
-                <Text style={styles.smallBtnText}>編集</Text>
+                <Text style={styles.smallBtnText}>{tx('編集', 'Edit')}</Text>
               </Pressable>
               <Pressable
                 onPress={() => addPhotoTo(dog.id)}
                 style={styles.smallBtn}
                 accessibilityRole="button"
-                accessibilityLabel={`${dog.name}の写真を追加`}
+                accessibilityLabel={tx(`${dog.name}の写真を追加`, `Add a photo of ${dog.name}`)}
               >
                 <Icon name="camera" color="#fff" size={12} />
-                <Text style={styles.smallBtnText}>写真</Text>
+                <Text style={styles.smallBtnText}>{tx('写真', 'Photo')}</Text>
               </Pressable>
             </View>
           </Card>
@@ -161,10 +186,18 @@ export default function Profile() {
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.petStatusTitle}>
-              {(owner.otherPetType?.trim() || 'ほかのペット') + 'を飼っています'}
+              {tx(
+                (owner.otherPetType?.trim() || 'ほかのペット') + 'を飼っています',
+                owner.otherPetType?.trim()
+                  ? `I have a ${owner.otherPetType.trim()}`
+                  : 'I have another pet',
+              )}
             </Text>
             <Text style={styles.petStatusHint}>
-              犬がいなくても、ワンちゃんや飼い主さんを探してマッチできます。
+              {tx(
+                '犬がいなくても、ワンちゃんや飼い主さんを探してマッチできます。',
+                'No dog needed — you can still browse dogs and their owners and match.',
+              )}
             </Text>
           </View>
         </Card>
@@ -174,9 +207,12 @@ export default function Profile() {
             <Icon name="pawFill" color={night.pink} size={24} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.petStatusTitle}>{jp(JP_PET_STATUS, petStatus)}</Text>
+            <Text style={styles.petStatusTitle}>{tx(JP_PET_STATUS[petStatus] ?? petStatus, EN_PET_STATUS[petStatus] ?? petStatus)}</Text>
             <Text style={styles.petStatusHint}>
-              ペットがいなくても、ワンちゃんを見つけていいねやマッチができます。
+              {tx(
+                'ペットがいなくても、ワンちゃんを見つけていいねやマッチができます。',
+                'No pet needed — you can still discover dogs, send likes, and match.',
+              )}
             </Text>
           </View>
         </Card>
@@ -186,9 +222,14 @@ export default function Profile() {
             <Icon name="pawFill" color={night.pink} size={24} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.petStatusTitle}>ペットプロフィールがまだありません</Text>
+            <Text style={styles.petStatusTitle}>
+              {tx('ペットプロフィールがまだありません', 'No pet profiles yet')}
+            </Text>
             <Text style={styles.petStatusHint}>
-              下の「犬を追加」からワンちゃんのプロフィールを作成できます。
+              {tx(
+                '下の「犬を追加」からワンちゃんのプロフィールを作成できます。',
+                'Tap "Add a dog" below to create a profile for your pup.',
+              )}
             </Text>
           </View>
         </Card>
@@ -197,17 +238,20 @@ export default function Profile() {
       {/* ------------------------------------------------ Actions */}
       <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
         <Button
-          label="犬を追加"
+          label={tx('犬を追加', 'Add a dog')}
           variant="outline"
           icon={<Icon name="plus" color="#fff" size={16} />}
           onPress={() => router.push('/onboarding/dog')}
         />
-        <Button label="デモをリセット" variant="ghost" onPress={resetDemo} />
-        <Button label="サインアウト" variant="ghost" onPress={confirmSignOut} />
+        <Button label={tx('デモをリセット', 'Reset demo')} variant="ghost" onPress={resetDemo} />
+        <Button label={tx('サインアウト', 'Sign out')} variant="ghost" onPress={confirmSignOut} />
       </View>
 
       <Text style={styles.disclaimer}>
-        PawPairは犬の友だち作りとミートアップのためのプラットフォームであり、人間向けの恋愛マッチングアプリではありません。ミートアップ時の犬の見守りと安全確認は各飼い主の責任です。
+        {tx(
+          'PawPairは犬の友だち作りとミートアップのためのプラットフォームであり、人間向けの恋愛マッチングアプリではありません。ミートアップ時の犬の見守りと安全確認は各飼い主の責任です。',
+          'PawPair is a platform for dog friendships and meetups, not a dating app for humans. Owners are responsible for supervising their dogs and keeping meetups safe.',
+        )}
       </Text>
     </Screen>
   );
