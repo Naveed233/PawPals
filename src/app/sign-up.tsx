@@ -9,7 +9,7 @@ import {
   OrDivider,
   SocialRow,
   dark,
-  providerUnavailableNotice,
+  providerSignIn,
 } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
@@ -84,7 +84,7 @@ export default function SignUp() {
     router.replace('/');
   };
 
-  const provider = (name: string) => providerUnavailableNotice(name, lang);
+  const provider = (name: 'google' | 'apple') => void providerSignIn(name, lang);
 
   return (
     <AuthScreen
@@ -135,7 +135,7 @@ export default function SignUp() {
 
       <OrDivider />
 
-      <SocialRow onGoogle={() => provider('Google')} onApple={() => provider('Apple')} />
+      <SocialRow onGoogle={() => provider('google')} onApple={() => provider('apple')} />
     </AuthScreen>
   );
 }

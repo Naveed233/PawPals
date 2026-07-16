@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
+import { supabase } from '@/lib/supabase';
 
 /*
  * Shared building blocks for the dark auth screens (sign-in / sign-up /
@@ -279,20 +280,57 @@ export function SocialRow({
 }
 
 /**
- * Google/Apple OAuth needs provider credentials configured in Supabase —
- * until then the buttons explain themselves instead of faking a session.
+ * Google/Apple sign-in through Supabase OAuth (web redirect flow).
+ *
+ * Pre-flights the authorize URL so a provider that isn't configured in the
+ * Supabase dashboard yet shows a friendly message instead of dumping the
+ * user on a JSON error page. Native apps need a deep-link flow — until the
+ * store build exists, native shows the email-instead notice.
  */
-export function providerUnavailableNotice(name: string, lang: Lang) {
+export async function providerSignIn(provider: 'google' | 'apple', lang: Lang) {
   const tx = txFor(lang);
-  const msg = tx(
-    `${name}ログインはまだ設定されていません。メールアドレスでご登録ください。`,
-    `${name} sign-in isn't set up yet. Please use email instead.`,
+  const label = provider === 'google' ? 'Google' : 'Apple';
+  const notReady = tx(
+    `${label}ログインはまだ設定されていません。メールアドレスでご登録ください。`,
+    `${label} sign-in isn't set up yet. Please use email instead.`,
   );
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') window.alert(msg);
-  } else {
-    Alert.alert(tx('未設定', 'Not available yet'), msg);
+  const notify = (msg: string) => {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') window.alert(msg);
+    } else {
+      Alert.alert(tx('サインイン', 'Sign in'), msg);
+    }
+  };
+
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    notify(notReady);
+    return;
   }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: window.location.origin + (window.location.pathname.startsWith('/PawPals') ? '/PawPals/' : '/'),
+      skipBrowserRedirect: true,
+    },
+  });
+  if (error || !data?.url) {
+    notify(error?.message ?? notReady);
+    return;
+  }
+
+  try {
+    // A disabled provider answers 400 here; an enabled one redirects out.
+    const probe = await fetch(data.url, { redirect: 'manual' });
+    if (probe.type !== 'opaqueredirect' && !probe.ok) {
+      notify(notReady);
+      return;
+    }
+  } catch {
+    // Probe blocked (network/CORS quirk) — proceed; worst case the provider
+    // page itself explains.
+  }
+  window.location.assign(data.url);
 }
 
 const s = StyleSheet.create({
