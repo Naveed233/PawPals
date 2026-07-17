@@ -9,8 +9,10 @@ import { Icon } from '@/components/icons';
 import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
-import { recordSwipeRemote } from '@/lib/sync';
+import { isSeedDog } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
+import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
+import { recordSwipeRemote } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
@@ -23,25 +25,86 @@ export default function Discover() {
   const owner = useStore((s) => s.owner);
   const myDog = useStore((s) => s.dogs[0]);
   const deck = useStore((s) => s.deck);
+  const remoteDogs = useStore((s) => s.remoteDogs);
+  const swipes = useStore((s) => s.swipes);
   const saved = useStore((s) => s.saved);
-  const swipeCount = useStore((s) => s.swipes.length);
+  const swipeCount = swipes.length;
   const ensureDeck = useStore((s) => s.ensureDeck);
   const swipe = useStore((s) => s.swipe);
   const undo = useStore((s) => s.undo);
   const toggleSave = useStore((s) => s.toggleSave);
   const resetDemo = useStore((s) => s.resetDemo);
+  const setRemoteDogs = useStore((s) => s.setRemoteDogs);
+  const mergeRemoteMatches = useStore((s) => s.mergeRemoteMatches);
 
   useEffect(() => {
     ensureDeck();
   }, [ensureDeck]);
 
-  const remaining = useMemo<DogProfile[]>(
-    () =>
-      (deck ?? [])
-        .map((id) => SEED_DOGS.find((d) => d.id === id))
-        .filter((d): d is DogProfile => !!d),
-    [deck],
-  );
+  // Pull real dogs into the deck + any existing real matches, and listen for
+  // new matches created while the user is browsing.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const [dogs, matches] = await Promise.all([
+        fetchDiscoverDogs(owner?.lat, owner?.lon),
+        fetchRemoteMatches(),
+      ]);
+      if (!active) return;
+      if (dogs.length) setRemoteDogs(dogs);
+      if (matches.length)
+        mergeRemoteMatches(
+          matches.map((m) => ({
+            id: m.matchId,
+            dogId: m.dog?.id ?? m.matchId,
+            createdAt: m.createdAt,
+            matchId: m.matchId,
+            otherOwnerId: m.otherOwnerId,
+          })),
+          matches.map((m) => m.dog).filter((d): d is DogProfile => !!d),
+        );
+    })();
+
+    const myId = owner?.id;
+    const unsub = myId
+      ? subscribeMatches(myId, () => {
+          void (async () => {
+            const matches = await fetchRemoteMatches();
+            if (!active) return;
+            mergeRemoteMatches(
+              matches.map((m) => ({
+                id: m.matchId,
+                dogId: m.dog?.id ?? m.matchId,
+                createdAt: m.createdAt,
+                matchId: m.matchId,
+                otherOwnerId: m.otherOwnerId,
+              })),
+              matches.map((m) => m.dog).filter((d): d is DogProfile => !!d),
+            );
+          })();
+        })
+      : undefined;
+
+    return () => {
+      active = false;
+      unsub?.();
+    };
+    // owner id/coords are stable within a session; re-run only if they change.
+  }, [owner?.id, owner?.lat, owner?.lon, setRemoteDogs, mergeRemoteMatches]);
+
+  const swipedIds = useMemo(() => new Set(swipes.map((s) => s.dogId)), [swipes]);
+
+  const remaining = useMemo<DogProfile[]>(() => {
+    const seed = (deck ?? [])
+      .map((id) => SEED_DOGS.find((d) => d.id === id))
+      .filter((d): d is DogProfile => !!d);
+    const remote = remoteDogs.filter(
+      (d) => !swipedIds.has(d.id) && d.ownerId !== owner?.id,
+    );
+    // Real dogs first so early users find each other; seed dogs keep it full.
+    const seen = new Set<string>();
+    return [...remote, ...seed].filter((d) => (seen.has(d.id) ? false : seen.add(d.id)));
+  }, [deck, remoteDogs, swipedIds, owner?.id]);
 
   const top = remaining[0];
   const [burstKey, setBurstKey] = useState(0);
@@ -55,7 +118,32 @@ export default function Discover() {
     if (dir === 'like') setBurstKey((k) => k + 1);
     const match = swipe(dog.id, dir);
     recordSwipeRemote(dog.id, dir);
-    if (match) router.push({ pathname: '/match', params: { dogId: dog.id } });
+
+    if (match) {
+      router.push({ pathname: '/match', params: { dogId: dog.id } });
+    } else if (dir === 'like' && !isSeedDog(dog.id)) {
+      // Real dog: the DB trigger decides the match. Check shortly after.
+      setTimeout(() => {
+        void (async () => {
+          const matches = await fetchRemoteMatches();
+          const hit = matches.find((m) => m.otherOwnerId === dog.ownerId);
+          if (!hit) return;
+          mergeRemoteMatches(
+            [
+              {
+                id: hit.matchId,
+                dogId: hit.dog?.id ?? dog.id,
+                createdAt: hit.createdAt,
+                matchId: hit.matchId,
+                otherOwnerId: hit.otherOwnerId,
+              },
+            ],
+            hit.dog ? [hit.dog] : [],
+          );
+          router.push({ pathname: '/match', params: { dogId: hit.dog?.id ?? dog.id } });
+        })();
+      }, 900);
+    }
   };
 
   const isSaved = top ? saved.includes(top.id) : false;

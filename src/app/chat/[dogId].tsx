@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,11 +18,14 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { replyFor, SUGGESTED_OPENERS } from '@/data/chat';
-import { SEED_DOGS } from '@/data/seed';
+import { dogById } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { pickPhoto } from '@/lib/media';
+import { fetchMessages, sendMessage, subscribeMessages } from '@/lib/remote';
+import { uploadPhoto } from '@/lib/storage';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
+import type { Message } from '@/types';
 
 /**
  * 定型オープナーの日本語訳。保存データ（data/chat.ts）は英語のままなので、
@@ -45,17 +48,40 @@ export default function Chat() {
   const router = useRouter();
   const { lang, tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
-  const dog = SEED_DOGS.find((d) => d.id === dogId);
+  const dog = dogById(dogId);
 
   const conversations = useStore((s) => s.conversations);
   const sendText = useStore((s) => s.sendText);
   const sendImageMessage = useStore((s) => s.sendImageMessage);
   const receiveReply = useStore((s) => s.receiveReply);
+  const owner = useStore((s) => s.owner);
+  const match = useStore((s) => s.matches.find((m) => m.dogId === dogId));
 
-  const messages = (dogId && conversations[dogId]) || [];
+  // Real matches (from the DB) chat over Supabase in realtime; demo/seed dogs
+  // keep the simulated conversation.
+  const realMatchId = match?.matchId;
+  const [realMessages, setRealMessages] = useState<Message[]>([]);
+
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!realMatchId || !owner?.id) return;
+    let active = true;
+    void fetchMessages(realMatchId).then((m) => {
+      if (active) setRealMessages(m);
+    });
+    const unsub = subscribeMessages(realMatchId, owner.id, (m) => {
+      setRealMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+    });
+    return () => {
+      active = false;
+      unsub();
+    };
+  }, [realMatchId, owner?.id]);
+
+  const messages = realMatchId ? realMessages : (dogId && conversations[dogId]) || [];
 
   if (!dog) {
     return (
@@ -78,14 +104,23 @@ export default function Chat() {
   const send = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    sendText(dog.id, trimmed);
     setInput('');
+    if (realMatchId) {
+      void sendMessage(realMatchId, trimmed); // realtime echoes it back
+      return;
+    }
+    sendText(dog.id, trimmed);
     scheduleReply(messages.length + 1);
   };
 
   const attachImage = async () => {
     const uri = await pickPhoto();
     if (!uri) return;
+    if (realMatchId) {
+      const url = await uploadPhoto(uri);
+      if (url) void sendMessage(realMatchId, '', url);
+      return;
+    }
     sendImageMessage(dog.id, uri);
     scheduleReply(messages.length + 1);
   };

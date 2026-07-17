@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PersonAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon, IconName } from '@/components/icons';
-import { SEED_DOGS } from '@/data/seed';
+import { dogById } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
@@ -18,7 +18,7 @@ export default function Call() {
   const { dogId, mode } = useLocalSearchParams<{ dogId: string; mode?: string }>();
   const isVideo = mode === 'video';
 
-  const dog = SEED_DOGS.find((d) => d.id === dogId);
+  const dog = dogById(dogId);
   const owner = useStore((s) => s.owner);
 
   const [connected, setConnected] = useState(false);

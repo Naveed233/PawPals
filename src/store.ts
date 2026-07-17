@@ -34,6 +34,9 @@ interface AppState {
   owner: OwnerProfile | null;
   dogs: DogProfile[];
 
+  // Real dogs from other users (Phase 2), merged into discovery + resolvers.
+  remoteDogs: DogProfile[];
+
   deck: string[] | null; // remaining seed dog ids; null = not yet initialised
   swipes: SwipeRecord[]; // history, oldest first
   saved: string[];
@@ -60,6 +63,10 @@ interface AppState {
   addDog: (dog: DogProfile) => void;
   updateDog: (dogId: string, patch: Partial<DogProfile>) => void;
   addDogPhoto: (dogId: string, uri: string) => void;
+
+  setRemoteDogs: (dogs: DogProfile[]) => void;
+  /** Merge real matches (from the DB) into local matches + resolvable dogs. */
+  mergeRemoteMatches: (matches: Match[], dogs: DogProfile[]) => void;
 
   ensureDeck: () => void;
   swipe: (dogId: string, direction: SwipeDirection) => Match | null;
@@ -90,6 +97,7 @@ export const useStore = create<AppState>()(
       session: null,
       owner: null,
       dogs: [],
+      remoteDogs: [],
 
       deck: null,
       swipes: [],
@@ -115,6 +123,7 @@ export const useStore = create<AppState>()(
           session: null,
           owner: null,
           dogs: [],
+          remoteDogs: [],
           deck: null,
           swipes: [],
           saved: [],
@@ -145,6 +154,23 @@ export const useStore = create<AppState>()(
           ),
         }),
 
+      setRemoteDogs: (remoteDogs) => set({ remoteDogs }),
+
+      mergeRemoteMatches: (incoming, dogs) => {
+        const state = get();
+        // Add any newly-seen real dogs so they resolve in chat/matches.
+        const known = new Set(state.remoteDogs.map((d) => d.id));
+        const addedDogs = dogs.filter((d) => !known.has(d.id));
+        // Dedupe matches by DB matchId (fall back to dogId).
+        const seen = new Set(state.matches.map((m) => m.matchId ?? m.dogId));
+        const fresh = incoming.filter((m) => !seen.has(m.matchId ?? m.dogId));
+        if (addedDogs.length === 0 && fresh.length === 0) return;
+        set({
+          remoteDogs: [...state.remoteDogs, ...addedDogs],
+          matches: [...fresh, ...state.matches],
+        });
+      },
+
       ensureDeck: () => {
         if (get().deck === null) set({ deck: seedDeckIds() });
       },
@@ -154,6 +180,8 @@ export const useStore = create<AppState>()(
         const deck = (state.deck ?? seedDeckIds()).filter((id) => id !== dogId);
         const record: SwipeRecord = { dogId, direction, at: Date.now() };
 
+        // Seed dogs carry a mocked `likesYou` for an instant demo match. Real
+        // dogs match via the DB trigger — surfaced by refreshing matches after.
         let newMatch: Match | null = null;
         if (direction === 'like') {
           const dog = SEED_DOGS.find((d) => d.id === dogId);

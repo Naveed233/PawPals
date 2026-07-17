@@ -59,6 +59,9 @@ export interface OwnerProfile {
   otherPetType?: string; // when petStatus === 'has-other-pet' (user-entered, ≤30 chars)
   /** Show my owner profile to people I've matched with (default true). */
   showProfileToMatches?: boolean;
+  /** Approximate location for map/distance (rounded; never an exact address). */
+  lat?: number;
+  lon?: number;
 }
 
 export interface DogProfile {
@@ -114,6 +117,10 @@ export interface Match {
   id: string;
   dogId: string; // the matched dog (matches reference a specific dog profile)
   createdAt: number;
+  /** DB match row id — present for real user matches; enables realtime chat. */
+  matchId?: string;
+  /** The other owner's profile id — present for real user matches. */
+  otherOwnerId?: string;
 }
 
 export type MessageKind = 'text' | 'image';

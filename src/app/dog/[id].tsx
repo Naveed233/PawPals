@@ -16,7 +16,7 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { PhotoView } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { VerifiedBadge } from '@/components/ui';
-import { SEED_DOGS } from '@/data/seed';
+import { dogById } from '@/lib/dogs';
 import { computeCompatibility } from '@/lib/compatibility';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -52,7 +52,7 @@ export default function DogDetail() {
   const swipe = useStore((s) => s.swipe);
   const matches = useStore((s) => s.matches);
 
-  const dog = SEED_DOGS.find((d) => d.id === id) ?? myDogs.find((d) => d.id === id);
+  const dog = dogById(id);
 
   if (!dog) {
     return (

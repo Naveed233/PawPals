@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Entrance } from '@/components/anim';
@@ -7,11 +7,12 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Chip } from '@/components/ui';
-import { SEED_DOGS } from '@/data/seed';
+import { dogById } from '@/lib/dogs';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
+import { fetchRemoteMatches } from '@/lib/remote';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
-import type { Message } from '@/types';
+import type { DogProfile, Message } from '@/types';
 
 /** 時刻ラベル: 今日 → 14:05 / 昨日 / それ以前 → 7/12 */
 function timeLabel(at: number, lang: Lang): string {
@@ -42,11 +43,34 @@ export default function Matches() {
   const { lang, tx } = useI18n();
   const matches = useStore((s) => s.matches);
   const conversations = useStore((s) => s.conversations);
+  const mergeRemoteMatches = useStore((s) => s.mergeRemoteMatches);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+
+  // Pull real matches (from the DB) so they show even if the user opens the
+  // Messages tab directly without visiting discovery first.
+  useEffect(() => {
+    let active = true;
+    void fetchRemoteMatches().then((remote) => {
+      if (!active || !remote.length) return;
+      mergeRemoteMatches(
+        remote.map((m) => ({
+          id: m.matchId,
+          dogId: m.dog?.id ?? m.matchId,
+          createdAt: m.createdAt,
+          matchId: m.matchId,
+          otherOwnerId: m.otherOwnerId,
+        })),
+        remote.map((m) => m.dog).filter((d): d is DogProfile => !!d),
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [mergeRemoteMatches]);
 
   const rows = matches
     .map((m) => {
-      const dog = SEED_DOGS.find((d) => d.id === m.dogId);
+      const dog = dogById(m.dogId);
       if (!dog) return null;
       const convo = conversations[dog.id] ?? [];
       const last = convo.length > 0 ? convo[convo.length - 1] : undefined;

@@ -10,9 +10,9 @@ import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag, VerifiedBadge } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { EN_PET_STATUS, JP_LANGUAGE, JP_PERSONALITY, JP_PET_STATUS, JP_SIZE } from '@/lib/jp';
-import { pickPhoto } from '@/lib/media';
+import { pickAndUploadPhoto } from '@/lib/media';
 import { supabase } from '@/lib/supabase';
-import { saveProfileRemote } from '@/lib/sync';
+import { saveDogRemote, saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
@@ -33,8 +33,11 @@ export default function Profile() {
   const rsvpCount = Object.values(rsvps).filter(Boolean).length;
 
   const addPhotoTo = async (dogId: string) => {
-    const uri = await pickPhoto();
-    if (uri) addDogPhoto(dogId, uri);
+    const uri = await pickAndUploadPhoto();
+    if (!uri) return;
+    addDogPhoto(dogId, uri);
+    const updated = useStore.getState().dogs.find((d) => d.id === dogId);
+    if (updated) void saveDogRemote(updated);
   };
 
   const confirmSignOut = () => {

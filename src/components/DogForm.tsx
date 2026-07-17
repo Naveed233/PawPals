@@ -26,7 +26,7 @@ import {
   JP_SIZE,
   JP_SOCIAL,
 } from '@/lib/jp';
-import { pickPhoto } from '@/lib/media';
+import { pickAndUploadPhoto } from '@/lib/media';
 import { font, night, radius, spacing } from '@/theme';
 import type { Energy, GoodWith, Intent, MeetupType, Recall, Sex, Size, SocialLevel } from '@/types';
 
@@ -92,7 +92,7 @@ export function DogForm({
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
 
   const addPhoto = async () => {
-    const uri = await pickPhoto();
+    const uri = await pickAndUploadPhoto();
     if (uri) setPhotos((p) => [...p, uri]);
   };
 

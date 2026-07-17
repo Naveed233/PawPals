@@ -7,7 +7,7 @@ import { Button, Field } from '@/components/ui';
 import { AGE_RANGES, AVAILABILITY, LANGUAGES } from '@/data/options';
 import { useI18n } from '@/lib/i18n';
 import { EN_PET_STATUS, JP_AVAILABILITY, JP_LANGUAGE, JP_PET_STATUS } from '@/lib/jp';
-import { pickPhoto } from '@/lib/media';
+import { pickAndUploadPhoto } from '@/lib/media';
 import { font, night, radius, spacing } from '@/theme';
 import type { PetStatus } from '@/types';
 
@@ -64,7 +64,7 @@ export function OwnerForm({
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
 
   const changePhoto = async () => {
-    const uri = await pickPhoto();
+    const uri = await pickAndUploadPhoto();
     if (uri) setPhoto(uri);
   };
 

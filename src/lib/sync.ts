@@ -31,6 +31,7 @@ export async function saveProfileRemote(owner: OwnerProfile): Promise<void> {
       pet_status: owner.petStatus ?? 'has-dog',
       other_pet_type: owner.otherPetType ?? null,
       show_profile_to_matches: owner.showProfileToMatches ?? true,
+      photo_url: owner.photo ?? null,
       updated_at: new Date().toISOString(),
     });
     if (error) console.warn('[sync] saveProfile failed:', error.message);
@@ -65,6 +66,7 @@ export async function saveDogRemote(dog: DogProfile): Promise<void> {
       intents: dog.intents,
       notes: dog.notes ?? null,
       avoid: dog.avoid ?? null,
+      photos: dog.photos ?? [],
       updated_at: new Date().toISOString(),
     });
     if (error) console.warn('[sync] saveDog failed:', error.message);

@@ -5,7 +5,7 @@ import { HeartBurst, Pop } from '@/components/anim';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
-import { SEED_DOGS } from '@/data/seed';
+import { dogById } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
@@ -15,7 +15,7 @@ export default function MatchCelebration() {
   const { tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
   const myDog = useStore((s) => s.dogs[0]);
-  const dog = SEED_DOGS.find((d) => d.id === dogId);
+  const dog = dogById(dogId);
 
   const close = () => router.back();
 
