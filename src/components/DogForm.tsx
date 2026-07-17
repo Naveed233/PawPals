@@ -91,10 +91,13 @@ export function DogForm({
   const toggleTag = (list: string[], set: (v: string[]) => void, value: string) =>
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
 
+  const MAX_PHOTOS = 6;
   const addPhoto = async () => {
+    if (photos.length >= MAX_PHOTOS) return;
     const uri = await pickAndUploadPhoto();
     if (uri) setPhotos((p) => [...p, uri]);
   };
+  const removePhoto = (i: number) => setPhotos((p) => p.filter((_, idx) => idx !== i));
 
   const submit = () => {
     const next: Record<string, string> = {};
@@ -139,14 +142,32 @@ export function DogForm({
         <SectionTitle>{tx('写真', 'Photos')}</SectionTitle>
         <View style={styles.photoRow}>
           {photos.map((uri, i) => (
-            <Image key={i} source={{ uri }} style={styles.photoThumb} contentFit="cover" />
+            <View key={i} style={styles.photoWrap}>
+              <Image source={{ uri }} style={styles.photoThumb} contentFit="cover" />
+              <Pressable
+                onPress={() => removePhoto(i)}
+                style={styles.photoRemove}
+                accessibilityRole="button"
+                accessibilityLabel={tx('この写真を削除', 'Remove this photo')}
+                hitSlop={6}
+              >
+                <Text style={styles.photoRemoveX}>×</Text>
+              </Pressable>
+            </View>
           ))}
-          <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel={tx('写真を追加', 'Add photo')}>
-            <Text style={styles.addPhotoPlus}>＋</Text>
-            <Text style={styles.addPhotoText}>{tx('追加', 'Add')}</Text>
-          </Pressable>
+          {photos.length < MAX_PHOTOS && (
+            <Pressable onPress={addPhoto} style={styles.addPhoto} accessibilityRole="button" accessibilityLabel={tx('写真を追加', 'Add photo')}>
+              <Text style={styles.addPhotoPlus}>＋</Text>
+              <Text style={styles.addPhotoText}>{tx('追加', 'Add')}</Text>
+            </Pressable>
+          )}
         </View>
-        <Text style={styles.photoHint}>{tx('任意 — 写真がなくてもかわいいアバターを表示します。', 'Optional — no photo? We’ll show a cute avatar instead.')}</Text>
+        <Text style={styles.photoHint}>
+          {tx(
+            `任意 — 複数枚OK（最大${MAX_PHOTOS}枚）。写真をタップで削除できます。`,
+            `Optional — add up to ${MAX_PHOTOS}. Tap a photo to remove it.`,
+          )}
+        </Text>
       </Card>
 
       <Field label={tx('お名前 *', 'Name *')} value={name} onChangeText={setName} placeholder={tx('例：ビスケット', 'e.g. Biscuit')} error={errors.name} />
@@ -196,7 +217,20 @@ export function DogForm({
 const styles = StyleSheet.create({
   disclaimer: { fontSize: font.tiny, color: night.muted, lineHeight: 16 },
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  photoWrap: { position: 'relative' },
   photoThumb: { width: 72, height: 90, borderRadius: radius.md, backgroundColor: night.surface },
+  photoRemove: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: night.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemoveX: { color: '#fff', fontSize: 15, fontWeight: '900', lineHeight: 17 },
   addPhoto: {
     width: 72,
     height: 90,

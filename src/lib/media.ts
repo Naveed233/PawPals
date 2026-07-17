@@ -14,7 +14,7 @@ export async function pickPhoto(): Promise<string | null> {
     mediaTypes: ['images'],
     allowsEditing: true,
     aspect: [4, 5],
-    quality: 0.85,
+    quality: 1, // full quality — HD photos
   });
 
   if (result.canceled || !result.assets?.length) return null;

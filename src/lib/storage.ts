@@ -21,8 +21,8 @@ export async function uploadPhoto(localUri: string): Promise<string | null> {
 
     const type = blob.type || 'image/jpeg';
     if (!type.startsWith('image/')) return null;
-    // 5 MB cap mirrors the bucket policy — fail fast client-side.
-    if (blob.size > 5 * 1024 * 1024) return null;
+    // 10 MB cap mirrors the bucket policy — room for HD photos.
+    if (blob.size > 10 * 1024 * 1024) return null;
 
     const ext = type.split('/')[1]?.split('+')[0] || 'jpg';
     // Unique-ish name without Date.now (blocked in some contexts) — random + size.

@@ -180,22 +180,14 @@ export const useStore = create<AppState>()(
         const deck = (state.deck ?? seedDeckIds()).filter((id) => id !== dogId);
         const record: SwipeRecord = { dogId, direction, at: Date.now() };
 
-        // Seed dogs carry a mocked `likesYou` for an instant demo match. Real
-        // dogs match via the DB trigger — surfaced by refreshing matches after.
-        let newMatch: Match | null = null;
-        if (direction === 'like') {
-          const dog = SEED_DOGS.find((d) => d.id === dogId);
-          if (dog?.likesYou) {
-            newMatch = { id: `match-${dogId}-${record.at}`, dogId, createdAt: record.at };
-          }
-        }
-
+        // Seed/showcase dogs are demo profiles that populate discovery but
+        // never match — only real users match, via the DB trigger (surfaced
+        // by the discover screen). So swiping a seed dog never creates a match.
         set({
           deck,
           swipes: [...state.swipes, record],
-          matches: newMatch ? [newMatch, ...state.matches] : state.matches,
         });
-        return newMatch;
+        return null;
       },
 
       undo: () => {
