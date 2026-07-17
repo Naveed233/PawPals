@@ -23,6 +23,13 @@ export default function Index() {
 
   useEffect(() => {
     let cancelled = false;
+
+    // Hard cap: never let a slow/unreachable Supabase leave the user stuck on
+    // the splash. After 6s we proceed with whatever local state we have.
+    const failsafe = setTimeout(() => {
+      if (!cancelled) setRestoring(false);
+    }, 6000);
+
     (async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -33,12 +40,17 @@ export default function Index() {
           if (remote?.owner) useStore.setState({ owner: remote.owner, dogs: remote.dogs });
           s.signIn(data.session.user.email ?? 'user');
         }
+      } catch (e) {
+        console.warn('[PawPair] session restore failed:', e);
       } finally {
+        clearTimeout(failsafe);
         if (!cancelled) setRestoring(false);
       }
     })();
+
     return () => {
       cancelled = true;
+      clearTimeout(failsafe);
     };
   }, []);
 
