@@ -268,6 +268,66 @@ export function subscribeMessages(
   };
 }
 
+/**
+ * Real users who liked one of my dogs but I haven't swiped back yet — the
+ * data behind the Premium "Who liked you" screen. Uses the who_liked_me()
+ * RPC (premium.sql) which returns discovery-safe dog + owner fields.
+ */
+export async function fetchWhoLikedMe(): Promise<DogProfile[]> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user.id) return [];
+    const { data, error } = await supabase.rpc('who_liked_me');
+    if (error) {
+      console.warn('[remote] who_liked_me:', error.message);
+      return [];
+    }
+    type FlatRow = Omit<DogRow, 'owner'> & {
+      owner_first_name: string | null;
+      owner_area: string | null;
+      owner_lat: number | null;
+      owner_lon: number | null;
+    };
+    return (data as FlatRow[]).map((r) =>
+      rowToProfile({
+        ...r,
+        owner: {
+          id: r.owner_id,
+          first_name: r.owner_first_name ?? '',
+          area: r.owner_area ?? '',
+          lat: r.owner_lat,
+          lon: r.owner_lon,
+        },
+      }),
+    );
+  } catch (e) {
+    console.warn('[remote] fetchWhoLikedMe:', e);
+    return [];
+  }
+}
+
+/** Activate a boost for the current user (surfaces higher to others). */
+export async function activateBoost(minutes = 30): Promise<number | null> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid) return null;
+    const until = new Date(Date.now() + minutes * 60_000).toISOString();
+    const { error } = await supabase.from('profiles').update({ boosted_until: until }).eq('id', uid);
+    if (error) {
+      console.warn('[remote] activateBoost:', error.message);
+      return null;
+    }
+    return Date.parse(until);
+  } catch {
+    return null;
+  }
+}
+
 /* ------------------------------------------------- moderation & account */
 
 /** Block another owner (both directions of messaging/visibility stop). */

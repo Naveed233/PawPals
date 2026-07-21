@@ -4,15 +4,17 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { SEED_EVENTS } from '@/data/events';
 import { SEED_DOGS, SEED_PHOTO_LIKES } from '@/data/seed';
-import type {
-  Conversations,
-  DogProfile,
-  Match,
-  Message,
-  OwnerProfile,
-  PawEvent,
-  SwipeDirection,
-  SwipeRecord,
+import {
+  EMPTY_FILTERS,
+  type Conversations,
+  type DiscoveryFilters,
+  type DogProfile,
+  type Match,
+  type Message,
+  type OwnerProfile,
+  type PawEvent,
+  type SwipeDirection,
+  type SwipeRecord,
 } from '@/types';
 
 let msgCounter = 0;
@@ -36,6 +38,9 @@ interface AppState {
 
   // Real dogs from other users (Phase 2), merged into discovery + resolvers.
   remoteDogs: DogProfile[];
+
+  // Discovery filters (Premium features are free but badged in the UI).
+  filters: DiscoveryFilters;
 
   deck: string[] | null; // remaining seed dog ids; null = not yet initialised
   swipes: SwipeRecord[]; // history, oldest first
@@ -67,6 +72,8 @@ interface AppState {
   setRemoteDogs: (dogs: DogProfile[]) => void;
   /** Merge real matches (from the DB) into local matches + resolvable dogs. */
   mergeRemoteMatches: (matches: Match[], dogs: DogProfile[]) => void;
+  setFilters: (filters: DiscoveryFilters) => void;
+  clearFilters: () => void;
 
   ensureDeck: () => void;
   swipe: (dogId: string, direction: SwipeDirection) => Match | null;
@@ -98,6 +105,7 @@ export const useStore = create<AppState>()(
       owner: null,
       dogs: [],
       remoteDogs: [],
+      filters: { ...EMPTY_FILTERS },
 
       deck: null,
       swipes: [],
@@ -124,6 +132,7 @@ export const useStore = create<AppState>()(
           owner: null,
           dogs: [],
           remoteDogs: [],
+          filters: { ...EMPTY_FILTERS },
           deck: null,
           swipes: [],
           saved: [],
@@ -155,6 +164,9 @@ export const useStore = create<AppState>()(
         }),
 
       setRemoteDogs: (remoteDogs) => set({ remoteDogs }),
+
+      setFilters: (filters) => set({ filters }),
+      clearFilters: () => set({ filters: { ...EMPTY_FILTERS } }),
 
       mergeRemoteMatches: (incoming, dogs) => {
         const state = get();

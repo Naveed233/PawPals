@@ -11,7 +11,8 @@ import { Button, Card, SectionTitle, Tag, VerifiedBadge } from '@/components/ui'
 import { useI18n } from '@/lib/i18n';
 import { EN_PET_STATUS, JP_LANGUAGE, JP_PERSONALITY, JP_PET_STATUS, JP_SIZE } from '@/lib/jp';
 import { pickAndUploadPhoto } from '@/lib/media';
-import { deleteOwnAccount } from '@/lib/remote';
+import { PremiumBadge } from '@/components/PremiumBadge';
+import { activateBoost, deleteOwnAccount } from '@/lib/remote';
 import { supabase } from '@/lib/supabase';
 import { saveDogRemote, saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
@@ -39,6 +40,16 @@ export default function Profile() {
     addDogPhoto(dogId, uri);
     const updated = useStore.getState().dogs.find((d) => d.id === dogId);
     if (updated) void saveDogRemote(updated);
+  };
+
+  const boostedUntil = owner?.boostedUntil ?? 0;
+  const boostActive = boostedUntil > Date.now();
+  const boostMinsLeft = Math.max(1, Math.round((boostedUntil - Date.now()) / 60000));
+  const boost = async () => {
+    if (boostActive) return;
+    const until = await activateBoost(30);
+    // Optimistic locally even if the server call is a no-op (SQL not yet run).
+    updateOwner({ boostedUntil: until ?? Date.now() + 30 * 60000 });
   };
 
   const confirmDelete = () => {
@@ -132,6 +143,32 @@ export default function Profile() {
           style={{ alignSelf: 'stretch', marginTop: spacing.sm }}
         />
       </View>
+
+      {/* --------------------------------------------- Boost (Premium) */}
+      <Pressable
+        onPress={boost}
+        accessibilityRole="button"
+        accessibilityLabel={tx('プロフィールをブースト', 'Boost your profile')}
+        style={({ pressed }) => [styles.boostCard, boostActive && styles.boostCardOn, pressed && { opacity: 0.9 }]}
+      >
+        <View style={styles.boostIcon}>
+          <Icon name="bolt" color="#fff" size={20} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.boostTitleRow}>
+            <Text style={styles.boostTitle}>
+              {boostActive ? tx('ブースト中！', 'Boost active!') : tx('プロフィールをブースト', 'Boost your profile')}
+            </Text>
+            <PremiumBadge />
+          </View>
+          <Text style={styles.boostSub}>
+            {boostActive
+              ? tx(`あと約${boostMinsLeft}分、一番上に表示中`, `Top of the deck for ~${boostMinsLeft} more min`)
+              : tx('30分間、近くのみんなの一番上に表示されます', 'Be first in the deck near you for 30 minutes')}
+          </Text>
+        </View>
+        {!boostActive && <Icon name="chevronRight" color={night.muted} size={20} />}
+      </Pressable>
 
       {/* --------------------------------------------- Privacy */}
       <SectionTitle>{tx('プライバシー', 'Privacy')}</SectionTitle>
@@ -409,4 +446,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: -spacing.xs,
   },
+  boostCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: night.card,
+    borderWidth: 1,
+    borderColor: 'rgba(240,196,74,0.35)',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  boostCardOn: { borderColor: night.pink, backgroundColor: night.pinkSoft },
+  boostIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0C44A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boostTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  boostTitle: { color: night.text, fontSize: font.body, fontWeight: '800' },
+  boostSub: { color: night.muted, fontSize: font.tiny, marginTop: 2 },
 });

@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Entrance } from '@/components/anim';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
+import { PremiumBadge } from '@/components/PremiumBadge';
 import { Screen } from '@/components/Screen';
 import { Button, Chip } from '@/components/ui';
 import { dogById } from '@/lib/dogs';
@@ -92,6 +93,28 @@ export default function Matches() {
           )}
         </Text>
       </View>
+
+      {/* Who liked you — Premium (free for now) */}
+      <Pressable
+        onPress={() => router.push('/likes')}
+        accessibilityRole="button"
+        accessibilityLabel={tx('あなたにいいねした相手を見る', 'See who liked you')}
+        style={({ pressed }) => [styles.likesCta, pressed && { opacity: 0.9 }]}
+      >
+        <View style={styles.likesHeart}>
+          <Icon name="heartFill" color="#fff" size={20} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.likesTitleRow}>
+            <Text style={styles.likesTitle}>{tx('あなたにいいね', 'Who liked you')}</Text>
+            <PremiumBadge />
+          </View>
+          <Text style={styles.likesSub}>
+            {tx('あなたに興味がある相手をチェック', 'See who is interested in you')}
+          </Text>
+        </View>
+        <Icon name="chevronRight" color={night.muted} size={20} />
+      </Pressable>
 
       {matches.length === 0 ? (
         <View style={styles.empty}>
@@ -247,6 +270,27 @@ export default function Matches() {
 const styles = StyleSheet.create({
   pageTitle: { fontSize: font.display, fontWeight: '900', color: night.text },
   pageSub: { fontSize: font.small, color: night.muted, fontWeight: '600' },
+  likesCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: night.card,
+    borderWidth: 1,
+    borderColor: 'rgba(240,196,74,0.35)',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  likesHeart: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: night.pink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  likesTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  likesTitle: { color: night.text, fontSize: font.body, fontWeight: '800' },
+  likesSub: { color: night.muted, fontSize: font.tiny, marginTop: 2 },
 
   sectionLabel: {
     fontSize: font.small,

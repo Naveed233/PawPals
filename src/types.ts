@@ -3,6 +3,33 @@
 export type Sex = 'male' | 'female';
 export type Size = 'small' | 'medium' | 'large';
 export type Energy = 'low' | 'moderate' | 'high';
+
+/**
+ * Discovery filters. Everything is free today; the "advanced" ones are just
+ * badged Premium in the UI so monetization can switch on later without a
+ * rebuild. Empty array / null / false means "no constraint".
+ */
+export interface DiscoveryFilters {
+  sizes: Size[];
+  energies: Energy[];
+  sexes: Sex[];
+  maxDistanceKm: number | null;
+  vaccinatedOnly: boolean;
+  neuteredOnly: boolean;
+  goodWith: string[]; // keys of GoodWith the dog must satisfy
+  breed: string; // case-insensitive "contains" match
+}
+
+export const EMPTY_FILTERS: DiscoveryFilters = {
+  sizes: [],
+  energies: [],
+  sexes: [],
+  maxDistanceKm: null,
+  vaccinatedOnly: false,
+  neuteredOnly: false,
+  goodWith: [],
+  breed: '',
+};
 export type SocialLevel = 'shy' | 'selective' | 'social' | 'very social';
 export type Recall = 'reliable' | 'improving' | 'on-leash only';
 
@@ -62,6 +89,8 @@ export interface OwnerProfile {
   /** Approximate location for map/distance (rounded; never an exact address). */
   lat?: number;
   lon?: number;
+  /** Boost expiry (ms epoch) — while active you surface higher to others. */
+  boostedUntil?: number;
 }
 
 export interface DogProfile {

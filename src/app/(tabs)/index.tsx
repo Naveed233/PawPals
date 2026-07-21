@@ -9,7 +9,7 @@ import { Icon } from '@/components/icons';
 import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
-import { isSeedDog } from '@/lib/dogs';
+import { activeFilterCount, isSeedDog, matchesFilters } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
 import { recordSwipeRemote } from '@/lib/sync';
@@ -92,6 +92,8 @@ export default function Discover() {
     // owner id/coords are stable within a session; re-run only if they change.
   }, [owner?.id, owner?.lat, owner?.lon, setRemoteDogs, mergeRemoteMatches]);
 
+  const filters = useStore((s) => s.filters);
+  const filterCount = activeFilterCount(filters);
   const swipedIds = useMemo(() => new Set(swipes.map((s) => s.dogId)), [swipes]);
 
   const remaining = useMemo<DogProfile[]>(() => {
@@ -103,8 +105,10 @@ export default function Discover() {
     );
     // Real dogs first so early users find each other; seed dogs keep it full.
     const seen = new Set<string>();
-    return [...remote, ...seed].filter((d) => (seen.has(d.id) ? false : seen.add(d.id)));
-  }, [deck, remoteDogs, swipedIds, owner?.id]);
+    return [...remote, ...seed]
+      .filter((d) => (seen.has(d.id) ? false : seen.add(d.id)))
+      .filter((d) => matchesFilters(d, filters));
+  }, [deck, remoteDogs, swipedIds, owner?.id, filters]);
 
   const top = remaining[0];
   const [burstKey, setBurstKey] = useState(0);
@@ -168,6 +172,22 @@ export default function Discover() {
                 onTap={(dog) => router.push(`/dog/${dog.id}`)}
               />
               {burstKey > 0 && <HeartBurst key={burstKey} count={10} size={24} />}
+
+              {/* Floating filter button — card top-left */}
+              <Pressable
+                onPress={() => router.push('/filters')}
+                accessibilityRole="button"
+                accessibilityLabel={tx('絞り込み', 'Filters')}
+                hitSlop={6}
+                style={({ pressed }) => [styles.filterBtn, pressed && styles.pressedScale]}
+              >
+                <Icon name="sliders" color="#fff" size={18} strokeWidth={2.4} />
+                {filterCount > 0 && (
+                  <View style={styles.filterCount}>
+                    <Text style={styles.filterCountText}>{filterCount}</Text>
+                  </View>
+                )}
+              </Pressable>
 
               {/* Floating pass pill — card top-right, labelled for visibility */}
               <Pressable
@@ -293,6 +313,32 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   passPillText: { color: '#fff', fontSize: font.small, fontWeight: '800', letterSpacing: 0.3 },
+  filterBtn: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(22,6,13,0.62)',
+    borderWidth: 1,
+    borderColor: night.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterCount: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: night.pink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  filterCountText: { color: '#fff', fontSize: 10, fontWeight: '900' },
   sideStack: {
     position: 'absolute',
     right: spacing.lg,
