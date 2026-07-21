@@ -21,6 +21,9 @@ export interface OwnerFormValues {
   photo?: string;
   petStatus: PetStatus;
   otherPetType?: string;
+  /** Coarse coordinates (~1km) derived from the area, for real distance/map. */
+  lat?: number;
+  lon?: number;
 }
 
 const PET_STATUS_OPTIONS: PetStatus[] = ['has-dog', 'has-other-pet', 'no-pet-meet', 'no-pet-future'];
@@ -58,6 +61,9 @@ export function OwnerForm({
   const [customLanguage, setCustomLanguage] = useState('');
   const [availability, setAvailability] = useState<string[]>(initial?.availability ?? []);
   const [photo, setPhoto] = useState<string | undefined>(initial?.photo);
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | undefined>(
+    initial?.lat != null && initial?.lon != null ? { lat: initial.lat, lon: initial.lon } : undefined,
+  );
   const [errors, setErrors] = useState<{ firstName?: string; area?: string; otherPetType?: string }>({});
 
   const toggle = (list: string[], set: (v: string[]) => void, value: string) =>
@@ -85,8 +91,12 @@ export function OwnerForm({
       };
       const hit = json.results?.[0];
       if (hit) {
-        setArea(`${hit.address1}${hit.address2}${hit.address3}`);
+        const addr = `${hit.address1}${hit.address2}${hit.address3}`;
+        setArea(addr);
         setErrors((e) => ({ ...e, area: undefined }));
+        // Geocode to coarse coordinates (rounded ~1km) so distance & the map
+        // are real — never an exact address. Best-effort; failure is fine.
+        void geocodeArea(addr).then((c) => c && setCoords(c));
       } else {
         setZipError(tx('該当する住所が見つかりませんでした', 'No address found for that postal code'));
       }
@@ -96,6 +106,21 @@ export function OwnerForm({
       setZipLoading(false);
     }
   };
+
+  // OSM Nominatim geocode of the area name → coarse lat/lon (2 dp ≈ 1.1km).
+  async function geocodeArea(q: string): Promise<{ lat: number; lon: number } | null> {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ja&countrycodes=jp&q=${encodeURIComponent(q)}`,
+      );
+      const arr = (await res.json()) as { lat: string; lon: string }[];
+      const hit = arr[0];
+      if (!hit) return null;
+      return { lat: Math.round(parseFloat(hit.lat) * 100) / 100, lon: Math.round(parseFloat(hit.lon) * 100) / 100 };
+    } catch {
+      return null;
+    }
+  }
 
   const selectPetStatus = (status: PetStatus) => {
     setPetStatus(status);
@@ -134,6 +159,8 @@ export function OwnerForm({
       availability,
       photo,
       petStatus,
+      lat: coords?.lat,
+      lon: coords?.lon,
       otherPetType: petStatus === 'has-other-pet' ? otherPetType.trim() : undefined,
     });
   };

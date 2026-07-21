@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeBack } from '@/lib/nav';
 import { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -22,7 +23,7 @@ import { replyFor, SUGGESTED_OPENERS } from '@/data/chat';
 import { dogById } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { pickPhoto } from '@/lib/media';
-import { fetchMessages, sendMessage, subscribeMessages } from '@/lib/remote';
+import { blockUser, fetchMessages, reportContent, sendMessage, subscribeMessages } from '@/lib/remote';
 import { uploadPhoto } from '@/lib/storage';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
@@ -127,6 +128,44 @@ export default function Chat() {
     scheduleReply(messages.length + 1);
   };
 
+  // Safety: block + report the person you're chatting with, then leave.
+  const safety = () => {
+    if (!dog) return;
+    const doBlock = async () => {
+      await Promise.all([
+        blockUser(dog.ownerId),
+        reportContent(dog.ownerId, dog.id, 'Blocked from chat'),
+      ]);
+      goBack();
+    };
+    const doReport = async () => {
+      await reportContent(dog.ownerId, dog.id, 'Reported from chat');
+      const msg = tx(
+        'ご報告ありがとうございます。モデレーションチームが確認します。',
+        'Thanks for the report. Our moderation team will review it.',
+      );
+      if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
+      else Alert.alert(tx('ありがとうございます', 'Thank you'), msg);
+    };
+    if (Platform.OS === 'web') {
+      if (typeof window === 'undefined') return;
+      const block = window.confirm(
+        tx(
+          `${dog.ownerName}さんをブロックしますか？（今後やり取りできなくなります）\n「キャンセル」で通報のみ行います。`,
+          `Block ${dog.ownerName}? You won't be able to contact each other.\nChoose Cancel to only report.`,
+        ),
+      );
+      if (block) void doBlock();
+      else void doReport();
+      return;
+    }
+    Alert.alert(tx('通報・ブロック', 'Report or block'), undefined, [
+      { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
+      { text: tx('通報する', 'Report'), onPress: () => void doReport() },
+      { text: tx('ブロック', 'Block'), style: 'destructive', onPress: () => void doBlock() },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       {/* Header (glass) */}
@@ -173,6 +212,15 @@ export default function Chat() {
           style={styles.callBtn}
         >
           <Icon name="video" color={night.text} size={18} />
+        </Pressable>
+        <Pressable
+          onPress={safety}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={tx('通報・ブロック', 'Report or block')}
+          style={styles.callBtn}
+        >
+          <Icon name="dots" color={night.text} size={18} />
         </Pressable>
       </View>
 

@@ -32,6 +32,8 @@ export async function saveProfileRemote(owner: OwnerProfile): Promise<void> {
       other_pet_type: owner.otherPetType ?? null,
       show_profile_to_matches: owner.showProfileToMatches ?? true,
       photo_url: owner.photo ?? null,
+      lat: owner.lat ?? null,
+      lon: owner.lon ?? null,
       updated_at: new Date().toISOString(),
     });
     if (error) console.warn('[sync] saveProfile failed:', error.message);
@@ -121,6 +123,8 @@ export async function fetchRemoteState(): Promise<{
             petStatus: p.pet_status,
             otherPetType: p.other_pet_type ?? undefined,
             showProfileToMatches: p.show_profile_to_matches,
+            lat: p.lat ?? undefined,
+            lon: p.lon ?? undefined,
           }
         : null;
 

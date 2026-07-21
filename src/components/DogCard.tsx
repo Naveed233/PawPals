@@ -5,6 +5,7 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import type { CompatibilityResult } from '@/lib/compatibility';
 import { useI18n } from '@/lib/i18n';
+import { displayPhotos } from '@/lib/photos';
 import { font, night, radius, shadow, spacing } from '@/theme';
 import type { DogProfile } from '@/types';
 
@@ -15,6 +16,7 @@ import type { DogProfile } from '@/types';
  */
 export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult | null }) {
   const { tx } = useI18n();
+  const photoCount = displayPhotos(dog, 1).filter((p) => p.uri || p.module).length;
   return (
     // pointerEvents="none": the card is purely visual — the SwipeDeck's
     // GestureDetector (our parent) handles pan/tap. Critically, on web this
@@ -38,6 +40,16 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
           </View>
         )}
       </View>
+
+      {/* Top-center: photo count (tap the card to browse them all) */}
+      {photoCount > 1 && (
+        <View style={styles.photoCountWrap} pointerEvents="none">
+          <View style={styles.photoCount}>
+            <Icon name="camera" color="#fff" size={12} />
+            <Text style={styles.photoCountText}>{photoCount}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Bottom scrim with the dog's essentials */}
       <LinearGradient
@@ -102,6 +114,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: night.border,
   },
+  photoCountWrap: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  photoCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(22,6,13,0.55)',
+  },
+  photoCountText: { color: '#fff', fontSize: font.tiny, fontWeight: '800' },
   compatPill: {
     backgroundColor: 'rgba(247,46,99,0.32)',
     borderColor: 'rgba(247,46,99,0.55)',

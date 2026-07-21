@@ -11,6 +11,7 @@ import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { activeFilterCount, isSeedDog, matchesFilters } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
+import { detectRealMatch } from '@/lib/matching';
 import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
 import { recordSwipeRemote } from '@/lib/sync';
 import { useStore } from '@/store';
@@ -128,24 +129,9 @@ export default function Discover() {
     } else if (dir === 'like' && !isSeedDog(dog.id)) {
       // Real dog: the DB trigger decides the match. Check shortly after.
       setTimeout(() => {
-        void (async () => {
-          const matches = await fetchRemoteMatches();
-          const hit = matches.find((m) => m.otherOwnerId === dog.ownerId);
-          if (!hit) return;
-          mergeRemoteMatches(
-            [
-              {
-                id: hit.matchId,
-                dogId: hit.dog?.id ?? dog.id,
-                createdAt: hit.createdAt,
-                matchId: hit.matchId,
-                otherOwnerId: hit.otherOwnerId,
-              },
-            ],
-            hit.dog ? [hit.dog] : [],
-          );
-          router.push({ pathname: '/match', params: { dogId: hit.dog?.id ?? dog.id } });
-        })();
+        void detectRealMatch(dog.ownerId).then((matchedDogId) => {
+          if (matchedDogId) router.push({ pathname: '/match', params: { dogId: matchedDogId } });
+        });
       }, 900);
     }
   };

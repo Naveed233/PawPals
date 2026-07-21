@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { useSafeBack } from '@/lib/nav';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -19,9 +20,11 @@ import { PhotoView } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { VerifiedBadge } from '@/components/ui';
 import { computeCompatibility } from '@/lib/compatibility';
-import { dogById } from '@/lib/dogs';
+import { dogById, isSeedDog } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
+import { detectRealMatch } from '@/lib/matching';
 import { blockUser, reportContent } from '@/lib/remote';
+import { recordSwipeRemote } from '@/lib/sync';
 import {
   JP_ENERGY,
   EN_GOOD_WITH,
@@ -44,9 +47,10 @@ export default function DogDetail() {
   const router = useRouter();
   const goBack = useSafeBack('/(tabs)');
   const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: screenWidth } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, tx, tv } = useI18n();
+  const [photoIdx, setPhotoIdx] = useState(0);
 
   const myDog = useStore((s) => s.dogs[0]);
   const myDogs = useStore((s) => s.dogs);
@@ -84,9 +88,18 @@ export default function DogDetail() {
   const isMatched = matches.some((m) => m.dogId === dog.id);
 
   const like = () => {
-    const match = swipe(dog.id, 'like');
+    swipe(dog.id, 'like');
+    recordSwipeRemote(dog.id, 'like');
     goBack();
-    if (match) router.push({ pathname: '/match', params: { dogId: dog.id } });
+    // Real dog: the DB trigger decides the match — check just after, same as
+    // the discovery deck, so liking from a profile can also celebrate a match.
+    if (!isSeedDog(dog.id)) {
+      setTimeout(() => {
+        void detectRealMatch(dog.ownerId).then((matchedDogId) => {
+          if (matchedDogId) router.push({ pathname: '/match', params: { dogId: matchedDogId } });
+        });
+      }, 900);
+    }
   };
 
   // Block + report both persist server-side (blocked_users / reports tables).
@@ -143,7 +156,10 @@ export default function DogDetail() {
     );
   };
 
-  const hero = displayPhotos(dog, 1)[0];
+  // All meaningful photos (uploaded + bundled), for a swipeable gallery.
+  const allPhotos = displayPhotos(dog, 1);
+  const gallery = allPhotos.filter((p) => p.uri || p.module);
+  const photos = gallery.length ? gallery : allPhotos.slice(0, 1);
   const heroHeight = Math.round(windowHeight * 0.45);
 
   const goodWithEntries = Object.keys(JP_GOOD_WITH) as (keyof GoodWith)[];
@@ -161,15 +177,44 @@ export default function DogDetail() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 140 + insets.bottom }}
       >
-        {/* ------------------------------------------------------------ Hero */}
+        {/* ------------------------------------------------- Hero gallery */}
         <View style={[styles.hero, { height: heroHeight }]}>
-          <PhotoView
-            photo={hero}
-            seed={dog.id}
-            name={dog.name}
-            style={[styles.heroPhoto, { height: heroHeight }]}
-            emojiSize={110}
-          />
+          {photos.length > 1 ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) =>
+                setPhotoIdx(Math.round(e.nativeEvent.contentOffset.x / screenWidth))
+              }
+            >
+              {photos.map((p) => (
+                <PhotoView
+                  key={p.key}
+                  photo={p}
+                  seed={dog.id}
+                  name={dog.name}
+                  style={{ width: screenWidth, height: heroHeight }}
+                  emojiSize={110}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <PhotoView
+              photo={photos[0]}
+              seed={dog.id}
+              name={dog.name}
+              style={[styles.heroPhoto, { height: heroHeight }]}
+              emojiSize={110}
+            />
+          )}
+          {photos.length > 1 && (
+            <View style={styles.dots} pointerEvents="none">
+              {photos.map((p, i) => (
+                <View key={p.key} style={[styles.dot, i === photoIdx && styles.dotOn]} />
+              ))}
+            </View>
+          )}
           <LinearGradient
             colors={['rgba(235,197,172,0)', 'rgba(235,197,172,0.55)']}
             style={styles.heroFade}
@@ -448,6 +493,22 @@ const styles = StyleSheet.create({
   hero: { width: '100%' },
   heroPhoto: { width: '100%' },
   heroFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 120 },
+  dots: {
+    position: 'absolute',
+    top: spacing.md,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+  dotOn: { backgroundColor: '#fff', width: 20 },
 
   sheet: {
     backgroundColor: pastel.sheet,
