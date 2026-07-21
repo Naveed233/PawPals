@@ -11,6 +11,7 @@ import { Button, Card, SectionTitle, Tag, VerifiedBadge } from '@/components/ui'
 import { useI18n } from '@/lib/i18n';
 import { EN_PET_STATUS, JP_LANGUAGE, JP_PERSONALITY, JP_PET_STATUS, JP_SIZE } from '@/lib/jp';
 import { pickAndUploadPhoto } from '@/lib/media';
+import { deleteOwnAccount } from '@/lib/remote';
 import { supabase } from '@/lib/supabase';
 import { saveDogRemote, saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
@@ -38,6 +39,33 @@ export default function Profile() {
     addDogPhoto(dogId, uri);
     const updated = useStore.getState().dogs.find((d) => d.id === dogId);
     if (updated) void saveDogRemote(updated);
+  };
+
+  const confirmDelete = () => {
+    const title = tx('アカウントを削除しますか？', 'Delete account?');
+    const message = tx(
+      'アカウントとすべてのデータが完全に削除されます。この操作は取り消せません。',
+      'Your account and all data will be permanently deleted. This cannot be undone.',
+    );
+    const proceed = async () => {
+      const ok = await deleteOwnAccount();
+      if (ok) {
+        signOut();
+        router.replace('/');
+      } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(
+          tx('削除に失敗しました。もう一度お試しください。', 'Deletion failed. Please try again.'),
+        );
+      }
+    };
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(`${title}\n${message}`)) void proceed();
+    } else {
+      Alert.alert(title, message, [
+        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
+        { text: tx('削除する', 'Delete'), style: 'destructive', onPress: () => void proceed() },
+      ]);
+    }
   };
 
   const confirmSignOut = () => {
@@ -246,8 +274,25 @@ export default function Profile() {
           icon={<Icon name="plus" color="#fff" size={16} />}
           onPress={() => router.push('/onboarding/dog')}
         />
+        <Button
+          label={tx('プライバシーポリシー', 'Privacy Policy')}
+          variant="ghost"
+          onPress={() => router.push('/privacy')}
+        />
         <Button label={tx('デモをリセット', 'Reset demo')} variant="ghost" onPress={resetDemo} />
         <Button label={tx('サインアウト', 'Sign out')} variant="ghost" onPress={confirmSignOut} />
+        <Button
+          label={tx('アカウントを削除', 'Delete account')}
+          variant="ghost"
+          onPress={confirmDelete}
+          style={{ borderWidth: 0 }}
+        />
+        <Text style={styles.deleteHint}>
+          {tx(
+            'アカウントとすべてのデータ（プロフィール・ペット・メッセージ）が完全に削除されます。取り消せません。',
+            'Permanently deletes your account and all data (profile, pets, messages). This cannot be undone.',
+          )}
+        </Text>
       </View>
 
       <Text style={styles.disclaimer}>
@@ -356,5 +401,12 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     textAlign: 'center',
     marginTop: spacing.md,
+  },
+  deleteHint: {
+    fontSize: font.tiny,
+    color: night.faint,
+    lineHeight: 15,
+    textAlign: 'center',
+    marginTop: -spacing.xs,
   },
 });

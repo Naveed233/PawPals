@@ -268,6 +268,66 @@ export function subscribeMessages(
   };
 }
 
+/* ------------------------------------------------- moderation & account */
+
+/** Block another owner (both directions of messaging/visibility stop). */
+export async function blockUser(ownerId: string): Promise<boolean> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid || !ownerId || ownerId === uid) return false;
+    const { error } = await supabase
+      .from('blocked_users')
+      .upsert({ blocker: uid, blocked: ownerId });
+    if (error) console.warn('[remote] blockUser:', error.message);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** File a report against an owner and/or a specific dog. */
+export async function reportContent(
+  reportedOwner: string | null,
+  reportedDog: string | null,
+  reason: string,
+): Promise<boolean> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid) return false;
+    const { error } = await supabase.from('reports').insert({
+      reporter: uid,
+      reported_owner: reportedOwner,
+      reported_dog: reportedDog,
+      reason: reason.slice(0, 500),
+    });
+    if (error) console.warn('[remote] reportContent:', error.message);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Permanently delete the current user's account and all their data. */
+export async function deleteOwnAccount(): Promise<boolean> {
+  try {
+    const { error } = await supabase.rpc('delete_own_account');
+    if (error) {
+      console.warn('[remote] deleteOwnAccount:', error.message);
+      return false;
+    }
+    await supabase.auth.signOut();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Subscribe to new matches for the current user. Returns unsubscribe. */
 export function subscribeMatches(myId: string, onMatch: () => void): () => void {
   const channel = supabase

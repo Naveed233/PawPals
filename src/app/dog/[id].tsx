@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,9 +17,10 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { PhotoView } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { VerifiedBadge } from '@/components/ui';
-import { dogById } from '@/lib/dogs';
 import { computeCompatibility } from '@/lib/compatibility';
+import { dogById } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
+import { blockUser, reportContent } from '@/lib/remote';
 import {
   JP_ENERGY,
   EN_GOOD_WITH,
@@ -85,33 +87,59 @@ export default function DogDetail() {
     if (match) router.push({ pathname: '/match', params: { dogId: dog.id } });
   };
 
-  const report = () =>
+  // Block + report both persist server-side (blocked_users / reports tables).
+  // Blocking a demo/seed owner is a no-op server-side but still removes them
+  // from the deck locally so the control always does something visible.
+  const doBlock = async () => {
+    await Promise.all([
+      blockUser(dog.ownerId),
+      reportContent(dog.ownerId, dog.id, 'Blocked from profile'),
+    ]);
+    if (inDeck) swipe(dog.id, 'pass');
+    router.back();
+  };
+
+  const doReport = async () => {
+    await reportContent(dog.ownerId, dog.id, 'Reported from profile');
+    const msg = tx(
+      'ご報告ありがとうございます。モデレーションチームが確認します。',
+      'Thanks for the report. Our moderation team will review it.',
+    );
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
+    else Alert.alert(tx('ありがとうございます', 'Thank you'), msg);
+  };
+
+  const report = () => {
+    const title = tx('通報・ブロック', 'Report or block');
+    if (Platform.OS === 'web') {
+      if (typeof window === 'undefined') return;
+      const choice = window.confirm(
+        tx(
+          `${dog.name}さんの飼い主をブロックしますか？（今後表示されず、メッセージも送受信できません）\n「キャンセル」を選ぶと通報のみ行います。`,
+          `Block ${dog.name}'s owner? They won't appear again and can't message you.\nChoose Cancel to only report.`,
+        ),
+      );
+      if (choice) void doBlock();
+      else void doReport();
+      return;
+    }
     Alert.alert(
-      tx('通報・ブロック', 'Report or block'),
+      title,
       tx(
         `${dog.name}のプロフィールについて、どうしますか？`,
         `What would you like to do about ${dog.name}’s profile?`,
       ),
       [
         { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
-        {
-          text: tx('プロフィールを通報', 'Report profile'),
-          onPress: () =>
-            Alert.alert(
-              tx('ありがとうございます', 'Thank you'),
-              tx('モデレーションチームが確認します。', 'Our moderation team will take a look.'),
-            ),
-        },
+        { text: tx('プロフィールを通報', 'Report profile'), onPress: () => void doReport() },
         {
           text: tx('ブロック', 'Block'),
           style: 'destructive',
-          onPress: () => {
-            if (inDeck) swipe(dog.id, 'pass');
-            router.back();
-          },
+          onPress: () => void doBlock(),
         },
       ],
     );
+  };
 
   const hero = displayPhotos(dog, 1)[0];
   const heroHeight = Math.round(windowHeight * 0.45);

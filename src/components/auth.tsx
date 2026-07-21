@@ -280,12 +280,13 @@ export function SocialRow({
 }
 
 /**
- * Google/Apple sign-in through Supabase OAuth (web redirect flow).
- *
- * Pre-flights the authorize URL so a provider that isn't configured in the
- * Supabase dashboard yet shows a friendly message instead of dumping the
- * user on a JSON error page. Native apps need a deep-link flow — until the
- * store build exists, native shows the email-instead notice.
+ * Google/Apple sign-in through Supabase.
+ *  - Web: OAuth redirect flow (pre-flighted so an unconfigured provider shows
+ *    a friendly message instead of a raw error page).
+ *  - iOS: native Sign in with Apple (required by the App Store) via
+ *    expo-apple-authentication; Google via an in-app browser + deep link.
+ *  - Android: Google via in-app browser + deep link.
+ * Native modules are dynamically imported so they never affect the web bundle.
  */
 export async function providerSignIn(provider: 'google' | 'apple', lang: Lang) {
   const tx = txFor(lang);
@@ -302,35 +303,89 @@ export async function providerSignIn(provider: 'google' | 'apple', lang: Lang) {
     }
   };
 
-  if (Platform.OS !== 'web' || typeof window === 'undefined') {
-    notify(notReady);
-    return;
-  }
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: window.location.origin + (window.location.pathname.startsWith('/PawPals') ? '/PawPals/' : '/'),
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error || !data?.url) {
-    notify(error?.message ?? notReady);
-    return;
-  }
-
-  try {
-    // A disabled provider answers 400 here; an enabled one redirects out.
-    const probe = await fetch(data.url, { redirect: 'manual' });
-    if (probe.type !== 'opaqueredirect' && !probe.ok) {
-      notify(notReady);
+  // ---------------------------------------------------------------- web
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined') return;
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo:
+          window.location.origin +
+          (window.location.pathname.startsWith('/PawPals') ? '/PawPals/' : '/'),
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error || !data?.url) {
+      notify(error?.message ?? notReady);
       return;
     }
-  } catch {
-    // Probe blocked (network/CORS quirk) — proceed; worst case the provider
-    // page itself explains.
+    try {
+      const probe = await fetch(data.url, { redirect: 'manual' });
+      if (probe.type !== 'opaqueredirect' && !probe.ok) {
+        notify(notReady);
+        return;
+      }
+    } catch {
+      // Probe blocked (CORS) — proceed; the provider page will explain if off.
+    }
+    window.location.assign(data.url);
+    return;
   }
-  window.location.assign(data.url);
+
+  // ------------------------------------------------- iOS native Apple
+  if (provider === 'apple' && Platform.OS === 'ios') {
+    try {
+      const AppleAuthentication = await import('expo-apple-authentication');
+      const cred = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      if (!cred.identityToken) {
+        notify(notReady);
+        return;
+      }
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: cred.identityToken,
+      });
+      if (error) notify(error.message);
+    } catch (e) {
+      // User-cancel throws ERR_REQUEST_CANCELED — treat as a no-op.
+      const code = (e as { code?: string })?.code;
+      if (code !== 'ERR_REQUEST_CANCELED') notify(notReady);
+    }
+    return;
+  }
+
+  // --------------------------- native Google (+ Apple on Android) via browser
+  try {
+    const WebBrowser = await import('expo-web-browser');
+    const redirectTo = 'pawpair://auth-callback';
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+    if (error || !data?.url) {
+      notify(error?.message ?? notReady);
+      return;
+    }
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success' || !result.url) return;
+    const url = result.url;
+    const frag = url.includes('#') ? url.split('#')[1] : url.split('?')[1] ?? '';
+    const params = new URLSearchParams(frag);
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token && refresh_token) {
+      await supabase.auth.setSession({ access_token, refresh_token });
+    } else {
+      notify(notReady);
+    }
+  } catch {
+    notify(notReady);
+  }
 }
 
 const s = StyleSheet.create({
