@@ -7,6 +7,7 @@ import { Icon, IconName } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag } from '@/components/ui';
 import { remindForEvent } from '@/lib/calendar';
+import { eventStyle } from '@/lib/eventStyle';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -65,7 +66,7 @@ export default function EventDetail() {
   return (
     <Screen title={tx('イベント', 'Event')} onBack={() => goBack()}>
       <View style={styles.tagRow}>
-        <Tag label={tv(JP_MEETUP, event.type)} />
+        <Tag label={tv(JP_MEETUP, event.type)} tone={eventStyle(event.type).category} emoji={eventStyle(event.type).emoji} />
       </View>
       <Text style={styles.title}>{event.title}</Text>
 
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: radius.pill,
   },
-  hostBadgeText: { fontSize: font.tiny, fontWeight: '800', color: '#FF8FAF' },
+  hostBadgeText: { fontSize: font.tiny, fontWeight: '800', color: night.coralDeep },
   attendees: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   attendeeAvatar: { width: 40, height: 40 },
   goingText: { fontSize: font.small, fontWeight: '700', color: night.muted, marginLeft: spacing.xs },

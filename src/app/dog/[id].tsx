@@ -430,7 +430,7 @@ export default function DogDetail() {
             hitSlop={8}
             style={({ pressed }) => [styles.floatBtn, pressed && styles.floatBtnPressed]}
           >
-            <Icon name={isSaved ? 'heartFill' : 'heart'} color={isSaved ? night.pink : pastel.ink} size={20} />
+            <Icon name="bookmark" color={isSaved ? night.coral : pastel.ink} size={20} />
           </Pressable>
         </View>
       </View>

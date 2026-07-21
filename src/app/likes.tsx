@@ -65,7 +65,7 @@ export default function Likes() {
               >
                 <DogPhoto dog={dog} style={styles.photo} rounded={radius.lg} emojiSize={40} />
                 <View style={styles.likeChip}>
-                  <Icon name="heartFill" color="#fff" size={12} />
+                  <Icon name="pawFill" color="#fff" size={12} />
                 </View>
                 <View style={styles.meta}>
                   <Text style={styles.name} numberOfLines={1}>

@@ -155,7 +155,7 @@ export default function Matches() {
         style={({ pressed }) => [styles.likesCta, pressed && { opacity: 0.9 }]}
       >
         <View style={styles.likesHeart}>
-          <Icon name="heartFill" color="#fff" size={20} />
+          <Icon name="pawFill" color="#fff" size={20} />
         </View>
         <View style={{ flex: 1 }}>
           <View style={styles.likesTitleRow}>
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     backgroundColor: night.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(247,46,99,0.35)',
+    borderColor: 'rgba(255,107,107,0.35)',
     padding: spacing.md,
     gap: spacing.sm,
   },

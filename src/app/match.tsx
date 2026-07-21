@@ -65,10 +65,10 @@ export default function MatchCelebration() {
             <DogPhoto dog={myDog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
           )}
           <View style={styles.heart}>
-            <Icon name="heartFill" color={night.pink} size={26} />
+            <Icon name="pawFill" color={night.coral} size={26} />
           </View>
           <DogPhoto dog={dog} style={styles.photo} rounded={radius.lg} emojiSize={52} />
-          <HeartBurst count={12} size={26} emojis={['💗', '💖', '🩷', '💕', '💞']} />
+          <HeartBurst count={12} size={26} emojis={['🐾', '🎉', '🐶', '🦴', '⭐']} />
         </View>
 
         <Text style={styles.body}>

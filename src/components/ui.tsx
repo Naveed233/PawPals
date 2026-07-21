@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { useI18n } from '@/lib/i18n';
-import { colors, font, night, radius, shadow, spacing } from '@/theme';
+import { colors, eventPalette, font, night, radius, shadow, spacing } from '@/theme';
 
 /* ---------------------------------------------------------------- Button */
 
@@ -65,9 +65,9 @@ export function Button({
 }
 
 const BUTTON_VARIANTS: Record<ButtonVariant, { bg: string; fg: string; border: string }> = {
-  primary: { bg: night.pink, fg: '#fff', border: night.pink },
-  secondary: { bg: night.surfaceHi, fg: '#fff', border: 'transparent' },
-  outline: { bg: 'transparent', fg: '#fff', border: 'rgba(255,255,255,0.35)' },
+  primary: { bg: night.coral, fg: '#fff', border: night.coral }, // coral CTA
+  secondary: { bg: night.forest, fg: '#fff', border: night.forest }, // forest-green CTA
+  outline: { bg: 'transparent', fg: night.text, border: night.border },
   ghost: { bg: 'transparent', fg: night.muted, border: 'transparent' },
   danger: { bg: night.danger, fg: '#fff', border: night.danger },
   dark: { bg: colors.ink, fg: '#fff', border: colors.ink },
@@ -100,16 +100,28 @@ export function Chip({
 
 /* ------------------------------------------------------------- Plain tag */
 
-export function Tag({ label, tone = 'forest' }: { label: string; tone?: 'forest' | 'blue' | 'coral' }) {
-  const map = {
-    forest: { bg: night.pinkSoft, fg: '#FF8FAF' },
-    blue: { bg: 'rgba(111,168,220,0.22)', fg: '#9CC4EA' },
-    coral: { bg: 'rgba(242,118,94,0.22)', fg: '#FFAB97' },
-  } as const;
+export type TagTone = 'green' | 'coral' | 'golden' | 'blue' | 'walk' | 'cafe' | 'park' | 'playdate';
+
+/** Soft pill. Defaults to the friendly soft-green; event categories + brand
+ *  accents available via `tone`. `emoji` renders a leading glyph. */
+export function Tag({ label, tone = 'green', emoji }: { label: string; tone?: TagTone; emoji?: string }) {
+  const map: Record<TagTone, { bg: string; fg: string }> = {
+    green: { bg: night.softGreen, fg: night.softGreenText },
+    coral: { bg: night.coralSoft, fg: night.coralDeep },
+    golden: { bg: night.goldenSoft, fg: '#8A6A1E' },
+    blue: { bg: eventPalette.park.soft, fg: eventPalette.park.color },
+    walk: { bg: eventPalette.walk.soft, fg: eventPalette.walk.color },
+    cafe: { bg: eventPalette.cafe.soft, fg: eventPalette.cafe.color },
+    park: { bg: eventPalette.park.soft, fg: eventPalette.park.color },
+    playdate: { bg: eventPalette.playdate.soft, fg: eventPalette.playdate.color },
+  };
   const t = map[tone];
   return (
     <View style={[styles.tag, { backgroundColor: t.bg }]}>
-      <Text style={[styles.tagText, { color: t.fg }]}>{label}</Text>
+      <Text style={[styles.tagText, { color: t.fg }]}>
+        {emoji ? `${emoji} ` : ''}
+        {label}
+      </Text>
     </View>
   );
 }
@@ -222,10 +234,10 @@ const styles = StyleSheet.create({
   verified: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: night.pinkSoft,
+    backgroundColor: night.softGreen,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radius.pill,
   },
-  verifiedText: { fontSize: font.tiny, fontWeight: '800', color: '#FF8FAF' },
+  verifiedText: { fontSize: font.tiny, fontWeight: '800', color: night.softGreenText },
 });

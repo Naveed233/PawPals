@@ -22,7 +22,7 @@ import { SEED_DOGS } from '@/data/seed';
 import { useI18n } from '@/lib/i18n';
 import { saveMeetPresence } from '@/lib/sync';
 import { useStore } from '@/store';
-import { font, night, radius, spacing } from '@/theme';
+import { font, night, radius, shadow, spacing } from '@/theme';
 
 /**
  * マップ: a REAL map (OpenStreetMap tiles) centred on the user.
@@ -236,7 +236,7 @@ export default function MapScreen() {
                 </View>
                 {dog.likesYou && (
                   <View style={styles.pinHeart}>
-                    <Icon name="heartFill" color={night.pink} size={11} />
+                    <Icon name="pawFill" color={night.coral} size={11} />
                   </View>
                 )}
                 <View style={styles.pinLabel}>
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
 
   mapLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, overflow: 'hidden' },
   tile: { position: 'absolute', width: TILE, height: TILE, backgroundColor: night.navy },
-  mapTint: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(22,4,9,0.34)' },
+  mapTint: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(255,253,248,0.14)' },
   mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   youPin: {
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(247,46,99,0.3)',
+    backgroundColor: 'rgba(255,107,107,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -455,20 +455,21 @@ const styles = StyleSheet.create({
   },
   pinLabel: {
     marginTop: 3,
-    backgroundColor: 'rgba(22,4,9,0.8)',
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     maxWidth: 96,
+    ...shadow.soft,
   },
-  pinLabelText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  pinLabelText: { color: night.text, fontSize: 10, fontWeight: '800' },
 
   attribution: {
     position: 'absolute',
     left: spacing.sm,
     bottom: 96,
     fontSize: 9,
-    color: 'rgba(255,255,255,0.55)',
+    color: 'rgba(60,60,60,0.6)',
   },
 
   overlay: { flex: 1, paddingHorizontal: spacing.lg },
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
 
   card: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(22,4,9,0.88)',
+    backgroundColor: 'rgba(255,255,255,0.96)',
     borderWidth: 1,
     borderColor: night.border,
     borderRadius: 20,
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
   },
   cardRow: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(22,4,9,0.88)',
+    backgroundColor: 'rgba(255,255,255,0.96)',
     borderWidth: 1,
     borderColor: night.border,
     borderRadius: 20,
@@ -536,7 +537,7 @@ const styles = StyleSheet.create({
 
   presenceCard: {
     marginTop: spacing.md,
-    backgroundColor: 'rgba(22,4,9,0.9)',
+    backgroundColor: 'rgba(255,255,255,0.96)',
     borderWidth: 1,
     borderColor: night.border,
     borderRadius: 20,

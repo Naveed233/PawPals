@@ -14,8 +14,9 @@ import { night } from '@/theme';
 
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
   return (
-    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Icon name={name} color={focused ? '#FFFFFF' : night.muted} size={22} />
+    <View style={styles.iconWrap}>
+      <Icon name={name} color={focused ? night.coral : night.faint} size={24} />
+      {focused && <View style={styles.activeDot} />}
     </View>
   );
 }
@@ -77,9 +78,9 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    left: 60,
-    right: 60,
-    height: 64,
+    left: 24,
+    right: 24,
+    height: 66,
     borderRadius: 999,
     backgroundColor: night.tabBar,
     borderTopWidth: 0,
@@ -87,25 +88,34 @@ const styles = StyleSheet.create({
     borderColor: night.border,
     paddingTop: 10,
     paddingBottom: 10,
+    // soft lift off the warm background
+    shadowColor: '#B99A6B',
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 10,
   },
   tabItem: {
-    height: 44,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
   },
-  iconWrapActive: {
-    backgroundColor: night.pink,
+  activeDot: {
+    position: 'absolute',
+    bottom: 2,
+    width: 5,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: night.coral,
   },
   badge: {
-    backgroundColor: night.pink,
+    backgroundColor: night.coral,
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',

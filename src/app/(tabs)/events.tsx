@@ -8,6 +8,7 @@ import { Icon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Tag } from '@/components/ui';
 import { remindForEvent } from '@/lib/calendar';
+import { eventStyle } from '@/lib/eventStyle';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -103,7 +104,7 @@ export default function Events() {
                 style={({ pressed }) => [styles.cardBody, pressed && { opacity: 0.92 }]}
               >
                 <View style={styles.topRow}>
-                  <Tag label={tv(JP_MEETUP, e.type)} />
+                  <Tag label={tv(JP_MEETUP, e.type)} tone={eventStyle(e.type).category} emoji={eventStyle(e.type).emoji} />
                   <Text style={styles.when}>
                     {dateLabelFor(lang, e.dateLabel)} · {timeLabelFor(lang, e.timeLabel)}
                   </Text>

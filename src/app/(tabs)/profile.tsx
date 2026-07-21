@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AchievementsSection } from '@/components/Achievements';
 import { OwnerAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { ToggleRow } from '@/components/form';
@@ -169,6 +170,9 @@ export default function Profile() {
         </View>
         {!boostActive && <Icon name="chevronRight" color={night.muted} size={20} />}
       </Pressable>
+
+      {/* --------------------------------------------- Achievements */}
+      <AchievementsSection />
 
       {/* --------------------------------------------- Privacy */}
       <SectionTitle>{tx('プライバシー', 'Privacy')}</SectionTitle>

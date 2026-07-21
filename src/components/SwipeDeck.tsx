@@ -47,10 +47,14 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
   const compatFor = (dog: DogProfile) => (myDog ? computeCompatibility(myDog, dog, lang) : null);
 
   // Runs on the JS thread once a card has flown off-screen.
+  // Order matters: swap the data FIRST (so the flown card unmounts and the
+  // next card — keyed by id — takes top position), THEN reset the shared
+  // values. Resetting before the swap made the flown card snap back to centre
+  // for a frame, which read as a flash of the previous dog.
   const finish = (dog: DogProfile, dir: SwipeDirection) => {
+    onSwipe(dog, dir);
     tx.value = 0;
     ty.value = 0;
-    onSwipe(dog, dir);
   };
 
   const animateOut = (dir: SwipeDirection) => {
@@ -114,13 +118,14 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
         </View>
       )}
 
-      {/* Top card */}
+      {/* Top card — keyed by id so a swiped card unmounts cleanly instead of
+          snapping back to centre as the deck advances. */}
       <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.cardLayer, topStyle]}>
+        <Animated.View key={top.id} style={[styles.cardLayer, topStyle]}>
           <DogCard dog={top} compat={compatFor(top)} />
 
           <Animated.View style={[styles.stamp, styles.likeStamp, likeStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: night.pink }]}>{t('いいね', 'LIKE')}</Text>
+            <Text style={[styles.stampText, { color: night.coral }]}>{t('いいね', 'LIKE')}</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.passStamp, passStyle]} pointerEvents="none">
             <Text style={[styles.stampText, { color: night.danger }]}>{t('パス', 'PASS')}</Text>
@@ -143,9 +148,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderWidth: 3,
     borderRadius: radius.lg,
-    backgroundColor: 'rgba(22,4,9,0.55)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
   },
-  likeStamp: { left: spacing.xl, borderColor: night.pink, transform: [{ rotate: '-14deg' }] },
+  likeStamp: { left: spacing.xl, borderColor: night.coral, transform: [{ rotate: '-14deg' }] },
   passStamp: { right: spacing.xl, borderColor: night.danger, transform: [{ rotate: '14deg' }] },
   stampText: { fontSize: font.title, fontWeight: '900', letterSpacing: 2 },
 });

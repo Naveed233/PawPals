@@ -10,33 +10,35 @@ import { font, night, radius, shadow, spacing } from '@/theme';
 import type { DogProfile } from '@/types';
 
 /**
- * The discovery card: a full-bleed dog photo with frosted-glass overlays and a
- * bottom scrim carrying the essentials. `compat` is null when the current user
- * has no dog profile — the compatibility pill is simply skipped.
+ * The discovery card — the dog is the hero: a full-bleed photo, no border, and
+ * only a soft gradient across the bottom carrying the essentials. A big white
+ * distance badge and a green location badge sit top-left.
  */
 export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult | null }) {
   const { tx } = useI18n();
   const photoCount = displayPhotos(dog, 1).filter((p) => p.uri || p.module).length;
   return (
     // pointerEvents="none": the card is purely visual — the SwipeDeck's
-    // GestureDetector (our parent) handles pan/tap. Critically, on web this
-    // also stops the <img> from hijacking mouse drags as native image-drag,
-    // which silently killed the swipe gesture.
+    // GestureDetector (our parent) handles pan/tap. On web this also stops the
+    // <img> from hijacking mouse drags as native image-drag.
     <View style={styles.card} pointerEvents="none">
       <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} />
 
-      {/* Top-left: area pill + optional compatibility pill */}
+      {/* Top-left: big distance badge + green location badge + optional compat */}
       <View style={styles.topLeft} pointerEvents="none">
-        <View style={styles.glassPill}>
-          <Icon name="pin" color="#fff" size={13} />
-          <Text style={styles.pillText}>{dog.ownerArea}</Text>
+        <View style={styles.distanceBadge}>
+          <Text style={styles.distanceText}>
+            {tx(`${dog.distanceKm}km先`, `${dog.distanceKm} km away`)}
+          </Text>
+        </View>
+        <View style={styles.locationBadge}>
+          <Icon name="pin" color="#fff" size={13} strokeWidth={2.4} />
+          <Text style={styles.locationText}>{dog.ownerArea}</Text>
         </View>
         {compat && (
-          <View style={[styles.glassPill, styles.compatPill]}>
-            <Icon name="pawFill" color="#fff" size={13} />
-            <Text style={styles.pillText}>
-              {tx(`相性 ${compat.score}%`, `${compat.score}% match`)}
-            </Text>
+          <View style={styles.compatBadge}>
+            <Icon name="pawFill" color={night.coral} size={13} />
+            <Text style={styles.compatText}>{tx(`相性 ${compat.score}%`, `${compat.score}% match`)}</Text>
           </View>
         )}
       </View>
@@ -51,15 +53,13 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
         </View>
       )}
 
-      {/* Bottom scrim with the dog's essentials */}
+      {/* Soft gradient across the bottom ~40% only — the dog stays the hero */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.75)']}
+        colors={['transparent', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.62)']}
+        locations={[0, 0.45, 1]}
         style={styles.scrim}
         pointerEvents="none"
       >
-        <Text style={styles.distance}>
-          {tx(`${dog.distanceKm}km先`, `${dog.distanceKm} km away`)}
-        </Text>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
             {dog.name}
@@ -87,11 +87,9 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: night.card,
+    backgroundColor: night.surfaceHi,
     borderRadius: radius.xl,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: night.border,
     ...shadow.card,
   },
 
@@ -104,24 +102,36 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: 'flex-start',
   },
-  glassPill: {
+  distanceBadge: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    ...shadow.soft,
+  },
+  distanceText: { color: night.coral, fontSize: font.body, fontWeight: '900' },
+  locationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
+    backgroundColor: night.forest,
     paddingHorizontal: spacing.md,
-    paddingVertical: 7,
+    paddingVertical: 6,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(22,6,13,0.45)',
-    borderWidth: 1,
-    borderColor: night.border,
   },
-  photoCountWrap: {
-    position: 'absolute',
-    top: spacing.lg,
-    left: 0,
-    right: 0,
+  locationText: { color: '#fff', fontSize: font.small, fontWeight: '800' },
+  compatBadge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
   },
+  compatText: { color: night.text, fontSize: font.small, fontWeight: '800' },
+
+  photoCountWrap: { position: 'absolute', top: spacing.lg, left: 0, right: 0, alignItems: 'center' },
   photoCount: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -129,43 +139,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(22,6,13,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   photoCountText: { color: '#fff', fontSize: font.tiny, fontWeight: '800' },
-  compatPill: {
-    backgroundColor: 'rgba(247,46,99,0.32)',
-    borderColor: 'rgba(247,46,99,0.55)',
-  },
-  pillText: { color: '#fff', fontSize: font.small, fontWeight: '700' },
 
   scrim: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
+    minHeight: '42%',
+    justifyContent: 'flex-end',
     padding: spacing.lg,
-    paddingTop: 72,
     paddingBottom: spacing.xl,
     gap: 3,
   },
-  distance: { color: night.muted, fontSize: font.small, fontWeight: '700' },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   name: { color: '#fff', fontSize: font.display, fontWeight: '900', flexShrink: 1 },
   verifiedDot: {
     width: 20,
     height: 20,
     borderRadius: radius.pill,
-    backgroundColor: night.pink,
+    backgroundColor: night.forest,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  breed: { color: 'rgba(255,255,255,0.92)', fontSize: font.body, fontWeight: '600' },
+  breed: { color: 'rgba(255,255,255,0.95)', fontSize: font.body, fontWeight: '700' },
   notes: {
-    color: 'rgba(255,255,255,0.72)',
+    color: 'rgba(255,255,255,0.8)',
     fontSize: font.small,
     fontWeight: '500',
     lineHeight: 19,
     marginTop: 2,
   },
-  more: { color: '#fff', fontSize: font.body, fontWeight: '800', marginTop: 2 },
+  more: { color: '#fff', fontSize: font.body, fontWeight: '800', marginTop: 4 },
 });

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HeartBurst } from '@/components/anim';
+import { PawTrail } from '@/components/anim';
 import { Icon } from '@/components/icons';
 import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
@@ -16,7 +16,7 @@ import { detectRealMatch } from '@/lib/matching';
 import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
 import { recordSwipeRemote } from '@/lib/sync';
 import { useStore } from '@/store';
-import { font, night, radius, spacing } from '@/theme';
+import { font, night, radius, shadow, spacing } from '@/theme';
 import type { DogProfile, SwipeDirection } from '@/types';
 
 export default function Discover() {
@@ -159,7 +159,7 @@ export default function Discover() {
                 onSwipe={handleSwipe}
                 onTap={(dog) => router.push(`/dog/${dog.id}`)}
               />
-              {burstKey > 0 && <HeartBurst key={burstKey} count={10} size={24} />}
+              {burstKey > 0 && <PawTrail key={burstKey} count={9} />}
 
               {/* Floating filter button — card top-left */}
               <Pressable
@@ -169,7 +169,7 @@ export default function Discover() {
                 hitSlop={6}
                 style={({ pressed }) => [styles.filterBtn, pressed && styles.pressedScale]}
               >
-                <Icon name="sliders" color="#fff" size={18} strokeWidth={2.4} />
+                <Icon name="sliders" color={night.coral} size={18} strokeWidth={2.4} />
                 {filterCount > 0 && (
                   <View style={styles.filterCount}>
                     <Text style={styles.filterCountText}>{filterCount}</Text>
@@ -185,7 +185,7 @@ export default function Discover() {
                 hitSlop={6}
                 style={({ pressed }) => [styles.passPill, pressed && styles.pressedScale]}
               >
-                <Icon name="x" color="#fff" size={16} strokeWidth={2.6} />
+                <Icon name="x" color={night.text} size={16} strokeWidth={2.6} />
                 <Text style={styles.passPillText}>{tx('パス', 'Pass')}</Text>
               </Pressable>
 
@@ -202,7 +202,7 @@ export default function Discover() {
                     pressed && styles.pressedScale,
                   ]}
                 >
-                  <Icon name="heartFill" color={night.pink} size={26} />
+                  <Icon name="pawFill" color="#fff" size={28} />
                 </Pressable>
                 <Pressable
                   onPress={undo}
@@ -217,7 +217,7 @@ export default function Discover() {
                     pressed && swipeCount > 0 && styles.pressedScale,
                   ]}
                 >
-                  <Icon name="undo" color="#fff" size={20} />
+                  <Icon name="undo" color={night.text} size={20} />
                 </Pressable>
                 <Pressable
                   onPress={() => toggleSave(top.id)}
@@ -231,7 +231,7 @@ export default function Discover() {
                     pressed && styles.pressedScale,
                   ]}
                 >
-                  <Icon name="bookmark" color={isSaved ? night.pink : '#fff'} size={20} />
+                  <Icon name="bookmark" color={isSaved ? night.coral : night.text} size={20} />
                 </Pressable>
               </View>
 
@@ -281,11 +281,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(22,6,13,0.5)',
-    borderWidth: 1,
-    borderColor: night.border,
+    backgroundColor: 'rgba(255,255,255,0.94)',
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadow.soft,
   },
   passPill: {
     position: 'absolute',
@@ -294,14 +293,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(22,6,13,0.62)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,107,94,0.7)',
+    backgroundColor: 'rgba(255,255,255,0.94)',
     borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    ...shadow.soft,
   },
-  passPillText: { color: '#fff', fontSize: font.small, fontWeight: '800', letterSpacing: 0.3 },
+  passPillText: { color: night.text, fontSize: font.small, fontWeight: '800', letterSpacing: 0.3 },
   filterBtn: {
     position: 'absolute',
     top: spacing.lg,
@@ -309,11 +307,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(22,6,13,0.62)',
-    borderWidth: 1,
-    borderColor: night.border,
+    backgroundColor: 'rgba(255,255,255,0.94)',
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadow.soft,
   },
   filterCount: {
     position: 'absolute',
@@ -336,14 +333,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   likeBtn: {
-    width: 58,
-    height: 58,
-    backgroundColor: 'rgba(247,46,99,0.28)',
-    borderColor: 'rgba(247,46,99,0.55)',
+    width: 60,
+    height: 60,
+    backgroundColor: night.coral,
   },
   savedBtn: {
-    backgroundColor: night.pinkSoft,
-    borderColor: 'rgba(247,46,99,0.55)',
+    backgroundColor: night.coralSoft,
+    borderColor: 'rgba(255,107,107,0.55)',
   },
   disabled: { opacity: 0.35 },
   pressedScale: { transform: [{ scale: 0.92 }] },

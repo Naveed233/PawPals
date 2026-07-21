@@ -23,7 +23,7 @@ export default function Root({ children }: PropsWithChildren) {
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
         />
-        <meta name="theme-color" content="#160309" />
+        <meta name="theme-color" content="#FFFDF8" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: rootStyle }} />
       </head>
@@ -33,5 +33,5 @@ export default function Root({ children }: PropsWithChildren) {
 }
 
 const rootStyle = `
-html, body { background-color: #160309; }
+html, body { background-color: #FFFDF8; }
 `;

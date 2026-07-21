@@ -50,7 +50,7 @@ export default function Call() {
             accessibilityLabel={tx('閉じる', 'Close')}
             style={styles.ctrl}
           >
-            <Icon name="x" color="#fff" size={24} />
+            <Icon name="x" color={night.text} size={24} />
           </Pressable>
         </SafeAreaView>
       </LinearGradient>
@@ -160,7 +160,7 @@ function CallButton({
       <View style={[styles.ctrl, active && styles.ctrlActive, danger && styles.ctrlDanger]}>
         <Icon
           name={icon}
-          color={active ? night.bg : '#fff'}
+          color={active || danger ? '#fff' : night.text}
           size={26}
           style={rotate ? styles.rotated : undefined}
         />
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctrlActive: { backgroundColor: '#fff', borderColor: '#fff' },
+  ctrlActive: { backgroundColor: night.coral, borderColor: night.coral },
   ctrlDanger: { backgroundColor: night.danger, borderColor: night.danger },
   rotated: { transform: [{ rotate: '135deg' }] },
   ctrlLabel: { color: night.text, fontSize: font.tiny, fontWeight: '700' },

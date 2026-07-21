@@ -1,6 +1,7 @@
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { useStore } from '@/store';
+import { night } from '@/theme';
 
 /**
  * 日本語 / EN segmented pill. Dark-glass styling so it sits on both the auth
@@ -36,9 +37,9 @@ export function LanguageToggle({ style }: { style?: StyleProp<ViewStyle> }) {
 const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: night.surfaceHi,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: night.border,
     borderRadius: 999,
     padding: 3,
     gap: 2,
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
   },
-  segOn: { backgroundColor: 'rgba(255,255,255,0.92)' },
-  segText: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.75)' },
-  segTextOn: { color: '#17170A' },
+  segOn: { backgroundColor: night.coral },
+  segText: { fontSize: 12, fontWeight: '700', color: night.muted },
+  segTextOn: { color: '#fff' },
 });
