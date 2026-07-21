@@ -5,11 +5,13 @@ import { useSafeBack } from '@/lib/nav';
 import { StatusBar } from 'expo-status-bar';
 import {
   Alert,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -23,7 +25,7 @@ import { computeCompatibility } from '@/lib/compatibility';
 import { dogById, isSeedDog } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { detectRealMatch } from '@/lib/matching';
-import { blockUser, reportContent } from '@/lib/remote';
+import { blockUser, reportContent, sendWalkRequest } from '@/lib/remote';
 import { recordSwipeRemote } from '@/lib/sync';
 import {
   JP_ENERGY,
@@ -51,6 +53,12 @@ export default function DogDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, tx, tv } = useI18n();
   const [photoIdx, setPhotoIdx] = useState(0);
+
+  // "Ask to join a walk" composer state.
+  const [walkOpen, setWalkOpen] = useState(false);
+  const [walkMsg, setWalkMsg] = useState('');
+  const [walkSending, setWalkSending] = useState(false);
+  const [walkResult, setWalkResult] = useState<'sent' | 'duplicate' | 'demo' | 'error' | null>(null);
 
   const myDog = useStore((s) => s.dogs[0]);
   const myDogs = useStore((s) => s.dogs);
@@ -100,6 +108,25 @@ export default function DogDetail() {
         });
       }, 900);
     }
+  };
+
+  const submitWalkRequest = async () => {
+    const msg = walkMsg.trim();
+    // Demo/seed dogs have no real owner to receive the request.
+    if (isSeedDog(dog.id)) {
+      setWalkResult('demo');
+      return;
+    }
+    setWalkSending(true);
+    const res = await sendWalkRequest(dog.ownerId, dog.id, msg);
+    setWalkSending(false);
+    setWalkResult(res.ok ? 'sent' : res.reason === 'duplicate' ? 'duplicate' : 'error');
+  };
+
+  const closeWalk = () => {
+    setWalkOpen(false);
+    setWalkResult(null);
+    setWalkMsg('');
   };
 
   // Block + report both persist server-side (blocked_users / reports tables).
@@ -431,6 +458,19 @@ export default function DogDetail() {
               </Pressable>
             </>
           )}
+          {!isMatched && (
+            <Pressable
+              onPress={() => {
+                setWalkResult(null);
+                setWalkOpen(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={tx('散歩に誘う', 'Ask to join a walk')}
+              style={({ pressed }) => [styles.roundBtn, pressed && styles.floatBtnPressed]}
+            >
+              <Icon name="pin" color="#fff" size={20} />
+            </Pressable>
+          )}
           <Pressable
             onPress={isMatched ? () => router.push(`/chat/${dog.id}`) : like}
             disabled={!isMatched && !inDeck}
@@ -452,6 +492,90 @@ export default function DogDetail() {
           </Pressable>
         </View>
       )}
+
+      {/* -------------------------------------------- Ask-to-join-a-walk modal */}
+      <Modal visible={walkOpen} transparent animationType="fade" onRequestClose={closeWalk}>
+        <Pressable style={styles.walkBackdrop} onPress={closeWalk}>
+          <Pressable style={styles.walkSheet} onPress={(e) => e.stopPropagation()}>
+            {walkResult === null ? (
+              <>
+                <Text style={styles.walkTitle}>
+                  {tx(`${dog.name}の散歩に誘う`, `Ask to join ${dog.name}’s walk`)}
+                </Text>
+                <Text style={styles.walkSub}>
+                  {tx(
+                    'かんたんな挨拶を送りましょう。相手が承認するとマッチしてチャットが始まります。',
+                    'Send a short hello. If they accept, you’ll match and a chat opens.',
+                  )}
+                </Text>
+                <TextInput
+                  value={walkMsg}
+                  onChangeText={(t) => setWalkMsg(t.slice(0, 240))}
+                  placeholder={tx(
+                    '例：うちの子と一緒に朝さんぽしませんか？',
+                    'e.g. Would our dogs enjoy a morning walk together?',
+                  )}
+                  placeholderTextColor={pastel.mutedInk}
+                  style={styles.walkInput}
+                  multiline
+                  maxLength={240}
+                  accessibilityLabel={tx('あいさつメッセージ', 'Intro message')}
+                />
+                <Pressable
+                  onPress={submitWalkRequest}
+                  disabled={walkSending}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.walkSend,
+                    walkSending && styles.ctaDisabled,
+                    pressed && { transform: [{ scale: 0.98 }] },
+                  ]}
+                >
+                  <Text style={styles.walkSendText}>
+                    {walkSending ? tx('送信中…', 'Sending…') : tx('リクエストを送る', 'Send request')}
+                  </Text>
+                </Pressable>
+                <Pressable onPress={closeWalk} accessibilityRole="button" style={styles.walkCancel}>
+                  <Text style={styles.walkCancelText}>{tx('キャンセル', 'Cancel')}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.walkEmoji}>
+                  {walkResult === 'error' ? '⚠️' : walkResult === 'duplicate' ? '📨' : '🐾'}
+                </Text>
+                <Text style={styles.walkTitle}>
+                  {walkResult === 'sent'
+                    ? tx('リクエストを送りました！', 'Request sent!')
+                    : walkResult === 'duplicate'
+                      ? tx('すでにリクエスト済みです', 'Already requested')
+                      : walkResult === 'demo'
+                        ? tx('これはデモのプロフィールです', 'This is a demo profile')
+                        : tx('送信できませんでした', 'Couldn’t send')}
+                </Text>
+                <Text style={styles.walkSub}>
+                  {walkResult === 'sent'
+                    ? tx(
+                        `${dog.name}の飼い主さんに届きました。承認されるとマッチします。`,
+                        `${dog.name}’s owner will see it. You’ll match if they accept.`,
+                      )
+                    : walkResult === 'duplicate'
+                      ? tx('この子にはすでに散歩リクエストを送っています。', 'You’ve already sent this dog a walk request.')
+                      : walkResult === 'demo'
+                        ? tx(
+                            'デモのわんちゃんには送れません。実際のユーザーが登録すると散歩に誘えます。',
+                            'You can’t message demo dogs. Ask real users once they join.',
+                          )
+                        : tx('通信環境を確認して、もう一度お試しください。', 'Check your connection and try again.')}
+                </Text>
+                <Pressable onPress={closeWalk} accessibilityRole="button" style={styles.walkSend}>
+                  <Text style={styles.walkSendText}>{tx('閉じる', 'Done')}</Text>
+                </Pressable>
+              </>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -645,4 +769,51 @@ const styles = StyleSheet.create({
   },
   ctaDisabled: { opacity: 0.45 },
   ctaText: { fontSize: font.body, fontWeight: '900', color: '#fff' },
+
+  // Ask-to-join-a-walk modal (matches this screen's pastel sheet).
+  walkBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(23,21,19,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  walkSheet: {
+    backgroundColor: pastel.sheet,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    gap: spacing.sm,
+    ...shadow.card,
+  },
+  walkEmoji: { fontSize: 40, textAlign: 'center' },
+  walkTitle: { fontSize: font.title, fontWeight: '900', color: pastel.ink, textAlign: 'center' },
+  walkSub: {
+    fontSize: font.small,
+    color: pastel.mutedInk,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  walkInput: {
+    minHeight: 88,
+    backgroundColor: '#F6F3EE',
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: '#E7E1D7',
+    padding: spacing.md,
+    fontSize: font.body,
+    color: pastel.ink,
+    textAlignVertical: 'top',
+    marginTop: spacing.xs,
+  },
+  walkSend: {
+    height: 50,
+    borderRadius: radius.pill,
+    backgroundColor: pastel.orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.xs,
+    ...shadow.card,
+  },
+  walkSendText: { fontSize: font.body, fontWeight: '900', color: '#fff' },
+  walkCancel: { alignItems: 'center', paddingVertical: spacing.sm },
+  walkCancelText: { fontSize: font.small, fontWeight: '700', color: pastel.mutedInk },
 });

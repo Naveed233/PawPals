@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { SEED_EVENTS } from '@/data/events';
 import { SEED_DOGS, SEED_PHOTO_LIKES } from '@/data/seed';
 import {
   EMPTY_FILTERS,
@@ -253,7 +252,9 @@ export const useStore = create<AppState>()(
       },
 
       ensureEvents: () => {
-        if (get().events === null) set({ events: [...SEED_EVENTS] });
+        // Real events only — no demo/seed events. Starts empty; fills as users
+        // (including you) host meetups.
+        if (get().events === null) set({ events: [] });
       },
 
       rsvp: (eventId, going) => set({ rsvps: { ...get().rsvps, [eventId]: going } }),
@@ -261,7 +262,7 @@ export const useStore = create<AppState>()(
       createEvent: (event) => {
         const id = `evt-mine-${Date.now()}`;
         const created: PawEvent = { ...event, id };
-        const events = get().events ?? [...SEED_EVENTS];
+        const events = get().events ?? [];
         set({ events: [created, ...events], rsvps: { ...get().rsvps, [id]: true } });
         return id;
       },
@@ -281,9 +282,24 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'pawpair-store-v1',
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({ _hasHydrated, ...rest }) => rest,
       onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
+      // v2: drop the old demo/seed events so returning users see only real,
+      // user-hosted meetups. User-hosted events use 'evt-mine-' ids.
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as { events?: PawEvent[] | null; rsvps?: Record<string, boolean> };
+        if (version < 2 && state && Array.isArray(state.events)) {
+          const kept = state.events.filter((e) => e.id?.startsWith('evt-mine-'));
+          const keptIds = new Set(kept.map((e) => e.id));
+          const rsvps = Object.fromEntries(
+            Object.entries(state.rsvps ?? {}).filter(([id]) => keptIds.has(id)),
+          );
+          return { ...state, events: kept, rsvps };
+        }
+        return state;
+      },
     },
   ),
 );

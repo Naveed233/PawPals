@@ -373,6 +373,104 @@ export async function reportContent(
   }
 }
 
+// ------------------------------------------------------------ walk requests
+// "Ask to join a walk": a consent-gated request (not an open DM). The
+// recipient accepts (→ match + chat) or declines.
+
+/** Send a walk request with a short intro. Returns true on success. */
+export async function sendWalkRequest(
+  toUser: string,
+  dogId: string,
+  message: string,
+): Promise<{ ok: boolean; reason?: 'duplicate' | 'error' }> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid || !toUser || toUser === uid) return { ok: false, reason: 'error' };
+    const { error } = await supabase.from('walk_requests').insert({
+      from_user: uid,
+      to_user: toUser,
+      dog_id: dogId,
+      message: message.slice(0, 240),
+    });
+    if (error) {
+      // 23505 = unique violation → already requested this dog.
+      if (error.code === '23505') return { ok: false, reason: 'duplicate' };
+      console.warn('[remote] sendWalkRequest:', error.message);
+      return { ok: false, reason: 'error' };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: 'error' };
+  }
+}
+
+export interface IncomingWalkRequest {
+  id: string;
+  fromUser: string;
+  dogId: string;
+  message: string | null;
+  createdAt: string;
+  fromName: string;
+  fromArea: string;
+  dogName: string | null;
+  dogPhotos: string[];
+}
+
+/** Pending walk requests sent to me. */
+export async function fetchIncomingWalkRequests(): Promise<IncomingWalkRequest[]> {
+  try {
+    const { data, error } = await supabase.rpc('incoming_walk_requests');
+    if (error) {
+      console.warn('[remote] incomingWalkRequests:', error.message);
+      return [];
+    }
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      id: r.id as string,
+      fromUser: r.from_user as string,
+      dogId: r.dog_id as string,
+      message: (r.message as string) ?? null,
+      createdAt: r.created_at as string,
+      fromName: (r.from_name as string) ?? '',
+      fromArea: (r.from_area as string) ?? '',
+      dogName: (r.dog_name as string) ?? null,
+      dogPhotos: (r.dog_photos as string[]) ?? [],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** Accept a walk request → creates the match. Returns the match id (or null). */
+export async function acceptWalkRequest(requestId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc('accept_walk_request', { request_id: requestId });
+    if (error) {
+      console.warn('[remote] acceptWalkRequest:', error.message);
+      return null;
+    }
+    return (data as string) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Decline a walk request. */
+export async function declineWalkRequest(requestId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('walk_requests')
+      .update({ status: 'declined' })
+      .eq('id', requestId);
+    if (error) console.warn('[remote] declineWalkRequest:', error.message);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 /** Permanently delete the current user's account and all their data. */
 export async function deleteOwnAccount(): Promise<boolean> {
   try {

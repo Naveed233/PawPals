@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -19,6 +20,7 @@ import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { useI18n } from '@/lib/i18n';
+import { saveMeetPresence } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
@@ -60,7 +62,19 @@ export default function MapScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const owner = useStore((s) => s.owner);
+  const updateOwner = useStore((s) => s.updateOwner);
   const { tx } = useI18n();
+
+  const [meetNote, setMeetNote] = useState(owner?.meetNote ?? '');
+  const availableToMeet = owner?.availableToMeet ?? false;
+
+  // Persist map presence locally + to Supabase (best-effort, isolated write).
+  const savePresence = (patch: { availableToMeet?: boolean; meetNote?: string }) => {
+    if (!owner) return;
+    const next = { ...owner, ...patch };
+    updateOwner(patch);
+    void saveMeetPresence(next.availableToMeet ?? false, next.meetNote ?? null);
+  };
 
   const [mode, setMode] = useState<Mode>('locating');
   const [center, setCenter] = useState<LatLon | null>(null);
@@ -340,6 +354,54 @@ export default function MapScreen() {
                 `${count} ${count === 1 ? 'person' : 'people'} within ${radiusKm}km`,
               )}
             </Text>
+
+            {/* Opt-in presence: show me on the map when I'm free to meet */}
+            <View style={styles.presenceCard}>
+              <View style={styles.presenceRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.presenceTitle}>
+                    {tx('マップに表示する', 'Show me on the map')}
+                  </Text>
+                  <Text style={styles.presenceSub}>
+                    {tx('会えるときだけ表示されます', 'Only shown while you’re free to meet')}
+                  </Text>
+                </View>
+                <Switch
+                  value={availableToMeet}
+                  onValueChange={(v) => savePresence({ availableToMeet: v })}
+                  trackColor={{ false: night.surfaceHi, true: night.pink }}
+                  thumbColor="#fff"
+                  accessibilityLabel={tx('マップに表示する', 'Show me on the map')}
+                />
+              </View>
+
+              {availableToMeet && (
+                <TextInput
+                  value={meetNote}
+                  onChangeText={(t) => setMeetNote(t.slice(0, 60))}
+                  onEndEditing={() => savePresence({ meetNote })}
+                  onBlur={() => savePresence({ meetNote })}
+                  placeholder={tx(
+                    'いつ会える？ 例：週末の朝、今日の夕方以降',
+                    'When are you free? e.g. weekend mornings, today after 5pm',
+                  )}
+                  placeholderTextColor={night.faint}
+                  style={styles.presenceInput}
+                  maxLength={60}
+                  accessibilityLabel={tx('会えるタイミング', 'Your availability')}
+                />
+              )}
+
+              <View style={styles.safetyRow}>
+                <Icon name="pin" color={night.faint} size={12} />
+                <Text style={styles.safetyText}>
+                  {tx(
+                    '正確な住所は表示されません。おおよその位置のみ表示されます。',
+                    'Your exact address is never shown — only an approximate area.',
+                  )}
+                </Text>
+              </View>
+            </View>
           </>
         )}
       </SafeAreaView>
@@ -471,4 +533,29 @@ const styles = StyleSheet.create({
 
   chipRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, flexWrap: 'wrap' },
   countText: { color: night.text, fontSize: font.small, fontWeight: '700', marginTop: spacing.sm },
+
+  presenceCard: {
+    marginTop: spacing.md,
+    backgroundColor: 'rgba(22,4,9,0.9)',
+    borderWidth: 1,
+    borderColor: night.border,
+    borderRadius: 20,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  presenceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  presenceTitle: { color: night.text, fontSize: font.body, fontWeight: '800' },
+  presenceSub: { color: night.muted, fontSize: font.tiny, fontWeight: '600', marginTop: 1 },
+  presenceInput: {
+    backgroundColor: night.input,
+    borderWidth: 1.5,
+    borderColor: night.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: font.small,
+    color: night.text,
+  },
+  safetyRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  safetyText: { color: night.faint, fontSize: font.tiny, fontWeight: '600', flex: 1, lineHeight: 15 },
 });

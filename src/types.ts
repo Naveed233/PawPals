@@ -91,6 +91,10 @@ export interface OwnerProfile {
   lon?: number;
   /** Boost expiry (ms epoch) — while active you surface higher to others. */
   boostedUntil?: number;
+  /** Opt-in: show me on the map as free to meet (off by default). */
+  availableToMeet?: boolean;
+  /** Short free-text availability, e.g. "Weekends, mornings" (≤60 chars). */
+  meetNote?: string;
 }
 
 export interface DogProfile {
@@ -175,8 +179,11 @@ export interface PawEvent {
   hostName: string;
   locationName: string; // suggested public place
   area: string; // general area
-  dateLabel: string; // e.g. "Sat 4 Jul"
-  timeLabel: string; // e.g. "10:00 AM"
+  dateLabel: string; // display, e.g. "Sat 4 Jul" (derived from startsAt)
+  timeLabel: string; // display, e.g. "10:00 AM" (derived from startsAt)
   description: string;
   attendeeCount: number; // others already going (you are tracked separately)
+  startsAt?: string; // ISO datetime — the real start, used for phone reminders
+  lat?: number; // approximate meeting-spot location (never an exact address)
+  lon?: number;
 }

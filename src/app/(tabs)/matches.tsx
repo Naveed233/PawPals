@@ -8,9 +8,16 @@ import { Icon } from '@/components/icons';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { Screen } from '@/components/Screen';
 import { Button, Chip } from '@/components/ui';
+import { OwnerAvatar } from '@/components/Avatar';
 import { dogById } from '@/lib/dogs';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
-import { fetchRemoteMatches } from '@/lib/remote';
+import {
+  acceptWalkRequest,
+  declineWalkRequest,
+  fetchIncomingWalkRequests,
+  fetchRemoteMatches,
+  type IncomingWalkRequest,
+} from '@/lib/remote';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, Message } from '@/types';
@@ -46,6 +53,52 @@ export default function Matches() {
   const conversations = useStore((s) => s.conversations);
   const mergeRemoteMatches = useStore((s) => s.mergeRemoteMatches);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [requests, setRequests] = useState<IncomingWalkRequest[]>([]);
+  const [busyReq, setBusyReq] = useState<string | null>(null);
+
+  const refreshMatches = () =>
+    fetchRemoteMatches().then((remote) => {
+      if (!remote.length) return;
+      mergeRemoteMatches(
+        remote.map((m) => ({
+          id: m.matchId,
+          dogId: m.dog?.id ?? m.matchId,
+          createdAt: m.createdAt,
+          matchId: m.matchId,
+          otherOwnerId: m.otherOwnerId,
+        })),
+        remote.map((m) => m.dog).filter((d): d is DogProfile => !!d),
+      );
+    });
+
+  // Incoming "ask to join a walk" requests.
+  useEffect(() => {
+    let active = true;
+    void fetchIncomingWalkRequests().then((r) => {
+      if (active) setRequests(r);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const acceptRequest = async (req: IncomingWalkRequest) => {
+    setBusyReq(req.id);
+    const matchId = await acceptWalkRequest(req.id);
+    setBusyReq(null);
+    setRequests((rs) => rs.filter((r) => r.id !== req.id));
+    if (matchId) {
+      await refreshMatches();
+      router.push(`/chat/${req.dogId}`);
+    }
+  };
+
+  const declineRequest = async (req: IncomingWalkRequest) => {
+    setBusyReq(req.id);
+    await declineWalkRequest(req.id);
+    setBusyReq(null);
+    setRequests((rs) => rs.filter((r) => r.id !== req.id));
+  };
 
   // Pull real matches (from the DB) so they show even if the user opens the
   // Messages tab directly without visiting discovery first.
@@ -115,6 +168,70 @@ export default function Matches() {
         </View>
         <Icon name="chevronRight" color={night.muted} size={20} />
       </Pressable>
+
+      {/* Incoming "ask to join a walk" requests */}
+      {requests.length > 0 && (
+        <View style={{ gap: spacing.sm }}>
+          <Text style={styles.sectionLabel}>
+            {tx(`散歩リクエスト（${requests.length}）`, `WALK REQUESTS (${requests.length})`)}
+          </Text>
+          {requests.map((req) => (
+            <View key={req.id} style={styles.reqCard}>
+              <View style={styles.reqTop}>
+                <OwnerAvatar
+                  ownerId={req.fromUser}
+                  name={req.fromName}
+                  style={styles.reqAvatar}
+                  rounded={radius.pill}
+                  size={22}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.reqName} numberOfLines={1}>
+                    {tx(`${req.fromName}さん`, req.fromName)}
+                    {!!req.dogName && (
+                      <Text style={styles.reqDog}>{tx(`・${req.dogName}`, ` · ${req.dogName}`)}</Text>
+                    )}
+                  </Text>
+                  <Text style={styles.reqArea} numberOfLines={1}>
+                    {req.fromArea}
+                  </Text>
+                </View>
+              </View>
+              {!!req.message && (
+                <Text style={styles.reqMsg} numberOfLines={3}>
+                  “{req.message}”
+                </Text>
+              )}
+              <View style={styles.reqActions}>
+                <Pressable
+                  onPress={() => void declineRequest(req)}
+                  disabled={busyReq === req.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('お断りする', 'Decline')}
+                  style={({ pressed }) => [styles.reqDecline, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={styles.reqDeclineText}>{tx('お断り', 'Decline')}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => void acceptRequest(req)}
+                  disabled={busyReq === req.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('承認する', 'Accept')}
+                  style={({ pressed }) => [
+                    styles.reqAccept,
+                    busyReq === req.id && { opacity: 0.6 },
+                    pressed && { opacity: 0.9 },
+                  ]}
+                >
+                  <Text style={styles.reqAcceptText}>
+                    {busyReq === req.id ? tx('処理中…', 'Working…') : tx('承認してチャット', 'Accept & chat')}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       {matches.length === 0 ? (
         <View style={styles.empty}>
@@ -386,4 +503,44 @@ const styles = StyleSheet.create({
   emptyCta: { alignSelf: 'stretch', marginTop: spacing.md },
 
   footnote: { fontSize: font.tiny, color: night.faint, textAlign: 'center', marginTop: spacing.sm },
+
+  reqCard: {
+    backgroundColor: night.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(247,46,99,0.35)',
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  reqTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reqAvatar: { width: 40, height: 40 },
+  reqName: { color: night.text, fontSize: font.body, fontWeight: '800' },
+  reqDog: { color: night.muted, fontSize: font.small, fontWeight: '600' },
+  reqArea: { color: night.faint, fontSize: font.tiny, fontWeight: '600', marginTop: 1 },
+  reqMsg: {
+    color: night.muted,
+    fontSize: font.small,
+    fontStyle: 'italic',
+    lineHeight: 19,
+  },
+  reqActions: { flexDirection: 'row', gap: spacing.sm },
+  reqDecline: {
+    flex: 1,
+    height: 42,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: night.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reqDeclineText: { color: night.muted, fontSize: font.small, fontWeight: '800' },
+  reqAccept: {
+    flex: 2,
+    height: 42,
+    borderRadius: radius.pill,
+    backgroundColor: night.pink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reqAcceptText: { color: '#fff', fontSize: font.small, fontWeight: '800' },
 });

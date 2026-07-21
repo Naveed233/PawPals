@@ -6,11 +6,13 @@ import { Entrance } from '@/components/anim';
 import { OwnerAvatar } from '@/components/Avatar';
 import { Icon } from '@/components/icons';
 import { Screen } from '@/components/Screen';
-import { Tag } from '@/components/ui';
+import { Button, Tag } from '@/components/ui';
+import { remindForEvent } from '@/lib/calendar';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
 import { font, night, radius, shadow, spacing } from '@/theme';
+import type { PawEvent } from '@/types';
 
 /** Stored labels are English-formatted ("Sat 4 Jul" / "9:30 AM") — render in JP; pass through in EN. */
 const JP_DOW: Record<string, string> = { Mon: '月', Tue: '火', Wed: '水', Thu: '木', Fri: '金', Sat: '土', Sun: '日' };
@@ -35,6 +37,7 @@ export default function Events() {
   const { lang, tx, tv } = useI18n();
   const events = useStore((s) => s.events);
   const rsvps = useStore((s) => s.rsvps);
+  const me = useStore((s) => s.owner);
   const ensureEvents = useStore((s) => s.ensureEvents);
   const rsvp = useStore((s) => s.rsvp);
 
@@ -43,6 +46,11 @@ export default function Events() {
   }, [ensureEvents]);
 
   const list = events ?? [];
+
+  const toggleJoin = (e: PawEvent, going: boolean) => {
+    rsvp(e.id, !going);
+    if (!going) void remindForEvent(e, tx); // just joined → add phone reminder
+  };
 
   return (
     <Screen
@@ -60,6 +68,26 @@ export default function Events() {
         </Pressable>
       }
     >
+      {list.length === 0 && (
+        <View style={styles.empty}>
+          <Text style={styles.emptyEmoji}>📅</Text>
+          <Text style={styles.emptyTitle}>
+            {tx('まだイベントがありません', 'No meetups yet')}
+          </Text>
+          <Text style={styles.emptyBody}>
+            {tx(
+              '最初のミートアップを主催しませんか？公共の場所と日時を決めるだけ。参加した人にはスマホにリマインダーが届きます。',
+              'Be the first to host a meetup. Pick a public spot and a time — everyone who joins gets a reminder on their phone.',
+            )}
+          </Text>
+          <Button
+            label={tx('イベントを主催する', 'Host an event')}
+            onPress={() => router.push('/create-event')}
+            style={{ alignSelf: 'stretch', marginTop: spacing.sm }}
+          />
+        </View>
+      )}
+
       {list.map((e, i) => {
         const going = !!rsvps[e.id];
         const count = e.attendeeCount + (going ? 1 : 0);
@@ -93,13 +121,13 @@ export default function Events() {
                 <View style={styles.hostRow}>
                   <OwnerAvatar ownerId={e.hostOwnerId} name={e.hostName} style={styles.hostAvatar} rounded={radius.pill} size={18} />
                   <Text style={styles.hostText} numberOfLines={1}>
-                    {e.hostOwnerId === 'owner-1'
+                    {me && e.hostOwnerId === me.id
                       ? tx(`あなたが主催・${count}人参加`, `Hosted by you · ${count} going`)
                       : tx(`${e.hostName}さんが主催・${count}人参加`, `Hosted by ${e.hostName} · ${count} going`)}
                   </Text>
                 </View>
                 <Pressable
-                  onPress={() => rsvp(e.id, !going)}
+                  onPress={() => toggleJoin(e, going)}
                   accessibilityRole="button"
                   accessibilityLabel={
                     going
@@ -118,12 +146,14 @@ export default function Events() {
         );
       })}
 
-      <Text style={styles.footnote}>
-        {tx(
-          '必ず犬同伴OKの公共の場所で会いましょう。ミートアップ中の愛犬の管理は飼い主の責任です。',
-          'Always meet in public, dog-friendly places. You’re responsible for your dog during meetups.',
-        )}
-      </Text>
+      {list.length > 0 && (
+        <Text style={styles.footnote}>
+          {tx(
+            '必ず犬同伴OKの公共の場所で会いましょう。ミートアップ中の愛犬の管理は飼い主の責任です。',
+            'Always meet in public, dog-friendly places. You’re responsible for your dog during meetups.',
+          )}
+        </Text>
+      )}
     </Screen>
   );
 }
@@ -165,4 +195,18 @@ const styles = StyleSheet.create({
   rsvpTextOn: { color: '#fff' },
   rsvpTextOff: { color: night.pink },
   footnote: { fontSize: font.tiny, color: night.faint, textAlign: 'center', marginTop: spacing.sm, lineHeight: 16 },
+  empty: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xxl,
+    paddingHorizontal: spacing.md,
+  },
+  emptyEmoji: { fontSize: 52 },
+  emptyTitle: { fontSize: font.title, fontWeight: '800', color: night.text, textAlign: 'center' },
+  emptyBody: {
+    fontSize: font.body,
+    color: night.muted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
 });

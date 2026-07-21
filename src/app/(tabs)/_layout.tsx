@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, IconName } from '@/components/icons';
+import { tabBarBottom } from '@/lib/layout';
 import { useStore } from '@/store';
 import { night } from '@/theme';
 
@@ -20,13 +22,14 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
 
 export default function TabsLayout() {
   const matchCount = useStore((s) => s.matches.length);
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { bottom: tabBarBottom(insets.bottom) }],
         tabBarItemStyle: styles.tabItem,
         tabBarBadgeStyle: styles.badge,
       }}
@@ -74,7 +77,6 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    bottom: 18,
     left: 60,
     right: 60,
     height: 64,

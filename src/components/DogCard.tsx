@@ -97,7 +97,8 @@ const styles = StyleSheet.create({
 
   topLeft: {
     position: 'absolute',
-    top: spacing.lg,
+    // Sit below the discovery filter button (44px) so the two never collide.
+    top: spacing.lg + 52,
     left: spacing.lg,
     right: 76, // keep clear of the floating pass button
     gap: spacing.sm,

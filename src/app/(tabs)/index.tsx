@@ -10,6 +10,7 @@ import { SwipeDeck, SwipeDeckHandle } from '@/components/SwipeDeck';
 import { Button } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { activeFilterCount, isSeedDog, matchesFilters } from '@/lib/dogs';
+import { useTabBarClearance } from '@/lib/layout';
 import { useI18n } from '@/lib/i18n';
 import { detectRealMatch } from '@/lib/matching';
 import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
@@ -22,6 +23,7 @@ export default function Discover() {
   const router = useRouter();
   const deckRef = useRef<SwipeDeckHandle>(null);
   const { tx } = useI18n();
+  const tabClearance = useTabBarClearance();
 
   const owner = useStore((s) => s.owner);
   const myDog = useStore((s) => s.dogs[0]);
@@ -142,7 +144,7 @@ export default function Discover() {
     <View style={styles.root}>
       <LinearGradient colors={[night.bgTop, night.bg]} style={styles.wash} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.deckArea}>
+        <View style={[styles.deckArea, { marginBottom: tabClearance }]}>
           {deck === null ? (
             <View style={styles.center}>
               <ActivityIndicator color={night.pink} size="large" />
@@ -271,7 +273,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: spacing.sm,
     marginTop: spacing.xs,
-    marginBottom: 96,
+    // marginBottom is applied inline from useTabBarClearance() so the deck
+    // adapts to every device's safe area.
   },
 
   glassCircle: {

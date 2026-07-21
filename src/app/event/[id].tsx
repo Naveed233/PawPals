@@ -6,13 +6,11 @@ import { OwnerAvatar } from '@/components/Avatar';
 import { Icon, IconName } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag } from '@/components/ui';
+import { remindForEvent } from '@/lib/calendar';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
-
-// A few seed owners shown as illustrative attendees.
-const SAMPLE_ATTENDEES = ['owner-2', 'owner-5', 'owner-9', 'owner-13', 'owner-6'];
 
 /** Stored labels are English-formatted ("Sat 4 Jul" / "9:30 AM") — render in JP; pass through in EN. */
 const JP_DOW: Record<string, string> = { Mon: '月', Tue: '火', Wed: '水', Thu: '木', Fri: '金', Sat: '土', Sun: '日' };
@@ -40,6 +38,7 @@ export default function EventDetail() {
   const events = useStore((s) => s.events);
   const rsvps = useStore((s) => s.rsvps);
   const rsvp = useStore((s) => s.rsvp);
+  const me = useStore((s) => s.owner);
 
   const event = (events ?? []).find((e) => e.id === id);
 
@@ -55,8 +54,13 @@ export default function EventDetail() {
 
   const going = !!rsvps[event.id];
   const count = event.attendeeCount + (going ? 1 : 0);
-  const isHost = event.hostOwnerId === 'owner-1';
-  const attendeeAvatars = [event.hostOwnerId, ...SAMPLE_ATTENDEES.filter((o) => o !== event.hostOwnerId)].slice(0, 5);
+  const isHost = !!me && event.hostOwnerId === me.id;
+
+  const join = () => {
+    const next = !going;
+    rsvp(event.id, next);
+    if (next) void remindForEvent(event, tx); // just joined → phone reminder
+  };
 
   return (
     <Screen title={tx('イベント', 'Event')} onBack={() => goBack()}>
@@ -95,14 +99,24 @@ export default function EventDetail() {
 
       <SectionTitle>{tx('参加メンバー', 'Who’s going')}</SectionTitle>
       <View style={styles.attendees}>
-        {attendeeAvatars.map((ownerId) => (
-          <OwnerAvatar key={ownerId} ownerId={ownerId} name={ownerId} style={styles.attendeeAvatar} rounded={radius.pill} size={20} />
-        ))}
-        {count > attendeeAvatars.length && (
-          <View style={styles.moreCount}>
-            <Text style={styles.moreText}>+{count - attendeeAvatars.length}</Text>
-          </View>
+        <OwnerAvatar
+          ownerId={event.hostOwnerId}
+          name={event.hostName}
+          style={styles.attendeeAvatar}
+          rounded={radius.pill}
+          size={20}
+        />
+        {going && !isHost && me && (
+          <OwnerAvatar
+            ownerId={me.id}
+            name={me.firstName}
+            uri={me.photo}
+            style={styles.attendeeAvatar}
+            rounded={radius.pill}
+            size={20}
+          />
         )}
+        <Text style={styles.goingText}>{tx(`${count}人参加予定`, `${count} going`)}</Text>
       </View>
 
       <Button
@@ -112,8 +126,16 @@ export default function EventDetail() {
             : tx('このイベントに参加する', 'Join this event')
         }
         variant={going ? 'outline' : 'primary'}
-        onPress={() => rsvp(event.id, !going)}
+        onPress={join}
       />
+
+      {going && !!event.startsAt && (
+        <Button
+          label={tx('📅 スマホのカレンダーに追加', '📅 Add to phone calendar')}
+          variant="outline"
+          onPress={() => void remindForEvent(event, tx)}
+        />
+      )}
 
       <Text style={styles.safety}>
         {tx(
@@ -153,14 +175,6 @@ const styles = StyleSheet.create({
   hostBadgeText: { fontSize: font.tiny, fontWeight: '800', color: '#FF8FAF' },
   attendees: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   attendeeAvatar: { width: 40, height: 40 },
-  moreCount: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: night.surfaceHi,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moreText: { fontSize: font.small, fontWeight: '800', color: night.muted },
+  goingText: { fontSize: font.small, fontWeight: '700', color: night.muted, marginLeft: spacing.xs },
   safety: { fontSize: font.tiny, color: night.faint, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
 });

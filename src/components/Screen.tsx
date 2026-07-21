@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useI18n } from '@/lib/i18n';
+import { useTabBarClearance } from '@/lib/layout';
 import { font, night, spacing } from '@/theme';
 
 /**
@@ -27,6 +28,7 @@ export function Screen({
   contentStyle?: object;
 }) {
   const { tx } = useI18n();
+  const tabClearance = useTabBarClearance();
   const header = (title || onBack || right) && (
     <View style={styles.header}>
       {onBack ? (
@@ -58,14 +60,14 @@ export function Screen({
       {header}
       {scroll ? (
         <ScrollView
-          contentContainerStyle={[styles.body, contentStyle]}
+          contentContainerStyle={[styles.body, { paddingBottom: tabClearance + spacing.lg }, contentStyle]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {children}
         </ScrollView>
       ) : (
-        <View style={[styles.bodyFlex, contentStyle]}>{children}</View>
+        <View style={[styles.bodyFlex, { paddingBottom: tabClearance }, contentStyle]}>{children}</View>
       )}
     </SafeAreaView>
   );
@@ -85,7 +87,8 @@ const styles = StyleSheet.create({
   back: { fontSize: 34, color: night.text, lineHeight: 34, fontWeight: '300' },
   title: { fontSize: font.heading, fontWeight: '800', color: night.text },
   subtitle: { fontSize: font.tiny, color: night.faint, fontWeight: '600' },
-  // paddingBottom clears the floating pill tab bar
-  body: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 120 },
-  bodyFlex: { flex: 1, padding: spacing.lg, paddingBottom: 96 },
+  // paddingBottom is applied inline from useTabBarClearance() so every screen
+  // clears the floating tab bar on any device.
+  body: { padding: spacing.lg, gap: spacing.lg },
+  bodyFlex: { flex: 1, padding: spacing.lg },
 });

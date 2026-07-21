@@ -42,6 +42,28 @@ export async function saveProfileRemote(owner: OwnerProfile): Promise<void> {
   }
 }
 
+/**
+ * Map presence (available_to_meet / meet_note) is written on its own so a
+ * database that hasn't yet run meetups.sql (missing those columns) never
+ * breaks the core profile save — this targeted update just fails gracefully.
+ */
+export async function saveMeetPresence(
+  availableToMeet: boolean,
+  meetNote: string | null,
+): Promise<void> {
+  try {
+    const id = await userId();
+    if (!id) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ available_to_meet: availableToMeet, meet_note: meetNote })
+      .eq('id', id);
+    if (error) console.warn('[sync] saveMeetPresence failed:', error.message);
+  } catch (e) {
+    console.warn('[sync] saveMeetPresence failed:', e);
+  }
+}
+
 export async function saveDogRemote(dog: DogProfile): Promise<void> {
   try {
     const id = await userId();
@@ -125,6 +147,8 @@ export async function fetchRemoteState(): Promise<{
             showProfileToMatches: p.show_profile_to_matches,
             lat: p.lat ?? undefined,
             lon: p.lon ?? undefined,
+            availableToMeet: p.available_to_meet ?? false,
+            meetNote: p.meet_note ?? undefined,
           }
         : null;
 
