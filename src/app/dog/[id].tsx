@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { StatusBar } from 'expo-status-bar';
 import {
   Alert,
@@ -41,6 +42,7 @@ import type { GoodWith } from '@/types';
 /** Light pastel pet-profile page — the one intentionally NOT dark screen. */
 export default function DogDetail() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)');
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,7 +66,7 @@ export default function DogDetail() {
           {tx('このプロフィールは表示できません。', 'This profile isn’t available.')}
         </Text>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           accessibilityRole="button"
           accessibilityLabel={tx('戻る', 'Back')}
           style={styles.missingBack}
@@ -83,7 +85,7 @@ export default function DogDetail() {
 
   const like = () => {
     const match = swipe(dog.id, 'like');
-    router.back();
+    goBack();
     if (match) router.push({ pathname: '/match', params: { dogId: dog.id } });
   };
 
@@ -96,7 +98,7 @@ export default function DogDetail() {
       reportContent(dog.ownerId, dog.id, 'Blocked from profile'),
     ]);
     if (inDeck) swipe(dog.id, 'pass');
-    router.back();
+    goBack();
   };
 
   const doReport = async () => {
@@ -326,7 +328,7 @@ export default function DogDetail() {
       {/* -------------------------------------------- Floating header buttons */}
       <View style={[styles.floatRow, { top: insets.top + spacing.sm }]} pointerEvents="box-none">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           accessibilityRole="button"
           accessibilityLabel={tx('戻る', 'Back')}
           hitSlop={8}

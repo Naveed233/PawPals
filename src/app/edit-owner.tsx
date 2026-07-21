@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 
 import { OwnerForm } from '@/components/OwnerForm';
 import { Screen } from '@/components/Screen';
@@ -8,6 +9,7 @@ import { useStore } from '@/store';
 
 export default function EditOwner() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/profile');
   const { tx } = useI18n();
   const owner = useStore((s) => s.owner);
   const setOwner = useStore((s) => s.setOwner);
@@ -15,7 +17,7 @@ export default function EditOwner() {
   if (!owner) return null;
 
   return (
-    <Screen title={tx('プロフィールを編集', 'Edit profile')} onBack={() => router.back()}>
+    <Screen title={tx('プロフィールを編集', 'Edit profile')} onBack={() => goBack()}>
       <OwnerForm
         initial={owner}
         submitLabel={tx('変更を保存', 'Save changes')}
@@ -25,7 +27,7 @@ export default function EditOwner() {
           const next = { ...owner, ...v };
           setOwner(next);
           void saveProfileRemote(next);
-          router.back();
+          goBack();
         }}
       />
     </Screen>

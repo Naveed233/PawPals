@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -13,6 +14,7 @@ import type { MeetupType } from '@/types';
 
 export default function CreateEvent() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/events');
   const { tx, tv } = useI18n();
   const owner = useStore((s) => s.owner);
   const createEvent = useStore((s) => s.createEvent);
@@ -53,7 +55,7 @@ export default function CreateEvent() {
   };
 
   return (
-    <Screen title={tx('イベントを主催', 'Host an Event')} onBack={() => router.back()}>
+    <Screen title={tx('イベントを主催', 'Host an Event')} onBack={() => goBack()}>
       <Field
         label={tx('タイトル *', 'Title *')}
         value={title}

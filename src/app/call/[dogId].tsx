@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ import { font, night, radius, spacing } from '@/theme';
 
 export default function Call() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/matches');
   const { tx } = useI18n();
   const { dogId, mode } = useLocalSearchParams<{ dogId: string; mode?: string }>();
   const isVideo = mode === 'video';
@@ -43,7 +45,7 @@ export default function Call() {
         <SafeAreaView style={[styles.fill, styles.center]}>
           <Text style={styles.name}>{tx('通話を利用できません', 'Call unavailable')}</Text>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => goBack()}
             accessibilityRole="button"
             accessibilityLabel={tx('閉じる', 'Close')}
             style={styles.ctrl}
@@ -124,7 +126,7 @@ export default function Call() {
             icon="phone"
             rotate
             danger
-            onPress={() => router.back()}
+            onPress={() => goBack()}
           />
         </View>
       </SafeAreaView>

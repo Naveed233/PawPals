@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { OwnerAvatar } from '@/components/Avatar';
@@ -33,6 +34,7 @@ function timeLabelFor(lang: Lang, label: string): string {
 
 export default function EventDetail() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/events');
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lang, tx, tv } = useI18n();
   const events = useStore((s) => s.events);
@@ -43,7 +45,7 @@ export default function EventDetail() {
 
   if (!event) {
     return (
-      <Screen title={tx('イベント', 'Event')} onBack={() => router.back()}>
+      <Screen title={tx('イベント', 'Event')} onBack={() => goBack()}>
         <Text style={styles.missing}>
           {tx('このイベントは表示できません。', 'This event isn’t available.')}
         </Text>
@@ -57,7 +59,7 @@ export default function EventDetail() {
   const attendeeAvatars = [event.hostOwnerId, ...SAMPLE_ATTENDEES.filter((o) => o !== event.hostOwnerId)].slice(0, 5);
 
   return (
-    <Screen title={tx('イベント', 'Event')} onBack={() => router.back()}>
+    <Screen title={tx('イベント', 'Event')} onBack={() => goBack()}>
       <View style={styles.tagRow}>
         <Tag label={tv(JP_MEETUP, event.type)} />
       </View>

@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HeartBurst, Pop } from '@/components/anim';
@@ -12,12 +13,13 @@ import { font, night, radius, spacing } from '@/theme';
 
 export default function MatchCelebration() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)');
   const { tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
   const myDog = useStore((s) => s.dogs[0]);
   const dog = dogById(dogId);
 
-  const close = () => router.back();
+  const close = () => goBack();
 
   // Edge case: the matched dog couldn't be resolved. Show a dismissible state
   // rather than navigating during render (which would warn / risk a loop).

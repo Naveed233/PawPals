@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { Text } from 'react-native';
 
 import { DogForm } from '@/components/DogForm';
@@ -10,6 +11,7 @@ import { font, night, spacing } from '@/theme';
 
 export default function EditDog() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/profile');
   const { tx } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const dog = useStore((s) => s.dogs.find((d) => d.id === id));
@@ -17,7 +19,7 @@ export default function EditDog() {
 
   if (!dog) {
     return (
-      <Screen title={tx('ペットプロフィールを編集', 'Edit pet profile')} onBack={() => router.back()}>
+      <Screen title={tx('ペットプロフィールを編集', 'Edit pet profile')} onBack={() => goBack()}>
         <Text
           style={{
             color: night.muted,
@@ -39,7 +41,7 @@ export default function EditDog() {
     <Screen
       title={tx('ペットプロフィールを編集', 'Edit pet profile')}
       subtitle={dog.name}
-      onBack={() => router.back()}
+      onBack={() => goBack()}
     >
       <DogForm
         initial={dog}
@@ -47,7 +49,7 @@ export default function EditDog() {
         onSubmit={(v) => {
           updateDog(dog.id, v);
           void saveDogRemote({ ...dog, ...v });
-          router.back();
+          goBack();
         }}
       />
     </Screen>

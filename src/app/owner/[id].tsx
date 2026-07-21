@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { StatusBar } from 'expo-status-bar';
 import {
   Pressable,
@@ -36,6 +37,7 @@ import { font, pastel, radius, spacing } from '@/theme';
  */
 export default function OwnerDetail() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)');
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -85,7 +87,7 @@ export default function OwnerDetail() {
         <Text style={styles.mutedCenter}>
           {tx('このプロフィールは表示できません。', "This profile can't be shown.")}
         </Text>
-        <BackPill onPress={() => router.back()} label={tx('戻る', 'Back')} />
+        <BackPill onPress={() => goBack()} label={tx('戻る', 'Back')} />
       </View>
     );
   }
@@ -104,7 +106,7 @@ export default function OwnerDetail() {
             'Owner profiles are only visible after your dogs match with each other.',
           )}
         </Text>
-        <BackPill onPress={() => router.back()} label={tx('戻る', 'Back')} />
+        <BackPill onPress={() => goBack()} label={tx('戻る', 'Back')} />
       </View>
     );
   }
@@ -357,7 +359,7 @@ export default function OwnerDetail() {
       {/* Floating back button */}
       <View style={[styles.floatRow, { top: insets.top + spacing.sm }]} pointerEvents="box-none">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           accessibilityRole="button"
           accessibilityLabel={tx('戻る', 'Back')}
           hitSlop={8}

@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -46,6 +47,7 @@ const fmtTime = (at: number) => {
 
 export default function Chat() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/matches');
   const { lang, tx } = useI18n();
   const { dogId } = useLocalSearchParams<{ dogId: string }>();
   const dog = dogById(dogId);
@@ -130,7 +132,7 @@ export default function Chat() {
       {/* Header (glass) */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel={tx('戻る', 'Back')}

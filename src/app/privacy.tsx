@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useSafeBack } from '@/lib/nav';
 
 import { Screen } from '@/components/Screen';
 import { useI18n } from '@/lib/i18n';
@@ -15,6 +16,7 @@ const CONTACT = 'naweed23@gmail.com';
 
 export default function Privacy() {
   const router = useRouter();
+  const goBack = useSafeBack('/(tabs)/profile');
   const { tx } = useI18n();
 
   const sections: { h: string; b: string }[] = [
@@ -60,7 +62,7 @@ export default function Privacy() {
   ];
 
   return (
-    <Screen title={tx('プライバシーポリシー', 'Privacy Policy')} onBack={() => router.back()}>
+    <Screen title={tx('プライバシーポリシー', 'Privacy Policy')} onBack={() => goBack()}>
       <Text style={styles.effective}>
         {tx(`最終更新日：${EFFECTIVE}`, `Last updated: ${EFFECTIVE}`)}
       </Text>
