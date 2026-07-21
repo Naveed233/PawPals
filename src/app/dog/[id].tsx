@@ -261,12 +261,13 @@ export default function DogDetail() {
             </Text>
           </View>
 
-          {/* stat chips */}
-          <View style={styles.statRow}>
-            <StatChip bg={pastel.lavender} fg={pastel.lavenderText} value={tv(JP_SEX, dog.sex)} label={tx('性別', 'Sex')} />
-            <StatChip bg={pastel.butter} fg={pastel.butterText} value={tx(`${dog.ageYears}歳`, `${dog.ageYears} yrs`)} label={tx('年齢', 'Age')} />
-            <StatChip bg={pastel.mint} fg={pastel.mintText} value={dog.breed} label={tx('犬種', 'Breed')} />
-          </View>
+          {/* breed · sex · age as a clean text line under the distance */}
+          <Text style={styles.breedLine}>
+            {tx(
+              `${dog.breed}・${tv(JP_SEX, dog.sex)}・${dog.ageYears}歳`,
+              `${dog.breed} · ${tv(JP_SEX, dog.sex)} · ${dog.ageYears} yrs`,
+            )}
+          </Text>
 
           {/* about card */}
           <View style={styles.aboutCard}>
@@ -365,35 +366,35 @@ export default function DogDetail() {
             </View>
           )}
 
-          {/* owner strip — tap to open the owner's profile; stays private
-              until a match */}
-          {isMatched && (
-            <Pressable
-              onPress={() => router.push(`/owner/${dog.ownerId}`)}
-              accessibilityRole="button"
-              accessibilityLabel={tx(
-                `${dog.ownerName}さんのプロフィールを開く`,
-                `Open ${dog.ownerName}'s profile`,
-              )}
-              style={({ pressed }) => [styles.ownerStrip, pressed && { opacity: 0.75 }]}
-            >
-              <OwnerAvatar
-                ownerId={dog.ownerId}
-                name={dog.ownerName}
-                style={styles.ownerAvatar}
-                rounded={radius.pill}
-                size={22}
-              />
-              <Text style={styles.ownerText} numberOfLines={1}>
-                {tx(
-                  `飼い主：${dog.ownerName}・${dog.ownerArea}`,
-                  `Owner: ${dog.ownerName} · ${dog.ownerArea}`,
-                )}
+          {/* Owner card — the human behind the dog. Tap to open their profile. */}
+          <Text style={styles.sectionHeader}>{tx('飼い主', 'Owner')}</Text>
+          <Pressable
+            onPress={() => router.push(`/owner/${dog.ownerId}`)}
+            accessibilityRole="button"
+            accessibilityLabel={tx(
+              `${dog.ownerName}さんのプロフィールを開く`,
+              `Open ${dog.ownerName}'s profile`,
+            )}
+            style={({ pressed }) => [styles.ownerStrip, pressed && { opacity: 0.75 }]}
+          >
+            <OwnerAvatar
+              ownerId={dog.ownerId}
+              name={dog.ownerName}
+              style={styles.ownerAvatar}
+              rounded={radius.pill}
+              size={22}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.ownerName} numberOfLines={1}>
+                {tx(`${dog.ownerName}さん`, dog.ownerName)}
               </Text>
-              {dog.ownerVerified && <VerifiedBadge />}
-              <Icon name="chevronRight" color={pastel.mutedInk} size={18} />
-            </Pressable>
-          )}
+              <Text style={styles.ownerText} numberOfLines={1}>
+                {tx(`飼い主・${dog.ownerArea}`, `Owner · ${dog.ownerArea}`)}
+              </Text>
+            </View>
+            {dog.ownerVerified && <VerifiedBadge />}
+            <Icon name="chevronRight" color={pastel.mutedInk} size={18} />
+          </Pressable>
         </View>
       </ScrollView>
 
@@ -646,6 +647,7 @@ const styles = StyleSheet.create({
   name: { fontSize: font.display, fontWeight: '900', color: pastel.ink },
   distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -spacing.sm },
   distanceText: { fontSize: font.small, color: pastel.mutedInk, fontWeight: '700' },
+  breedLine: { fontSize: font.body, color: pastel.ink, fontWeight: '700', marginTop: 2 },
 
   statRow: { flexDirection: 'row', gap: spacing.md },
   statChip: {
@@ -713,7 +715,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   ownerAvatar: { width: 44, height: 44, borderRadius: radius.pill },
-  ownerText: { flex: 1, fontSize: font.body, fontWeight: '800', color: pastel.ink },
+  ownerName: { fontSize: font.body, fontWeight: '800', color: pastel.ink },
+  ownerText: { fontSize: font.small, fontWeight: '600', color: pastel.mutedInk, marginTop: 1 },
 
   floatRow: {
     position: 'absolute',

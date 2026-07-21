@@ -121,8 +121,20 @@ export default function Discover() {
   const compatDog =
     (owner?.petStatus ?? 'has-dog') === 'has-dog' && myDog ? myDog : null;
 
+  // Paw button: play the pawprints walking across the CURRENT dog, then let the
+  // card fly off and the next dog appear. (Dragging right flies off directly.)
+  const pawLikeBusy = useRef(false);
+  const pawLike = () => {
+    if (!top || pawLikeBusy.current) return;
+    pawLikeBusy.current = true;
+    setBurstKey((k) => k + 1); // paws start over the current dog
+    setTimeout(() => {
+      deckRef.current?.swipe('like');
+      pawLikeBusy.current = false;
+    }, 780);
+  };
+
   const handleSwipe = (dog: DogProfile, dir: SwipeDirection) => {
-    if (dir === 'like') setBurstKey((k) => k + 1);
     const match = swipe(dog.id, dir);
     recordSwipeRemote(dog.id, dir);
 
@@ -192,7 +204,7 @@ export default function Discover() {
               {/* Right-side floating action rail */}
               <View style={styles.sideStack}>
                 <Pressable
-                  onPress={() => deckRef.current?.swipe('like')}
+                  onPress={pawLike}
                   accessibilityRole="button"
                   accessibilityLabel={tx('いいね', 'Like')}
                   hitSlop={6}

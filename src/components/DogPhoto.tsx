@@ -19,13 +19,25 @@ export function DogPhoto({
   style,
   rounded,
   emojiSize,
+  contentPosition,
 }: {
   dog: DogProfile;
   style?: StyleProp<ViewStyle>;
   rounded?: number;
   emojiSize?: number;
+  contentPosition?: 'top' | 'center';
 }) {
-  return <PhotoView photo={heroPhoto(dog)} seed={dog.id} name={dog.name} style={style} rounded={rounded} emojiSize={emojiSize} />;
+  return (
+    <PhotoView
+      photo={heroPhoto(dog)}
+      seed={dog.id}
+      name={dog.name}
+      style={style}
+      rounded={rounded}
+      emojiSize={emojiSize}
+      contentPosition={contentPosition}
+    />
+  );
 }
 
 /** Renders a single DisplayPhoto (real image or placeholder). */
@@ -36,6 +48,7 @@ export function PhotoView({
   style,
   rounded,
   emojiSize,
+  contentPosition = 'center',
 }: {
   photo: DisplayPhoto;
   seed: string;
@@ -43,6 +56,7 @@ export function PhotoView({
   style?: StyleProp<ViewStyle>;
   rounded?: number;
   emojiSize?: number;
+  contentPosition?: 'top' | 'center';
 }) {
   const [failed, setFailed] = useState(false);
   const { tx } = useI18n();
@@ -54,6 +68,9 @@ export function PhotoView({
         source={source}
         style={[style as StyleProp<ImageStyle>, rounded != null ? { borderRadius: rounded } : null]}
         contentFit="cover"
+        // Dogs' faces usually sit in the upper part of a photo — bias the crop
+        // to the top so the face isn't cut off in tall/portrait frames.
+        contentPosition={contentPosition}
         onError={() => setFailed(true)}
         accessibilityLabel={tx(`${name}の写真`, `Photo of ${name}`)}
       />

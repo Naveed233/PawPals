@@ -68,7 +68,10 @@ export default function OwnerDetail() {
   const heroHeight = Math.round(windowHeight * 0.42);
 
   const isMatched = seedDogs.some((d) => matches.some((m) => m.dogId === d.id));
-  const canView = isSelf || isMatched;
+  // Demo (seed) owner profiles are viewable so the feature is discoverable;
+  // real users' profiles stay private until you match (safety).
+  const isSeedOwner = !!seedInfo;
+  const canView = isSelf || isMatched || isSeedOwner;
   const matchedDog = seedDogs.find((d) => matches.some((m) => m.dogId === d.id));
 
   // Shared ground with the viewer — similarity is the fastest rapport builder.
