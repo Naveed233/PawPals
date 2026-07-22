@@ -421,14 +421,6 @@ export default function DogDetail() {
           {isMatched && (
             <>
               <Pressable
-                onPress={() => router.push(`/call/${dog.id}`)}
-                accessibilityRole="button"
-                accessibilityLabel={tx('電話をかける', 'Start a call')}
-                style={({ pressed }) => [styles.roundBtn, pressed && styles.floatBtnPressed]}
-              >
-                <Icon name="phone" color="#fff" size={20} />
-              </Pressable>
-              <Pressable
                 onPress={() => router.push(`/chat/${dog.id}`)}
                 accessibilityRole="button"
                 accessibilityLabel={tx('チャットを開く', 'Open chat')}

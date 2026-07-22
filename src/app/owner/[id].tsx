@@ -83,6 +83,17 @@ export default function OwnerDetail() {
     !isSelf && myDogs.length > 0 && (me?.petStatus ?? 'has-dog') === 'has-dog';
   const hasShared = sharedLangs.length + sharedAvail.length > 0 || bothHaveDogs;
 
+  // Public badges — the achievements a member has earned that are safe to show
+  // on their profile (derived from the data we have for them).
+  const eventsJoined = rich?.eventsJoined ?? 0;
+  const publicBadges = [
+    { on: true, emoji: '🐾', label: tx('メンバー', 'Member') },
+    { on: verified, emoji: '✅', label: tx('本人確認済み', 'Verified') },
+    { on: eventsJoined >= 1, emoji: '🚶', label: tx('おさんぽ仲間', 'Walk buddy') },
+    { on: eventsJoined >= 5, emoji: '🔥', label: tx('イベント常連', 'Event regular') },
+    { on: languages.length >= 2, emoji: '🗣️', label: tx('マルチリンガル', 'Multilingual') },
+  ].filter((b) => b.on);
+
   if (!isSelf && !seedInfo) {
     return (
       <View style={[styles.page, styles.centerWrap, { paddingTop: insets.top + spacing.xl }]}>
@@ -195,6 +206,22 @@ export default function OwnerDetail() {
 
           {/* Bio */}
           {!!bio && <Text style={styles.bio}>{bio}</Text>}
+
+          {/* Public badges — achievements this member has earned */}
+          {publicBadges.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>{tx('バッジ', 'Badges')}</Text>
+              <View style={styles.chipRow}>
+                {publicBadges.map((b) => (
+                  <View key={b.label} style={[styles.chip, { backgroundColor: pastel.butter }]}>
+                    <Text style={[styles.chipText, { color: pastel.butterText }]}>
+                      {b.emoji} {b.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
 
           {/* Shared ground with the viewer */}
           {hasShared && (

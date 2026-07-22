@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,7 +13,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OwnerAvatar } from '@/components/Avatar';
@@ -50,6 +50,17 @@ const lat2tile = (lat: number, z: number) => {
 const metersPerPixel = (lat: number, z: number) =>
   (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** z;
 
+/** Great-circle distance in km between two lat/lon points. */
+const haversineKm = (aLat: number, aLon: number, bLat: number, bLon: number): number => {
+  const R = 6371;
+  const dLat = ((bLat - aLat) * Math.PI) / 180;
+  const dLon = ((bLon - aLon) * Math.PI) / 180;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((aLat * Math.PI) / 180) * Math.cos((bLat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+};
+
 /** Zoom per radius so the filter circle roughly fills the screen. */
 const ZOOM_FOR_RADIUS: Record<number, number> = { 1: 14, 3: 13, 5: 12, 10: 11 };
 const RADII = [1, 3, 5, 10];
@@ -79,8 +90,12 @@ export default function MapScreen() {
     void saveMeetPresence(next.availableToMeet ?? false, next.meetNote ?? null);
   };
 
+  const remoteDogs = useStore((s) => s.remoteDogs);
+
   const [mode, setMode] = useState<Mode>('locating');
+  // `center` is the pannable map view; `homeLoc` is where the user actually is.
   const [center, setCenter] = useState<LatLon | null>(null);
+  const [homeLoc, setHomeLoc] = useState<LatLon | null>(null);
   const [placeName, setPlaceName] = useState<string>('現在地');
   const [radiusKm, setRadiusKm] = useState(5);
   const [query, setQuery] = useState('');
@@ -91,21 +106,72 @@ export default function MapScreen() {
   const [presenceOpen, setPresenceOpen] = useState(false);
   const tabClearance = useTabBarClearance();
 
-  const MIN_ZOOM = 10;
+  const setLocation = (loc: LatLon, place: string) => {
+    setHomeLoc(loc);
+    setCenter(loc);
+    setPlaceName(place);
+    setMode('ready');
+  };
+
+  const MIN_ZOOM = 4; // zoom out far enough to see the whole country
   const MAX_ZOOM = 18;
   const zoomBy = (delta: number) =>
     setZoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z + delta)));
 
-  // Pinch to zoom (one step per pinch); + / − buttons do the same reliably.
+  // Pan (drag) + pinch (zoom). Panning translates the layer live, then commits
+  // the new centre on release so tiles + pins re-project cleanly.
+  const panX = useSharedValue(0);
+  const panY = useSharedValue(0);
+  const commitPan = (dx: number, dy: number) => {
+    setCenter((c) => {
+      if (!c) return c;
+      const n = 2 ** zoom;
+      const cwx = lon2tile(c.lon, zoom) * TILE - dx;
+      const cwy = lat2tile(c.lat, zoom) * TILE - dy;
+      const lon = ((cwx / TILE) / n) * 360 - 180;
+      const yy = Math.PI - (2 * Math.PI * (cwy / TILE)) / n;
+      const lat = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(yy) - Math.exp(-yy)));
+      return { lat: Math.max(-84, Math.min(84, lat)), lon: ((((lon + 180) % 360) + 360) % 360) - 180 };
+    });
+  };
+  const pan = Gesture.Pan()
+    .onUpdate((e) => {
+      panX.value = e.translationX;
+      panY.value = e.translationY;
+    })
+    .onEnd((e) => {
+      runOnJS(commitPan)(e.translationX, e.translationY);
+      panX.value = 0;
+      panY.value = 0;
+    });
   const pinch = Gesture.Pinch().onEnd((e) => {
     if (e.scale > 1.15) runOnJS(zoomBy)(1);
     else if (e.scale < 0.87) runOnJS(zoomBy)(-1);
   });
+  const gesture = Gesture.Simultaneous(pan, pinch);
+  const layerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: panX.value }, { translateY: panY.value }],
+  }));
 
-  // Keep the zoom in step with the radius chips (each radius has a nice zoom).
+  // Keep the zoom in step with the radius chips (each radius has a nice zoom),
+  // and recentre on home so the chosen radius is actually shown.
   useEffect(() => {
     setZoom(ZOOM_FOR_RADIUS[radiusKm] ?? 12);
-  }, [radiusKm]);
+    setCenter((c) => homeLoc ?? c);
+  }, [radiusKm, homeLoc]);
+
+  // Project any lat/lon to screen pixels relative to the current centre + zoom.
+  const project = useCallback(
+    (lat: number, lon: number): { x: number; y: number } => {
+      if (!center) return { x: -999, y: -999 };
+      const cwx = lon2tile(center.lon, zoom) * TILE;
+      const cwy = lat2tile(center.lat, zoom) * TILE;
+      const wx = lon2tile(lon, zoom) * TILE;
+      const wy = lat2tile(lat, zoom) * TILE;
+      return { x: width / 2 + (wx - cwx), y: mapH / 2 + (wy - cwy) };
+    },
+    [center, zoom, width, mapH],
+  );
 
   // Ask for the real location once on mount; fall back to manual entry.
   useEffect(() => {
@@ -119,9 +185,7 @@ export default function MapScreen() {
           new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000)),
         ]);
         if (cancelled) return;
-        setCenter({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        setPlaceName('現在地');
-        setMode('ready');
+        setLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }, '現在地');
       } catch {
         if (!cancelled) setMode('manual');
       }
@@ -153,9 +217,10 @@ export default function MapScreen() {
         );
         return;
       }
-      setCenter({ lat: parseFloat(hit.lat), lon: parseFloat(hit.lon) });
-      setPlaceName(hit.display_name.split(',')[0].trim() || q);
-      setMode('ready');
+      setLocation(
+        { lat: parseFloat(hit.lat), lon: parseFloat(hit.lon) },
+        hit.display_name.split(',')[0].trim() || q,
+      );
     } catch {
       setSearchError(
         tx('検索に失敗しました。通信環境を確認してください。', 'Search failed. Check your connection and try again.'),
@@ -192,86 +257,100 @@ export default function MapScreen() {
     return out;
   }, [center, zoom, width, mapH]);
 
-  // A few demo dogs (closest 3 within the radius) so a new map isn't
-  // overwhelming — real users fill it out as they join.
-  const MAX_DEMO_PINS = 3;
+  // Every dog with a fixed location (seed + real remote dogs), placed on the
+  // map at its true coordinates and kept to those coords as you pan/zoom.
+  // Only the ones in view are rendered, so it stays fast as the world fills up.
+  const dogsWithCoords = useMemo(() => {
+    const seen = new Set<string>();
+    return [...remoteDogs, ...SEED_DOGS].filter((d) => {
+      if (d.lat == null || d.lon == null || seen.has(d.id)) return false;
+      seen.add(d.id);
+      return true;
+    });
+  }, [remoteDogs]);
+
   const pins = useMemo(() => {
     if (!center) return [];
-    const mpp = metersPerPixel(center.lat, zoom);
-    return SEED_DOGS.filter((d) => d.distanceKm <= radiusKm)
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, MAX_DEMO_PINS)
-      .map((dog) => {
-        const idx = SEED_DOGS.indexOf(dog);
-        const a = bearingFor(dog.id, idx);
-        const px = (dog.distanceKm * 1000) / mpp;
-        return {
-          dog,
-          x: width / 2 + px * Math.cos(a),
-          y: mapH / 2 + px * Math.sin(a) * 0.9,
-        };
-      });
-  }, [center, zoom, radiusKm, width, mapH]);
+    return dogsWithCoords
+      .map((dog) => ({ dog, ...project(dog.lat!, dog.lon!) }))
+      .filter((p) => p.x > -50 && p.x < width + 50 && p.y > 40 && p.y < mapH + 40);
+  }, [center, project, dogsWithCoords, width, mapH]);
 
-  const count = pins.length;
+  // Count dogs within the chosen radius of the user's actual location.
+  const count = useMemo(() => {
+    if (!homeLoc) return 0;
+    return dogsWithCoords.filter(
+      (d) => haversineKm(homeLoc.lat, homeLoc.lon, d.lat!, d.lon!) <= radiusKm,
+    ).length;
+  }, [homeLoc, dogsWithCoords, radiusKm]);
+
+  const homePt = center && homeLoc ? project(homeLoc.lat, homeLoc.lon) : null;
 
   return (
     <View style={styles.root}>
       {/* ------------------------------------------------------- Map layer */}
-      <GestureDetector gesture={pinch}>
+      <GestureDetector gesture={gesture}>
       <View style={styles.mapLayer} onLayout={(e) => setMapH(e.nativeEvent.layout.height)}>
         {center ? (
           <>
-            {tiles.map((t) => (
-              <Image
-                key={t.key}
-                source={{ uri: t.uri }}
-                style={[styles.tile, { left: t.left, top: t.top }]}
-                contentFit="cover"
-                transition={150}
-              />
-            ))}
-            {/* dark wash so the pink UI reads on light tiles */}
-            <View style={styles.mapTint} pointerEvents="none" />
+            {/* Panning translates this whole layer live; the centre commits on
+                release so tiles + pins re-project. */}
+            <Animated.View style={[StyleSheet.absoluteFill, layerStyle]}>
+              {tiles.map((t) => (
+                <Image
+                  key={t.key}
+                  source={{ uri: t.uri }}
+                  style={[styles.tile, { left: t.left, top: t.top }]}
+                  contentFit="cover"
+                  transition={120}
+                />
+              ))}
+              {/* soft wash so the pins read on light tiles */}
+              <View style={styles.mapTint} pointerEvents="none" />
 
-            {/* you */}
-            <View style={[styles.youPin, { left: width / 2 - 14, top: mapH / 2 - 14 }]} pointerEvents="none">
-              <View style={styles.youDot} />
-            </View>
+              {/* you */}
+              {homePt && (
+                <View
+                  style={[styles.youPin, { left: homePt.x - 14, top: homePt.y - 14 }]}
+                  pointerEvents="none"
+                >
+                  <View style={styles.youDot} />
+                </View>
+              )}
 
-            {/* dogs */}
-            {pins.map(({ dog, x, y }) => (
-              <Pressable
-                key={dog.id}
-                onPress={() => router.push(`/dog/${dog.id}`)}
-                accessibilityRole="button"
-                accessibilityLabel={tx(
-                  `${dog.name}のプロフィールを開く（${dog.distanceKm}km先）`,
-                  `Open ${dog.name}’s profile (${dog.distanceKm}km away)`,
-                )}
-                style={[
-                  styles.pin,
-                  {
-                    left: Math.min(Math.max(x - 20, 6), width - 46),
-                    top: Math.min(Math.max(y - 20, 90), mapH - 130),
-                  },
-                ]}
-              >
-                <View style={styles.pinPhotoRing}>
-                  <DogPhoto dog={dog} style={styles.pinPhoto} rounded={radius.pill} emojiSize={16} />
-                </View>
-                {dog.likesYou && (
-                  <View style={styles.pinHeart}>
-                    <Icon name="pawFill" color={night.coral} size={9} />
-                  </View>
-                )}
-                <View style={styles.pinLabel}>
-                  <Text style={styles.pinLabelText} numberOfLines={1}>
-                    {tx(`${dog.name}・${dog.distanceKm}km`, `${dog.name} · ${dog.distanceKm}km`)}
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
+              {/* dogs at their real, fixed coordinates */}
+              {pins.map(({ dog, x, y }) => {
+                const km = homeLoc
+                  ? Math.round(haversineKm(homeLoc.lat, homeLoc.lon, dog.lat!, dog.lon!))
+                  : dog.distanceKm;
+                return (
+                  <Pressable
+                    key={dog.id}
+                    onPress={() => router.push(`/dog/${dog.id}`)}
+                    accessibilityRole="button"
+                    accessibilityLabel={tx(
+                      `${dog.name}のプロフィールを開く（約${km}km先）`,
+                      `Open ${dog.name}’s profile (about ${km}km away)`,
+                    )}
+                    style={[styles.pin, { left: x - 20, top: y - 20 }]}
+                  >
+                    <View style={styles.pinPhotoRing}>
+                      <DogPhoto dog={dog} style={styles.pinPhoto} rounded={radius.pill} emojiSize={16} />
+                    </View>
+                    {dog.likesYou && (
+                      <View style={styles.pinHeart}>
+                        <Icon name="pawFill" color={night.coral} size={9} />
+                      </View>
+                    )}
+                    <View style={styles.pinLabel}>
+                      <Text style={styles.pinLabelText} numberOfLines={1}>
+                        {tx(`${dog.name}・${km}km`, `${dog.name} · ${km}km`)}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </Animated.View>
 
             <Text style={styles.attribution}>© OpenStreetMap contributors</Text>
           </>

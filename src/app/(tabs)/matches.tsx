@@ -374,8 +374,8 @@ export default function Matches() {
 
           <Text style={styles.footnote}>
             {tx(
-              'タップしてチャット・写真の共有・音声/ビデオ通話ができます。',
-              'Tap to chat, share photos, or start a voice/video call.',
+              'タップしてチャットや写真の共有ができます。',
+              'Tap to chat and share photos.',
             )}
           </Text>
         </>

@@ -131,6 +131,9 @@ export interface DogProfile {
 
   /** Distance from the current user, km. Approximate by design. */
   distanceKm: number;
+  /** Fixed approximate location (never exact) so the dog stays put on the map. */
+  lat?: number;
+  lon?: number;
   /**
    * Where the dog's face sits in the hero photo, so the discovery card can crop
    * to it (e.g. a side-on dog whose face is on the right). Defaults to 'top'.

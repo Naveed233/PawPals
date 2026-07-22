@@ -181,24 +181,6 @@ export default function Chat() {
           </View>
         </Pressable>
         <Pressable
-          onPress={() => router.push(`/call/${dog.id}?mode=voice`)}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={tx('音声通話', 'Voice call')}
-          style={styles.callBtn}
-        >
-          <Icon name="phone" color={night.text} size={18} />
-        </Pressable>
-        <Pressable
-          onPress={() => router.push(`/call/${dog.id}?mode=video`)}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={tx('ビデオ通話', 'Video call')}
-          style={styles.callBtn}
-        >
-          <Icon name="video" color={night.text} size={18} />
-        </Pressable>
-        <Pressable
           onPress={safety}
           hitSlop={10}
           accessibilityRole="button"

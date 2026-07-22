@@ -83,6 +83,8 @@ function rowToProfile(d: DogRow, myLat?: number | null, myLon?: number | null): 
     notes: d.notes ?? undefined,
     avoid: d.avoid ?? undefined,
     distanceKm,
+    lat: d.owner?.lat ?? undefined,
+    lon: d.owner?.lon ?? undefined,
   };
 }
 
