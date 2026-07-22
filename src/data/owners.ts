@@ -315,22 +315,22 @@ export const SEED_OWNER_PROFILES: Record<string, SeedOwnerProfile> = {
     memberSince: { ja: '2025年10月から', en: 'Since Oct 2025' },
     eventsJoined: 7,
     bio: {
-      ja: '消防士。Zeusは見た目は強そうで中身は超甘えん坊。体力が有り余っているので、ロングハイキングに付き合ってくれる仲間募集。',
-      en: "Firefighter. Zeus looks tough and is secretly a total softie. We have energy to burn — long-hike companions wanted.",
+      ja: '消防士。Zeusは小さいのに態度は大型犬なミニチュアダックス。短い脚に大きなハート。ご近所さんぽとソファ仲間を募集中。',
+      en: "Firefighter. Zeus is a dachshund with the confidence of a Great Dane — short legs, huge heart. After neighbourhood strolls and sofa buddies.",
     },
     prompts: [
       {
         q: { ja: 'ギャップ自慢', en: 'The gap that gets everyone' },
         a: {
-          ja: '30kgのZeusは雷が鳴ると私の膝に乗ろうとします。',
-          en: 'All 30kg of Zeus tries to sit on my lap when it thunders.',
+          ja: '9kgのZeusは雷が鳴ると私の膝に乗ろうとします。',
+          en: 'All 9kg of Zeus tries to climb into my lap when it thunders.',
         },
       },
       {
         q: { ja: '次に行きたい場所', en: 'Next on our list' },
         a: {
-          ja: '犬OKの山小屋泊ハイキング。下見済み。あとは仲間だけ。',
-          en: 'An overnight hike to a dog-friendly mountain hut. Scouted. Just need company.',
+          ja: '犬OKの下町カフェ巡り。下見済み。あとは仲間だけ。',
+          en: 'A dog-friendly café crawl through the old town. Scouted. Just need company.',
         },
       },
     ],

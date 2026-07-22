@@ -78,8 +78,11 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    left: 24,
-    right: 24,
+    // Inset with margins (not left/right) so the floating pill stays symmetric:
+    // react-navigation forces its own `right`, which was shoving the bar off-centre.
+    left: 0,
+    right: 0,
+    marginHorizontal: 24,
     height: 66,
     borderRadius: 999,
     backgroundColor: night.tabBar,
