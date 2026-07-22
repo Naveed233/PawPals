@@ -12,6 +12,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OwnerAvatar } from '@/components/Avatar';
@@ -20,6 +22,7 @@ import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { useI18n } from '@/lib/i18n';
+import { useTabBarClearance } from '@/lib/layout';
 import { saveMeetPresence } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, shadow, spacing } from '@/theme';
@@ -84,6 +87,25 @@ export default function MapScreen() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | undefined>();
   const [mapH, setMapH] = useState(600);
+  const [zoom, setZoom] = useState<number>(ZOOM_FOR_RADIUS[5] ?? 12);
+  const [presenceOpen, setPresenceOpen] = useState(false);
+  const tabClearance = useTabBarClearance();
+
+  const MIN_ZOOM = 10;
+  const MAX_ZOOM = 18;
+  const zoomBy = (delta: number) =>
+    setZoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z + delta)));
+
+  // Pinch to zoom (one step per pinch); + / − buttons do the same reliably.
+  const pinch = Gesture.Pinch().onEnd((e) => {
+    if (e.scale > 1.15) runOnJS(zoomBy)(1);
+    else if (e.scale < 0.87) runOnJS(zoomBy)(-1);
+  });
+
+  // Keep the zoom in step with the radius chips (each radius has a nice zoom).
+  useEffect(() => {
+    setZoom(ZOOM_FOR_RADIUS[radiusKm] ?? 12);
+  }, [radiusKm]);
 
   // Ask for the real location once on mount; fall back to manual entry.
   useEffect(() => {
@@ -143,8 +165,6 @@ export default function MapScreen() {
     }
   };
 
-  const zoom = ZOOM_FOR_RADIUS[radiusKm] ?? 12;
-
   // Tile mosaic around the centre. Recomputed on centre/zoom/layout change.
   const tiles = useMemo(() => {
     if (!center) return [];
@@ -172,20 +192,25 @@ export default function MapScreen() {
     return out;
   }, [center, zoom, width, mapH]);
 
-  // Demo dogs placed at their stated distance from the user, real geography.
+  // A few demo dogs (closest 3 within the radius) so a new map isn't
+  // overwhelming — real users fill it out as they join.
+  const MAX_DEMO_PINS = 3;
   const pins = useMemo(() => {
     if (!center) return [];
     const mpp = metersPerPixel(center.lat, zoom);
-    return SEED_DOGS.filter((d) => d.distanceKm <= radiusKm).map((dog) => {
-      const idx = SEED_DOGS.indexOf(dog);
-      const a = bearingFor(dog.id, idx);
-      const px = (dog.distanceKm * 1000) / mpp;
-      return {
-        dog,
-        x: width / 2 + px * Math.cos(a),
-        y: mapH / 2 + px * Math.sin(a) * 0.9,
-      };
-    });
+    return SEED_DOGS.filter((d) => d.distanceKm <= radiusKm)
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, MAX_DEMO_PINS)
+      .map((dog) => {
+        const idx = SEED_DOGS.indexOf(dog);
+        const a = bearingFor(dog.id, idx);
+        const px = (dog.distanceKm * 1000) / mpp;
+        return {
+          dog,
+          x: width / 2 + px * Math.cos(a),
+          y: mapH / 2 + px * Math.sin(a) * 0.9,
+        };
+      });
   }, [center, zoom, radiusKm, width, mapH]);
 
   const count = pins.length;
@@ -193,6 +218,7 @@ export default function MapScreen() {
   return (
     <View style={styles.root}>
       {/* ------------------------------------------------------- Map layer */}
+      <GestureDetector gesture={pinch}>
       <View style={styles.mapLayer} onLayout={(e) => setMapH(e.nativeEvent.layout.height)}>
         {center ? (
           <>
@@ -255,6 +281,29 @@ export default function MapScreen() {
           </View>
         )}
       </View>
+      </GestureDetector>
+
+      {/* Zoom controls (pinch works too) */}
+      {mode === 'ready' && center && (
+        <View style={[styles.zoomCol, { bottom: tabClearance + 84 }]} pointerEvents="box-none">
+          <Pressable
+            onPress={() => zoomBy(1)}
+            accessibilityRole="button"
+            accessibilityLabel={tx('拡大', 'Zoom in')}
+            style={({ pressed }) => [styles.zoomBtn, pressed && { opacity: 0.8 }]}
+          >
+            <Icon name="plus" color={night.text} size={20} />
+          </Pressable>
+          <Pressable
+            onPress={() => zoomBy(-1)}
+            accessibilityRole="button"
+            accessibilityLabel={tx('縮小', 'Zoom out')}
+            style={({ pressed }) => [styles.zoomBtn, styles.zoomBtnBottom, pressed && { opacity: 0.8 }]}
+          >
+            <Icon name="minus" color={night.text} size={20} strokeWidth={2.6} />
+          </Pressable>
+        </View>
+      )}
 
       {/* --------------------------------------------------------- Overlay */}
       <SafeAreaView style={styles.overlay} edges={['top']} pointerEvents="box-none">
@@ -354,8 +403,15 @@ export default function MapScreen() {
                 `${count} ${count === 1 ? 'person' : 'people'} within ${radiusKm}km`,
               )}
             </Text>
+          </>
+        )}
+      </SafeAreaView>
 
-            {/* Opt-in presence: show me on the map when I'm free to meet */}
+      {/* Opt-in presence — a collapsible dock at the bottom so it never covers
+          the map. Collapsed to a small pill by default. */}
+      {mode === 'ready' && center && (
+        <View style={[styles.presenceDock, { bottom: tabClearance }]} pointerEvents="box-none">
+          {presenceOpen ? (
             <View style={styles.presenceCard}>
               <View style={styles.presenceRow}>
                 <View style={{ flex: 1 }}>
@@ -373,6 +429,15 @@ export default function MapScreen() {
                   thumbColor="#fff"
                   accessibilityLabel={tx('マップに表示する', 'Show me on the map')}
                 />
+                <Pressable
+                  onPress={() => setPresenceOpen(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('閉じる', 'Collapse')}
+                  hitSlop={8}
+                  style={styles.collapseBtn}
+                >
+                  <Icon name="x" color={night.muted} size={16} />
+                </Pressable>
               </View>
 
               {availableToMeet && (
@@ -402,9 +467,21 @@ export default function MapScreen() {
                 </Text>
               </View>
             </View>
-          </>
-        )}
-      </SafeAreaView>
+          ) : (
+            <Pressable
+              onPress={() => setPresenceOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={tx('マップに表示する', 'Show me on the map')}
+              style={[styles.presencePill, availableToMeet && styles.presencePillOn]}
+            >
+              <Icon name="pin" color={availableToMeet ? '#fff' : night.coral} size={15} />
+              <Text style={[styles.presencePillText, availableToMeet && { color: '#fff' }]}>
+                {availableToMeet ? tx('マップに表示中', 'You’re on the map') : tx('マップに表示', 'Show me on the map')}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -535,14 +612,17 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, flexWrap: 'wrap' },
   countText: { color: night.text, fontSize: font.small, fontWeight: '700', marginTop: spacing.sm },
 
+  // Bottom dock for the presence control (collapsible; never covers the map).
+  presenceDock: { position: 'absolute', left: spacing.lg, right: spacing.lg, alignItems: 'flex-start' },
   presenceCard: {
-    marginTop: spacing.md,
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    alignSelf: 'stretch',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: night.border,
     borderRadius: 20,
     padding: spacing.md,
     gap: spacing.sm,
+    ...shadow.card,
   },
   presenceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   presenceTitle: { color: night.text, fontSize: font.body, fontWeight: '800' },
@@ -557,6 +637,41 @@ const styles = StyleSheet.create({
     fontSize: font.small,
     color: night.text,
   },
+  collapseBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: radius.pill,
+    backgroundColor: night.surfaceHi,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  presencePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: night.border,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    ...shadow.card,
+  },
+  presencePillOn: { backgroundColor: night.coral, borderColor: night.coral },
+  presencePillText: { color: night.text, fontSize: font.small, fontWeight: '800' },
   safetyRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   safetyText: { color: night.faint, fontSize: font.tiny, fontWeight: '600', flex: 1, lineHeight: 15 },
+
+  // Zoom controls (bottom-right, above the tab bar).
+  zoomCol: { position: 'absolute', right: spacing.lg, alignItems: 'center' },
+  zoomBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.soft,
+  },
+  zoomBtnBottom: { marginTop: spacing.sm },
 });

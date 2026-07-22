@@ -60,6 +60,10 @@ export default function DogDetail() {
   const [walkSending, setWalkSending] = useState(false);
   const [walkResult, setWalkResult] = useState<'sent' | 'duplicate' | 'demo' | 'error' | null>(null);
 
+  // Report / block safety sheet state.
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
+
   const myDog = useStore((s) => s.dogs[0]);
   const myDogs = useStore((s) => s.dogs);
   const saved = useStore((s) => s.saved);
@@ -132,7 +136,19 @@ export default function DogDetail() {
   // Block + report both persist server-side (blocked_users / reports tables).
   // Blocking a demo/seed owner is a no-op server-side but still removes them
   // from the deck locally so the control always does something visible.
+  // A custom in-app sheet is used (never a browser confirm) so the app's own
+  // domain is never shown to the user.
+  const openReport = () => {
+    setReportDone(false);
+    setReportOpen(true);
+  };
+  const closeReport = () => {
+    setReportOpen(false);
+    setReportDone(false);
+  };
+
   const doBlock = async () => {
+    setReportOpen(false);
     await Promise.all([
       blockUser(dog.ownerId),
       reportContent(dog.ownerId, dog.id, 'Blocked from profile'),
@@ -143,44 +159,7 @@ export default function DogDetail() {
 
   const doReport = async () => {
     await reportContent(dog.ownerId, dog.id, 'Reported from profile');
-    const msg = tx(
-      'ご報告ありがとうございます。モデレーションチームが確認します。',
-      'Thanks for the report. Our moderation team will review it.',
-    );
-    if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
-    else Alert.alert(tx('ありがとうございます', 'Thank you'), msg);
-  };
-
-  const report = () => {
-    const title = tx('通報・ブロック', 'Report or block');
-    if (Platform.OS === 'web') {
-      if (typeof window === 'undefined') return;
-      const choice = window.confirm(
-        tx(
-          `${dog.name}さんの飼い主をブロックしますか？（今後表示されず、メッセージも送受信できません）\n「キャンセル」を選ぶと通報のみ行います。`,
-          `Block ${dog.name}'s owner? They won't appear again and can't message you.\nChoose Cancel to only report.`,
-        ),
-      );
-      if (choice) void doBlock();
-      else void doReport();
-      return;
-    }
-    Alert.alert(
-      title,
-      tx(
-        `${dog.name}のプロフィールについて、どうしますか？`,
-        `What would you like to do about ${dog.name}’s profile?`,
-      ),
-      [
-        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
-        { text: tx('プロフィールを通報', 'Report profile'), onPress: () => void doReport() },
-        {
-          text: tx('ブロック', 'Block'),
-          style: 'destructive',
-          onPress: () => void doBlock(),
-        },
-      ],
-    );
+    setReportDone(true);
   };
 
   // All meaningful photos (uploaded + bundled), for a swipeable gallery.
@@ -412,7 +391,7 @@ export default function DogDetail() {
         <View style={styles.floatRight}>
           {!isMine && (
             <Pressable
-              onPress={report}
+              onPress={openReport}
               accessibilityRole="button"
               accessibilityLabel={tx('通報・ブロック', 'Report or block')}
               hitSlop={8}
@@ -570,6 +549,73 @@ export default function DogDetail() {
                         : tx('通信環境を確認して、もう一度お試しください。', 'Check your connection and try again.')}
                 </Text>
                 <Pressable onPress={closeWalk} accessibilityRole="button" style={styles.walkSend}>
+                  <Text style={styles.walkSendText}>{tx('閉じる', 'Done')}</Text>
+                </Pressable>
+              </>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* --------------------------------------------------- Report / block sheet */}
+      <Modal visible={reportOpen} transparent animationType="fade" onRequestClose={closeReport}>
+        <Pressable style={styles.walkBackdrop} onPress={closeReport}>
+          <Pressable style={styles.walkSheet} onPress={(e) => e.stopPropagation()}>
+            {!reportDone ? (
+              <>
+                <Text style={styles.walkTitle}>{tx('安全のために', 'Keep yourself safe')}</Text>
+                <Text style={styles.walkSub}>
+                  {tx(
+                    `${dog.name}のプロフィールについて、どうしますか？`,
+                    `What would you like to do about ${dog.name}’s profile?`,
+                  )}
+                </Text>
+
+                <Pressable
+                  onPress={() => void doReport()}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.reportOption, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={styles.reportEmoji}>🚩</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.reportOptTitle}>{tx('このプロフィールを通報', 'Report this profile')}</Text>
+                    <Text style={styles.reportOptSub}>
+                      {tx('不適切な内容を運営に報告します', 'Flag inappropriate content to our team')}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => void doBlock()}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.reportOption, styles.reportBlock, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={styles.reportEmoji}>🚫</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.reportOptTitle, { color: night.danger }]}>
+                      {tx('この飼い主をブロック', 'Block this owner')}
+                    </Text>
+                    <Text style={styles.reportOptSub}>
+                      {tx('今後表示されず、連絡もできません', 'They won’t appear again or be able to contact you')}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                <Pressable onPress={closeReport} accessibilityRole="button" style={styles.walkCancel}>
+                  <Text style={styles.walkCancelText}>{tx('キャンセル', 'Cancel')}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.walkEmoji}>🚩</Text>
+                <Text style={styles.walkTitle}>{tx('ありがとうございます', 'Thanks for the report')}</Text>
+                <Text style={styles.walkSub}>
+                  {tx(
+                    'モデレーションチームが確認します。安心してご利用ください。',
+                    'Our moderation team will review it. Thanks for keeping the community safe.',
+                  )}
+                </Text>
+                <Pressable onPress={closeReport} accessibilityRole="button" style={styles.walkSend}>
                   <Text style={styles.walkSendText}>{tx('閉じる', 'Done')}</Text>
                 </Pressable>
               </>
@@ -819,4 +865,20 @@ const styles = StyleSheet.create({
   walkSendText: { fontSize: font.body, fontWeight: '900', color: '#fff' },
   walkCancel: { alignItems: 'center', paddingVertical: spacing.sm },
   walkCancelText: { fontSize: font.small, fontWeight: '700', color: pastel.mutedInk },
+
+  reportOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: '#F6F3EE',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: '#EAE4D8',
+    padding: spacing.md,
+    marginTop: spacing.xs,
+  },
+  reportBlock: { backgroundColor: '#FCEDEA', borderColor: '#F6D6CF' },
+  reportEmoji: { fontSize: 22 },
+  reportOptTitle: { fontSize: font.body, fontWeight: '800', color: pastel.ink },
+  reportOptSub: { fontSize: font.tiny, fontWeight: '600', color: pastel.mutedInk, marginTop: 1 },
 });

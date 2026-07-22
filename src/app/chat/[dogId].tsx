@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ActionSheet } from '@/components/ActionSheet';
 import { Entrance } from '@/components/anim';
 import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
@@ -67,6 +68,8 @@ export default function Chat() {
 
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const [reported, setReported] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -128,42 +131,24 @@ export default function Chat() {
     scheduleReply(messages.length + 1);
   };
 
-  // Safety: block + report the person you're chatting with, then leave.
+  // Safety: an in-app sheet (never a browser dialog) to block or report.
   const safety = () => {
+    setReported(false);
+    setSafetyOpen(true);
+  };
+  const doBlockChat = async () => {
     if (!dog) return;
-    const doBlock = async () => {
-      await Promise.all([
-        blockUser(dog.ownerId),
-        reportContent(dog.ownerId, dog.id, 'Blocked from chat'),
-      ]);
-      goBack();
-    };
-    const doReport = async () => {
-      await reportContent(dog.ownerId, dog.id, 'Reported from chat');
-      const msg = tx(
-        'ご報告ありがとうございます。モデレーションチームが確認します。',
-        'Thanks for the report. Our moderation team will review it.',
-      );
-      if (Platform.OS === 'web' && typeof window !== 'undefined') window.alert(msg);
-      else Alert.alert(tx('ありがとうございます', 'Thank you'), msg);
-    };
-    if (Platform.OS === 'web') {
-      if (typeof window === 'undefined') return;
-      const block = window.confirm(
-        tx(
-          `${dog.ownerName}さんをブロックしますか？（今後やり取りできなくなります）\n「キャンセル」で通報のみ行います。`,
-          `Block ${dog.ownerName}? You won't be able to contact each other.\nChoose Cancel to only report.`,
-        ),
-      );
-      if (block) void doBlock();
-      else void doReport();
-      return;
-    }
-    Alert.alert(tx('通報・ブロック', 'Report or block'), undefined, [
-      { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
-      { text: tx('通報する', 'Report'), onPress: () => void doReport() },
-      { text: tx('ブロック', 'Block'), style: 'destructive', onPress: () => void doBlock() },
+    setSafetyOpen(false);
+    await Promise.all([
+      blockUser(dog.ownerId),
+      reportContent(dog.ownerId, dog.id, 'Blocked from chat'),
     ]);
+    goBack();
+  };
+  const doReportChat = async () => {
+    if (!dog) return;
+    await reportContent(dog.ownerId, dog.id, 'Reported from chat');
+    setReported(true);
   };
 
   return (
@@ -318,6 +303,40 @@ export default function Chat() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <ActionSheet
+        visible={safetyOpen}
+        title={reported ? tx('ありがとうございます', 'Thanks for the report') : tx('安全のために', 'Keep yourself safe')}
+        message={
+          reported
+            ? tx('モデレーションチームが確認します。', 'Our moderation team will review it.')
+            : dog
+              ? tx(`${dog.ownerName}さんについて、どうしますか？`, `What would you like to do about ${dog.ownerName}?`)
+              : undefined
+        }
+        actions={
+          reported
+            ? []
+            : [
+                {
+                  key: 'report',
+                  emoji: '🚩',
+                  label: tx('通報する', 'Report this person'),
+                  sublabel: tx('不適切な内容を運営に報告します', 'Flag inappropriate behaviour to our team'),
+                  onPress: () => void doReportChat(),
+                },
+                {
+                  key: 'block',
+                  emoji: '🚫',
+                  destructive: true,
+                  label: tx('ブロックする', 'Block this person'),
+                  sublabel: tx('今後やり取りできなくなります', 'You won’t be able to contact each other'),
+                  onPress: () => void doBlockChat(),
+                },
+              ]
+        }
+        onClose={() => setSafetyOpen(false)}
+      />
     </SafeAreaView>
   );
 }

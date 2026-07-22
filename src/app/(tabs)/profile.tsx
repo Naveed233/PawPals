@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AchievementsSection } from '@/components/Achievements';
+import { ActionSheet } from '@/components/ActionSheet';
 import { OwnerAvatar } from '@/components/Avatar';
 import { DogPhoto } from '@/components/DogPhoto';
 import { ToggleRow } from '@/components/form';
@@ -32,6 +34,9 @@ export default function Profile() {
   const addDogPhoto = useStore((s) => s.addDogPhoto);
   const updateOwner = useStore((s) => s.updateOwner);
 
+  const [confirm, setConfirm] = useState<null | 'delete' | 'signout'>(null);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+
   const likeCount = swipes.filter((s) => s.direction === 'like').length;
   const rsvpCount = Object.values(rsvps).filter(Boolean).length;
 
@@ -53,53 +58,25 @@ export default function Profile() {
     updateOwner({ boostedUntil: until ?? Date.now() + 30 * 60000 });
   };
 
-  const confirmDelete = () => {
-    const title = tx('アカウントを削除しますか？', 'Delete account?');
-    const message = tx(
-      'アカウントとすべてのデータが完全に削除されます。この操作は取り消せません。',
-      'Your account and all data will be permanently deleted. This cannot be undone.',
-    );
-    const proceed = async () => {
-      const ok = await deleteOwnAccount();
-      if (ok) {
-        signOut();
-        router.replace('/');
-      } else if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(
-          tx('削除に失敗しました。もう一度お試しください。', 'Deletion failed. Please try again.'),
-        );
-      }
-    };
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(`${title}\n${message}`)) void proceed();
-    } else {
-      Alert.alert(title, message, [
-        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
-        { text: tx('削除する', 'Delete'), style: 'destructive', onPress: () => void proceed() },
-      ]);
-    }
-  };
+  // In-app sheets (never a browser confirm, so the app domain never shows).
+  const confirmDelete = () => setConfirm('delete');
+  const confirmSignOut = () => setConfirm('signout');
 
-  const confirmSignOut = () => {
-    const title = tx('サインアウトしますか？', 'Sign out?');
-    const message = tx(
-      'この端末のローカルデモアカウントを消去します。',
-      'This clears the local demo account on this device.',
-    );
-    const proceed = () => {
-      void supabase.auth.signOut();
+  const proceedDelete = async () => {
+    setConfirm(null);
+    const ok = await deleteOwnAccount();
+    if (ok) {
       signOut();
       router.replace('/');
-    };
-    // RN Alert is a no-op on web — fall back to window.confirm there.
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(`${title}\n${message}`)) proceed();
     } else {
-      Alert.alert(title, message, [
-        { text: tx('キャンセル', 'Cancel'), style: 'cancel' },
-        { text: tx('サインアウト', 'Sign out'), style: 'destructive', onPress: proceed },
-      ]);
+      setDeleteFailed(true);
     }
+  };
+  const proceedSignOut = () => {
+    setConfirm(null);
+    void supabase.auth.signOut();
+    signOut();
+    router.replace('/');
   };
 
   if (!owner) return null;
@@ -342,6 +319,52 @@ export default function Profile() {
           'PawPair is a platform for dog friendships and meetups, not a dating app for humans. Owners are responsible for supervising their dogs and keeping meetups safe.',
         )}
       </Text>
+
+      <ActionSheet
+        visible={confirm === 'delete'}
+        title={tx('アカウントを削除しますか？', 'Delete account?')}
+        message={tx(
+          'アカウントとすべてのデータが完全に削除されます。この操作は取り消せません。',
+          'Your account and all data will be permanently deleted. This cannot be undone.',
+        )}
+        actions={[
+          {
+            key: 'delete',
+            emoji: '🗑️',
+            destructive: true,
+            label: tx('完全に削除する', 'Delete permanently'),
+            onPress: () => void proceedDelete(),
+          },
+        ]}
+        onClose={() => setConfirm(null)}
+      />
+
+      <ActionSheet
+        visible={confirm === 'signout'}
+        title={tx('サインアウトしますか？', 'Sign out?')}
+        message={tx(
+          'この端末のローカルデモアカウントを消去します。',
+          'This clears the local demo account on this device.',
+        )}
+        actions={[
+          {
+            key: 'signout',
+            emoji: '👋',
+            destructive: true,
+            label: tx('サインアウト', 'Sign out'),
+            onPress: proceedSignOut,
+          },
+        ]}
+        onClose={() => setConfirm(null)}
+      />
+
+      <ActionSheet
+        visible={deleteFailed}
+        title={tx('削除に失敗しました', 'Deletion failed')}
+        message={tx('もう一度お試しください。', 'Please try again.')}
+        actions={[]}
+        onClose={() => setDeleteFailed(false)}
+      />
     </Screen>
   );
 }
