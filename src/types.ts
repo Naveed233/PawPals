@@ -132,11 +132,27 @@ export interface DogProfile {
   /** Distance from the current user, km. Approximate by design. */
   distanceKm: number;
   /**
+   * Where the dog's face sits in the hero photo, so the discovery card can crop
+   * to it (e.g. a side-on dog whose face is on the right). Defaults to 'top'.
+   */
+  photoFocus?: PhotoFocus;
+  /**
    * MOCK ONLY: in a real backend this is computed from the other owner's swipe.
    * Here it seeds whether a right-swipe produces a mutual match for the demo.
    */
   likesYou?: boolean;
 }
+
+export type PhotoFocus =
+  | 'top'
+  | 'center'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top left'
+  | 'top right'
+  | 'bottom left'
+  | 'bottom right';
 
 export type SwipeDirection = 'like' | 'pass';
 

@@ -7,7 +7,7 @@ import { dogEmojiFor } from '@/lib/avatars';
 import { useI18n } from '@/lib/i18n';
 import { heroPhoto } from '@/lib/photos';
 import { night } from '@/theme';
-import type { DisplayPhoto, DogProfile } from '@/types';
+import type { DisplayPhoto, DogProfile, PhotoFocus } from '@/types';
 
 /**
  * Renders a dog's hero image: a real photo if one was added, otherwise a
@@ -25,7 +25,7 @@ export function DogPhoto({
   style?: StyleProp<ViewStyle>;
   rounded?: number;
   emojiSize?: number;
-  contentPosition?: 'top' | 'center';
+  contentPosition?: PhotoFocus;
 }) {
   return (
     <PhotoView
@@ -56,7 +56,7 @@ export function PhotoView({
   style?: StyleProp<ViewStyle>;
   rounded?: number;
   emojiSize?: number;
-  contentPosition?: 'top' | 'center';
+  contentPosition?: PhotoFocus;
 }) {
   const [failed, setFailed] = useState(false);
   const { tx } = useI18n();

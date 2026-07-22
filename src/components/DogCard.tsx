@@ -22,7 +22,7 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
     // GestureDetector (our parent) handles pan/tap. On web this also stops the
     // <img> from hijacking mouse drags as native image-drag.
     <View style={styles.card} pointerEvents="none">
-      <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} contentPosition="top" />
+      <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} contentPosition={dog.photoFocus ?? 'top'} />
 
       {/* Top-left: big distance badge + green location badge + optional compat */}
       <View style={styles.topLeft} pointerEvents="none">
