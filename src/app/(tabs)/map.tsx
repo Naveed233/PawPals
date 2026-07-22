@@ -252,17 +252,17 @@ export default function MapScreen() {
                 style={[
                   styles.pin,
                   {
-                    left: Math.min(Math.max(x - 27, 6), width - 60),
-                    top: Math.min(Math.max(y - 27, 90), mapH - 140),
+                    left: Math.min(Math.max(x - 20, 6), width - 46),
+                    top: Math.min(Math.max(y - 20, 90), mapH - 130),
                   },
                 ]}
               >
                 <View style={styles.pinPhotoRing}>
-                  <DogPhoto dog={dog} style={styles.pinPhoto} rounded={radius.pill} emojiSize={22} />
+                  <DogPhoto dog={dog} style={styles.pinPhoto} rounded={radius.pill} emojiSize={16} />
                 </View>
                 {dog.likesYou && (
                   <View style={styles.pinHeart}>
-                    <Icon name="pawFill" color={night.coral} size={11} />
+                    <Icon name="pawFill" color={night.coral} size={9} />
                   </View>
                 )}
                 <View style={styles.pinLabel}>
@@ -512,34 +512,35 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
 
-  pin: { position: 'absolute', alignItems: 'center', width: 54 },
+  pin: { position: 'absolute', alignItems: 'center', width: 40 },
   pinPhotoRing: {
-    padding: 2,
+    padding: 1.5,
     borderRadius: radius.pill,
     backgroundColor: '#fff',
+    ...shadow.soft,
   },
-  pinPhoto: { width: 44, height: 44 },
+  pinPhoto: { width: 30, height: 30 },
   pinHeart: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    top: -3,
+    right: 3,
+    width: 15,
+    height: 15,
+    borderRadius: 8,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   pinLabel: {
-    marginTop: 3,
+    marginTop: 2,
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    maxWidth: 96,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    maxWidth: 84,
     ...shadow.soft,
   },
-  pinLabelText: { color: night.text, fontSize: 10, fontWeight: '800' },
+  pinLabelText: { color: night.text, fontSize: 9, fontWeight: '800' },
 
   attribution: {
     position: 'absolute',

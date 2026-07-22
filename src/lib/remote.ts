@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { DogProfile, Message } from '@/types';
+import type { DogProfile, Message, PawEvent } from '@/types';
 
 /**
  * Real user-to-user data layer (Phase 2). Local seed content keeps the app
@@ -468,6 +468,89 @@ export async function declineWalkRequest(requestId: string): Promise<boolean> {
     return !error;
   } catch {
     return false;
+  }
+}
+
+// ------------------------------------------------------------------- events
+// Real, multi-user events: a hosted event lands in the DB so everyone sees it.
+
+/** Insert an event the user is hosting. Returns true on success. */
+export async function createEventRemote(e: PawEvent): Promise<boolean> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid) return false;
+    const { error } = await supabase.from('events').insert({
+      id: e.id,
+      host_id: uid,
+      title: e.title,
+      type: e.type,
+      date_label: e.dateLabel,
+      time_label: e.timeLabel,
+      location_name: e.locationName,
+      area: e.area,
+      description: e.description || null,
+      starts_at: e.startsAt ?? null,
+      lat: e.lat ?? null,
+      lon: e.lon ?? null,
+    });
+    if (error) console.warn('[remote] createEvent:', error.message);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** All events with host name + attendee counts, plus which ids I've joined. */
+export async function fetchEvents(): Promise<{ events: PawEvent[]; going: string[] } | null> {
+  try {
+    const { data, error } = await supabase.rpc('list_events');
+    if (error) {
+      console.warn('[remote] fetchEvents:', error.message);
+      return null;
+    }
+    const rows = (data ?? []) as Record<string, unknown>[];
+    const events: PawEvent[] = rows.map((r) => ({
+      id: r.id as string,
+      title: (r.title as string) ?? '',
+      type: (r.type as PawEvent['type']) ?? 'Group walk',
+      hostOwnerId: r.host_id as string,
+      hostName: (r.host_name as string) ?? '',
+      locationName: (r.location_name as string) ?? '',
+      area: (r.area as string) ?? '',
+      dateLabel: (r.date_label as string) ?? '',
+      timeLabel: (r.time_label as string) ?? '',
+      description: (r.description as string) ?? '',
+      // attendeeCount excludes me (the UI adds +1 when I'm going).
+      attendeeCount: Math.max(0, Number(r.attendee_count ?? 0) - (r.i_am_going ? 1 : 0)),
+      startsAt: (r.starts_at as string) ?? undefined,
+      lat: (r.lat as number) ?? undefined,
+      lon: (r.lon as number) ?? undefined,
+    }));
+    const going = rows.filter((r) => r.i_am_going).map((r) => r.id as string);
+    return { events, going };
+  } catch {
+    return null;
+  }
+}
+
+/** Join / leave an event (rsvps table). */
+export async function setEventRsvpRemote(eventId: string, going: boolean): Promise<void> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid) return;
+    if (going) {
+      await supabase.from('rsvps').upsert({ event_id: eventId, user_id: uid });
+    } else {
+      await supabase.from('rsvps').delete().eq('event_id', eventId).eq('user_id', uid);
+    }
+  } catch {
+    /* offline / not-installed — local RSVP still applied */
   }
 }
 

@@ -8,6 +8,7 @@ import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag } from '@/components/ui';
 import { remindForEvent } from '@/lib/calendar';
 import { eventStyle } from '@/lib/eventStyle';
+import { setEventRsvpRemote } from '@/lib/remote';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -60,6 +61,7 @@ export default function EventDetail() {
   const join = () => {
     const next = !going;
     rsvp(event.id, next);
+    void setEventRsvpRemote(event.id, next); // sync attendance to the DB
     if (next) void remindForEvent(event, tx); // just joined → phone reminder
   };
 

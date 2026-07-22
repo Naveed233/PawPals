@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { Button, Tag } from '@/components/ui';
 import { remindForEvent } from '@/lib/calendar';
 import { eventStyle } from '@/lib/eventStyle';
+import { fetchEvents, setEventRsvpRemote } from '@/lib/remote';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -40,16 +41,26 @@ export default function Events() {
   const rsvps = useStore((s) => s.rsvps);
   const me = useStore((s) => s.owner);
   const ensureEvents = useStore((s) => s.ensureEvents);
+  const mergeRemoteEvents = useStore((s) => s.mergeRemoteEvents);
   const rsvp = useStore((s) => s.rsvp);
 
   useEffect(() => {
     ensureEvents();
-  }, [ensureEvents]);
+    // Pull everyone's events from the DB so hosted events are shared.
+    let active = true;
+    void fetchEvents().then((res) => {
+      if (active && res) mergeRemoteEvents(res.events, res.going);
+    });
+    return () => {
+      active = false;
+    };
+  }, [ensureEvents, mergeRemoteEvents]);
 
   const list = events ?? [];
 
   const toggleJoin = (e: PawEvent, going: boolean) => {
     rsvp(e.id, !going);
+    void setEventRsvpRemote(e.id, !going); // sync attendance to the DB
     if (!going) void remindForEvent(e, tx); // just joined → add phone reminder
   };
 

@@ -7,6 +7,7 @@ import { DateTimeField } from '@/components/DateTimeField';
 import { Screen } from '@/components/Screen';
 import { Button, Chip, Field } from '@/components/ui';
 import { MEETUP_TYPES } from '@/data/options';
+import { createEventRemote, setEventRsvpRemote } from '@/lib/remote';
 import { useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -94,7 +95,7 @@ export default function CreateEvent() {
     const areaVal = area.trim() || owner.area;
     const { lat, lon } = await coarseGeocode(`${locationName.trim()} ${areaVal}`.trim());
 
-    const id = createEvent({
+    const draft = {
       title: title.trim(),
       type,
       hostOwnerId: owner.id,
@@ -108,7 +109,11 @@ export default function CreateEvent() {
       startsAt: iso,
       lat,
       lon,
-    });
+    };
+    const id = createEvent(draft);
+    // Publish to the DB so everyone can see it, and mark the host as attending.
+    void createEventRemote({ ...draft, id });
+    void setEventRsvpRemote(id, true);
     router.replace(`/event/${id}`);
   };
 

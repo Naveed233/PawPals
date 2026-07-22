@@ -19,6 +19,15 @@ import {
 let msgCounter = 0;
 const newMessageId = (dogId: string) => `m-${dogId}-${Date.now()}-${msgCounter++}`;
 
+/** RFC-4122 v4 uuid — used for event ids so they're valid in the DB. */
+function uuidv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
  * App state for the MVP slice, persisted to AsyncStorage so the demo survives
  * reloads. Auth is mocked (email only); the "other owner liked you" side of a
@@ -87,6 +96,7 @@ interface AppState {
   ensureEvents: () => void;
   rsvp: (eventId: string, going: boolean) => void;
   createEvent: (event: Omit<PawEvent, 'id'>) => string;
+  mergeRemoteEvents: (events: PawEvent[], going: string[]) => void;
 
   resetDemo: () => void;
 }
@@ -260,11 +270,27 @@ export const useStore = create<AppState>()(
       rsvp: (eventId, going) => set({ rsvps: { ...get().rsvps, [eventId]: going } }),
 
       createEvent: (event) => {
-        const id = `evt-mine-${Date.now()}`;
+        const id = uuidv4();
         const created: PawEvent = { ...event, id };
         const events = get().events ?? [];
         set({ events: [created, ...events], rsvps: { ...get().rsvps, [id]: true } });
         return id;
+      },
+
+      // Merge events fetched from the DB (visible to everyone) with any local
+      // ones; remote is authoritative on conflict. `going` = ids I've joined.
+      mergeRemoteEvents: (remote, going) => {
+        const byId = new Map<string, PawEvent>();
+        (get().events ?? []).forEach((e) => byId.set(e.id, e));
+        remote.forEach((e) => byId.set(e.id, e));
+        const merged = [...byId.values()].sort((a, b) =>
+          (a.startsAt ?? '').localeCompare(b.startsAt ?? ''),
+        );
+        const rsvps = { ...get().rsvps };
+        remote.forEach((e) => {
+          rsvps[e.id] = going.includes(e.id);
+        });
+        set({ events: merged, rsvps });
       },
 
       resetDemo: () =>
