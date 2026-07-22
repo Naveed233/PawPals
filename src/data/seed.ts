@@ -93,7 +93,7 @@ export const SEED_DOGS: DogProfile[] = [
     meetupPref: 'One-on-one playdate',
     notes: 'Picks her friends carefully. Slow, calm intros work best.',
     avoid: 'Large boisterous dogs on first meeting.',
-    photoFocus: 'right',
+    photoFocus: { left: '68%', top: '42%' },
     distanceKm: 6,
     likesYou: false,
   },

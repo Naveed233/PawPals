@@ -143,6 +143,8 @@ export interface DogProfile {
   likesYou?: boolean;
 }
 
+// A keyword ('top', 'right', …) or a precise position object
+// ({ left: '72%', top: '40%' }) — both accepted by expo-image's contentPosition.
 export type PhotoFocus =
   | 'top'
   | 'center'
@@ -152,7 +154,8 @@ export type PhotoFocus =
   | 'top left'
   | 'top right'
   | 'bottom left'
-  | 'bottom right';
+  | 'bottom right'
+  | { left?: string; right?: string; top?: string; bottom?: string };
 
 export type SwipeDirection = 'like' | 'pass';
 
