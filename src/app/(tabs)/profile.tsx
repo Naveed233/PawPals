@@ -297,6 +297,11 @@ export default function Profile() {
           variant="ghost"
           onPress={() => router.push('/privacy')}
         />
+        <Button
+          label={tx('利用規約', 'Terms of Service')}
+          variant="ghost"
+          onPress={() => router.push('/terms')}
+        />
         <Button label={tx('デモをリセット', 'Reset demo')} variant="ghost" onPress={resetDemo} />
         <Button label={tx('サインアウト', 'Sign out')} variant="ghost" onPress={confirmSignOut} />
         <Button

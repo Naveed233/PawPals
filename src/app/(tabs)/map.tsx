@@ -23,6 +23,7 @@ import { Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
 import { useI18n } from '@/lib/i18n';
 import { useTabBarClearance } from '@/lib/layout';
+import { TILE_ATTRIBUTION, tileUrl } from '@/lib/mapTiles';
 import { saveMeetPresence } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, shadow, spacing } from '@/theme';
@@ -248,7 +249,7 @@ export default function MapScreen() {
         const wrappedX = ((tx % max) + max) % max;
         out.push({
           key: `${zoom}/${tx}/${ty}`,
-          uri: `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${ty}.png`,
+          uri: tileUrl(zoom, wrappedX, ty),
           left: halfW + (tx - cx) * TILE,
           top: halfH + (ty - cy) * TILE,
         });
@@ -352,7 +353,7 @@ export default function MapScreen() {
               })}
             </Animated.View>
 
-            <Text style={styles.attribution}>© OpenStreetMap contributors</Text>
+            <Text style={styles.attribution}>{TILE_ATTRIBUTION}</Text>
           </>
         ) : (
           <View style={styles.mapPlaceholder}>
@@ -621,12 +622,14 @@ const styles = StyleSheet.create({
   },
   pinLabelText: { color: night.text, fontSize: 9, fontWeight: '800' },
 
+  // Bottom-right so the presence pill (bottom-left) never covers it — the tile
+  // provider's attribution has to stay visible.
   attribution: {
     position: 'absolute',
-    left: spacing.sm,
-    bottom: 96,
+    right: spacing.sm,
+    bottom: 72,
     fontSize: 9,
-    color: 'rgba(60,60,60,0.6)',
+    color: 'rgba(60,60,60,0.65)',
   },
 
   overlay: { flex: 1, paddingHorizontal: spacing.lg },
