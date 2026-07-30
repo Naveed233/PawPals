@@ -33,6 +33,9 @@ jobs:
       - run: npx expo export -p web
         env:
           CI: "1"
+          # GitHub Pages project site is served under /PawPals; Cloudflare Pages
+          # (and any custom domain) serve at root, so app.config.ts defaults to "/".
+          EXPO_BASE_URL: "/PawPals"
 
       # SPA fallback so deep links (e.g. /PawPals/dog/dog-luna) load the app
       # instead of GitHub's 404 page

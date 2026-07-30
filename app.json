@@ -50,7 +50,7 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true,
-      "baseUrl": "/PawPals"
+      "baseUrl": "/"
     }
   }
 }
