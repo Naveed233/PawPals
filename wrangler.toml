@@ -1,7 +1,7 @@
 # Cloudflare Workers "Static Assets" config, so `wrangler deploy` serves the
 # Expo web export (dist/) as a static site with SPA deep-link routing.
 # Only used by the Cloudflare deploy — GitHub Pages ignores this file.
-name = "pawpalsapp"
+name = "pawpals"
 compatibility_date = "2024-11-01"
 
 [assets]
