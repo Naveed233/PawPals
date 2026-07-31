@@ -71,7 +71,9 @@ export default function Welcome() {
               accessibilityLabel={tx('はじめる', 'Get started')}
               style={[styles.cta, compact && styles.ctaCompact]}
             >
-              <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>Download Free</Text>
+              <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>
+                {tx('無料で試す', 'Try Free')}
+              </Text>
             </AnimatedPressable>
           </Entrance>
         </View>
