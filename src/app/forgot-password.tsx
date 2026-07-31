@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Platform, StyleSheet, Text } from 'react-native';
 
 import { AuthScreen, DarkField, LimeButton, dark } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
@@ -25,9 +25,16 @@ export default function ForgotPassword() {
     }
     setError(undefined);
     setBusy(true);
-    // Sends a real reset email via Supabase. (Completing the reset in-app
-    // needs an update-password screen — next phase.)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email);
+    // Sends a real reset email. redirectTo brings the user back to the
+    // in-app /update-password screen (baseUrl-aware for GitHub Pages vs root).
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin +
+          (window.location.pathname.startsWith('/PawPals')
+            ? '/PawPals/update-password'
+            : '/update-password')
+        : 'pawpair://update-password';
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     setBusy(false);
     if (err) {
       setError(err.message);

@@ -1,14 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeBack } from '@/lib/nav';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ActionSheet } from '@/components/ActionSheet';
 import { OwnerAvatar } from '@/components/Avatar';
 import { Icon, IconName } from '@/components/icons';
 import { Screen } from '@/components/Screen';
 import { Button, Card, SectionTitle, Tag } from '@/components/ui';
 import { remindForEvent } from '@/lib/calendar';
 import { eventStyle } from '@/lib/eventStyle';
-import { setEventRsvpRemote } from '@/lib/remote';
+import { deleteEventRemote, setEventRsvpRemote } from '@/lib/remote';
 import { type Lang, txFor, useI18n } from '@/lib/i18n';
 import { JP_MEETUP } from '@/lib/jp';
 import { useStore } from '@/store';
@@ -40,7 +42,9 @@ export default function EventDetail() {
   const events = useStore((s) => s.events);
   const rsvps = useStore((s) => s.rsvps);
   const rsvp = useStore((s) => s.rsvp);
+  const removeEvent = useStore((s) => s.deleteEvent);
   const me = useStore((s) => s.owner);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const event = (events ?? []).find((e) => e.id === id);
 
@@ -63,6 +67,13 @@ export default function EventDetail() {
     rsvp(event.id, next);
     void setEventRsvpRemote(event.id, next); // sync attendance to the DB
     if (next) void remindForEvent(event, tx); // just joined → phone reminder
+  };
+
+  const doDelete = () => {
+    setConfirmDelete(false);
+    void deleteEventRemote(event.id); // RLS lets only the host delete
+    removeEvent(event.id);
+    goBack();
   };
 
   return (
@@ -146,6 +157,38 @@ export default function EventDetail() {
           'Always meet in public, dog-friendly places and keep an eye on your dog. Meetups aren’t vetted — use your own judgement.',
         )}
       </Text>
+
+      {isHost && (
+        <Pressable
+          onPress={() => setConfirmDelete(true)}
+          accessibilityRole="button"
+          accessibilityLabel={tx('イベントを削除', 'Delete event')}
+          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.6 }]}
+        >
+          <Icon name="trash" color={night.danger} size={16} />
+          <Text style={styles.deleteText}>{tx('イベントを削除する', 'Delete this event')}</Text>
+        </Pressable>
+      )}
+
+      <ActionSheet
+        visible={confirmDelete}
+        title={tx('イベントを削除しますか？', 'Delete this event?')}
+        message={tx(
+          '参加予定のメンバーからも表示されなくなります。この操作は取り消せません。',
+          'It will disappear for everyone who joined. This cannot be undone.',
+        )}
+        actions={[
+          {
+            key: 'delete',
+            emoji: '🗑️',
+            destructive: true,
+            label: tx('削除する', 'Delete event'),
+            sublabel: tx('全員から見えなくなります', 'Removes it for all attendees'),
+            onPress: doDelete,
+          },
+        ]}
+        onClose={() => setConfirmDelete(false)}
+      />
     </Screen>
   );
 }
@@ -180,4 +223,13 @@ const styles = StyleSheet.create({
   attendeeAvatar: { width: 40, height: 40 },
   goingText: { fontSize: font.small, fontWeight: '700', color: night.muted, marginLeft: spacing.xs },
   safety: { fontSize: font.tiny, color: night.faint, lineHeight: 16, textAlign: 'center', marginTop: spacing.sm },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  deleteText: { fontSize: font.small, fontWeight: '700', color: night.danger },
 });

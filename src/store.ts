@@ -96,6 +96,7 @@ interface AppState {
   ensureEvents: () => void;
   rsvp: (eventId: string, going: boolean) => void;
   createEvent: (event: Omit<PawEvent, 'id'>) => string;
+  deleteEvent: (eventId: string) => void;
   mergeRemoteEvents: (events: PawEvent[], going: string[]) => void;
 
   resetDemo: () => void;
@@ -277,6 +278,13 @@ export const useStore = create<AppState>()(
         return id;
       },
 
+      deleteEvent: (eventId) => {
+        const events = (get().events ?? []).filter((e) => e.id !== eventId);
+        const rsvps = { ...get().rsvps };
+        delete rsvps[eventId];
+        set({ events, rsvps });
+      },
+
       // Merge events fetched from the DB (visible to everyone) with any local
       // ones; remote is authoritative on conflict. `going` = ids I've joined.
       mergeRemoteEvents: (remote, going) => {
@@ -304,6 +312,9 @@ export const useStore = create<AppState>()(
           conversations: {},
           events: null,
           rsvps: {},
+          // Also clear filters — otherwise a too-narrow filter re-empties the
+          // freshly reset deck and strands the user with no way out.
+          filters: EMPTY_FILTERS,
         }),
     }),
     {

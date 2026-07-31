@@ -30,7 +30,14 @@ type DogRow = {
   notes: string | null;
   avoid: string | null;
   photos: string[] | null;
-  owner?: { id: string; first_name: string; area: string; lat: number | null; lon: number | null } | null;
+  owner?: {
+    id: string;
+    first_name: string;
+    area: string;
+    lat: number | null;
+    lon: number | null;
+    available_to_meet?: boolean | null;
+  } | null;
 };
 
 /** Great-circle distance in km, rounded to 1 decimal. */
@@ -85,6 +92,7 @@ function rowToProfile(d: DogRow, myLat?: number | null, myLon?: number | null): 
     distanceKm,
     lat: d.owner?.lat ?? undefined,
     lon: d.owner?.lon ?? undefined,
+    availableToMeet: d.owner?.available_to_meet ?? false,
   };
 }
 
@@ -116,6 +124,7 @@ export async function fetchDiscoverDogs(
       owner_area: string | null;
       owner_lat: number | null;
       owner_lon: number | null;
+      owner_available_to_meet: boolean | null;
     };
     return (data as FlatRow[]).map((r) =>
       rowToProfile(
@@ -127,6 +136,7 @@ export async function fetchDiscoverDogs(
             area: r.owner_area ?? '',
             lat: r.owner_lat,
             lon: r.owner_lon,
+            available_to_meet: r.owner_available_to_meet,
           },
         },
         myLat,
@@ -224,30 +234,39 @@ export async function fetchMessages(matchId: string): Promise<Message[]> {
   }
 }
 
+/**
+ * Insert a message and return the saved row so the sender can show it
+ * immediately (optimistic), independent of the realtime echo. Returns null on
+ * failure so the caller can surface an error instead of a silently-lost message.
+ */
 export async function sendMessage(
   matchId: string,
   body: string,
   imageUrl?: string,
-): Promise<boolean> {
+): Promise<Message | null> {
   try {
     const {
       data: { session },
     } = await supabase.auth.getSession();
     const uid = session?.user.id;
-    if (!uid) return false;
-    const { error } = await supabase.from('messages').insert({
-      match_id: matchId,
-      sender_id: uid,
-      body: body || null,
-      image_url: imageUrl ?? null,
-    });
-    if (error) {
-      console.warn('[remote] sendMessage:', error.message);
-      return false;
+    if (!uid) return null;
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        match_id: matchId,
+        sender_id: uid,
+        body: body || null,
+        image_url: imageUrl ?? null,
+      })
+      .select('*')
+      .single();
+    if (error || !data) {
+      console.warn('[remote] sendMessage:', error?.message);
+      return null;
     }
-    return true;
+    return rowToMessage(data as MsgRow, uid);
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -553,6 +572,23 @@ export async function setEventRsvpRemote(eventId: string, going: boolean): Promi
     }
   } catch {
     /* offline / not-installed — local RSVP still applied */
+  }
+}
+
+/**
+ * Delete an event you host. RLS (events_delete on host_id, prelaunch.sql)
+ * ensures only the host can remove it; the DB cascades its rsvps.
+ */
+export async function deleteEventRemote(eventId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('events').delete().eq('id', eventId);
+    if (error) {
+      console.warn('[remote] deleteEvent:', error.message);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
   }
 }
 

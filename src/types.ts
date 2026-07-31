@@ -134,6 +134,8 @@ export interface DogProfile {
   /** Fixed approximate location (never exact) so the dog stays put on the map. */
   lat?: number;
   lon?: number;
+  /** Owner opted in to "show me on the map" — gates map visibility for real users. */
+  availableToMeet?: boolean;
   /**
    * Where the dog's face sits in the hero photo, so the discovery card can crop
    * to it (e.g. a side-on dog whose face is on the right). Defaults to 'top'.

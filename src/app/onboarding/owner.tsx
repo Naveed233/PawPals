@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { OwnerForm } from '@/components/OwnerForm';
 import { Screen } from '@/components/Screen';
 import { useI18n } from '@/lib/i18n';
+import { supabase } from '@/lib/supabase';
 import { saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
 import type { PetStatus } from '@/types';
@@ -27,8 +28,13 @@ export default function OwnerOnboarding() {
       <OwnerForm
         submitLabel={tx('次へ', 'Next')}
         onPetStatusChange={setPetStatus}
-        onSubmit={(v) => {
-          const owner = { id: 'owner-1', verified: false, ...v };
+        onSubmit={async (v) => {
+          // Use the real auth uid as the owner id so it matches the DB row —
+          // otherwise chat/match ownership comparisons (owner.id vs sender uid)
+          // break. Falls back only if somehow not signed in.
+          const { data } = await supabase.auth.getSession();
+          const id = data.session?.user.id ?? 'owner-1';
+          const owner = { id, verified: false, ...v };
           setOwner(owner);
           void saveProfileRemote(owner);
           if (v.petStatus === 'has-dog') {

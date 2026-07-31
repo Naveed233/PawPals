@@ -107,12 +107,24 @@ export default function Chat() {
     }, 1300);
   };
 
+  // Append a real message if we don't already have it (realtime may echo it).
+  const mergeRealMessage = (m: Message) =>
+    setRealMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+
   const send = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     setInput('');
     if (realMatchId) {
-      void sendMessage(realMatchId, trimmed); // realtime echoes it back
+      // Show it immediately from the saved row; realtime echo dedups by id.
+      void sendMessage(realMatchId, trimmed).then((m) => {
+        if (m) mergeRealMessage(m);
+        else
+          Alert.alert(
+            tx('送信できませんでした', 'Message not sent'),
+            tx('通信環境をご確認のうえ、もう一度お試しください。', 'Check your connection and try again.'),
+          );
+      });
       return;
     }
     sendText(dog.id, trimmed);
@@ -124,7 +136,10 @@ export default function Chat() {
     if (!uri) return;
     if (realMatchId) {
       const url = await uploadPhoto(uri);
-      if (url) void sendMessage(realMatchId, '', url);
+      if (url) {
+        const m = await sendMessage(realMatchId, '', url);
+        if (m) mergeRealMessage(m);
+      }
       return;
     }
     sendImageMessage(dog.id, uri);

@@ -14,6 +14,7 @@ import { useTabBarClearance } from '@/lib/layout';
 import { useI18n } from '@/lib/i18n';
 import { detectRealMatch } from '@/lib/matching';
 import { fetchDiscoverDogs, fetchRemoteMatches, subscribeMatches } from '@/lib/remote';
+import { supabase } from '@/lib/supabase';
 import { recordSwipeRemote } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, shadow, spacing } from '@/theme';
@@ -37,12 +38,26 @@ export default function Discover() {
   const undo = useStore((s) => s.undo);
   const toggleSave = useStore((s) => s.toggleSave);
   const resetDemo = useStore((s) => s.resetDemo);
+  const clearFilters = useStore((s) => s.clearFilters);
   const setRemoteDogs = useStore((s) => s.setRemoteDogs);
   const mergeRemoteMatches = useStore((s) => s.mergeRemoteMatches);
+  const updateOwner = useStore((s) => s.updateOwner);
 
   useEffect(() => {
     ensureDeck();
   }, [ensureDeck]);
+
+  // Repair legacy accounts whose owner.id is the old placeholder 'owner-1'
+  // (or otherwise doesn't match the auth uid) — chat "me" detection and match
+  // subscriptions compare owner.id to the real uid, so they must agree.
+  useEffect(() => {
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user.id;
+      const cur = useStore.getState().owner;
+      if (uid && cur && cur.id !== uid) updateOwner({ id: uid });
+    })();
+  }, [owner?.id, updateOwner]);
 
   // Pull real dogs into the deck + any existing real matches, and listen for
   // new matches created while the user is browsing.
@@ -248,6 +263,31 @@ export default function Discover() {
               </View>
 
             </>
+          ) : filterCount > 0 ? (
+            // Empty because filters exclude everyone — always give a way out.
+            <View style={styles.center}>
+              <Text style={styles.emptyEmoji}>🔍</Text>
+              <Text style={styles.emptyTitle}>
+                {tx('条件に合うワンちゃんがいません', 'No dogs match your filters')}
+              </Text>
+              <Text style={styles.emptyBody}>
+                {tx(
+                  '絞り込み条件が厳しすぎるようです。条件をクリアするか、調整してみてください。',
+                  'Your filters are too narrow. Clear them or adjust to see more dogs.',
+                )}
+              </Text>
+              <Button
+                label={tx('絞り込みをクリア', 'Clear filters')}
+                onPress={clearFilters}
+                style={{ marginTop: spacing.md, alignSelf: 'stretch' }}
+              />
+              <Button
+                label={tx('絞り込みを調整', 'Adjust filters')}
+                variant="outline"
+                onPress={() => router.push('/filters')}
+                style={{ alignSelf: 'stretch' }}
+              />
+            </View>
           ) : (
             <View style={styles.center}>
               <Text style={styles.emptyEmoji}>🦴</Text>

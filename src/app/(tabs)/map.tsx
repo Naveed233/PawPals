@@ -21,6 +21,7 @@ import { DogPhoto } from '@/components/DogPhoto';
 import { Icon } from '@/components/icons';
 import { Chip } from '@/components/ui';
 import { SEED_DOGS } from '@/data/seed';
+import { isSeedDog } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { useTabBarClearance } from '@/lib/layout';
 import { TILE_ATTRIBUTION, tileUrl } from '@/lib/mapTiles';
@@ -265,6 +266,9 @@ export default function MapScreen() {
     const seen = new Set<string>();
     return [...remoteDogs, ...SEED_DOGS].filter((d) => {
       if (d.lat == null || d.lon == null || seen.has(d.id)) return false;
+      // Real users appear ONLY if they opted in ("show me on the map"). Seed
+      // dogs are demo content and always shown. This honours the opt-in promise.
+      if (!isSeedDog(d.id) && !d.availableToMeet) return false;
       seen.add(d.id);
       return true;
     });

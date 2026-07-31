@@ -46,33 +46,38 @@ export default function OwnerDetail() {
   const me = useStore((s) => s.owner);
   const myDogs = useStore((s) => s.dogs);
   const matches = useStore((s) => s.matches);
+  const remoteDogs = useStore((s) => s.remoteDogs);
 
   const pick = (t: BiText) => (lang === 'ja' ? t.ja : t.en);
 
   const isSelf = !!me && (id === me.id || id === 'me');
   const seedDogs = SEED_DOGS.filter((d) => d.ownerId === id);
-  const seedInfo = seedDogs[0];
+  // A real (non-demo) matched owner: pull their dogs + denormalised owner
+  // preview from the dogs we've already synced, so the profile isn't a dead-end.
+  const realOwnerDogs = id ? remoteDogs.filter((d) => d.ownerId === id) : [];
+  const otherDogs = seedDogs.length ? seedDogs : realOwnerDogs;
+  const info = otherDogs[0];
   const rich = !isSelf && id ? SEED_OWNER_PROFILES[id] : undefined;
 
-  const name = isSelf ? me!.firstName : (seedInfo?.ownerName ?? '');
-  const area = isSelf ? me!.area : (seedInfo?.ownerArea ?? '');
-  const verified = isSelf ? me!.verified : !!seedInfo?.ownerVerified;
+  const name = isSelf ? me!.firstName : (info?.ownerName ?? '');
+  const area = isSelf ? me!.area : (info?.ownerArea ?? '');
+  const verified = isSelf ? me!.verified : !!info?.ownerVerified;
   const ageRange = isSelf ? me!.ageRange : rich?.ageRange;
   const bio = isSelf ? me!.bio : rich ? pick(rich.bio) : '';
   const languages = isSelf ? me!.languages : (rich?.languages ?? []);
   const availability = isSelf ? me!.availability : (rich?.availability ?? []);
-  const dogs = isSelf ? myDogs : seedDogs;
-  const distanceKm = seedDogs.length
-    ? Math.min(...seedDogs.map((d) => d.distanceKm))
+  const dogs = isSelf ? myDogs : otherDogs;
+  const distanceKm = otherDogs.length
+    ? Math.min(...otherDogs.map((d) => d.distanceKm))
     : null;
   const heroHeight = Math.round(windowHeight * 0.42);
 
-  const isMatched = seedDogs.some((d) => matches.some((m) => m.dogId === d.id));
+  const isMatched = otherDogs.some((d) => matches.some((m) => m.dogId === d.id));
   // Demo (seed) owner profiles are viewable so the feature is discoverable;
   // real users' profiles stay private until you match (safety).
-  const isSeedOwner = !!seedInfo;
+  const isSeedOwner = seedDogs.length > 0;
   const canView = isSelf || isMatched || isSeedOwner;
-  const matchedDog = seedDogs.find((d) => matches.some((m) => m.dogId === d.id));
+  const matchedDog = otherDogs.find((d) => matches.some((m) => m.dogId === d.id));
 
   // Shared ground with the viewer — similarity is the fastest rapport builder.
   const sharedLangs = !isSelf && me ? languages.filter((l) => me.languages.includes(l)) : [];
@@ -94,7 +99,7 @@ export default function OwnerDetail() {
     { on: languages.length >= 2, emoji: '🗣️', label: tx('マルチリンガル', 'Multilingual') },
   ].filter((b) => b.on);
 
-  if (!isSelf && !seedInfo) {
+  if (!isSelf && !info) {
     return (
       <View style={[styles.page, styles.centerWrap, { paddingTop: insets.top + spacing.xl }]}>
         <StatusBar style="dark" />
@@ -296,10 +301,10 @@ export default function OwnerDetail() {
             </View>
           )}
 
-          {/* Looking for (seed: from their dog's intents) */}
-          {!isSelf && seedInfo && seedInfo.intents.length > 0 && (
+          {/* Looking for (from their dog's intents) */}
+          {!isSelf && info && info.intents.length > 0 && (
             <View style={styles.chipRow}>
-              {seedInfo.intents.map((it) => (
+              {info.intents.map((it) => (
                 <View key={it} style={[styles.chip, styles.chipOutline]}>
                   <Text style={[styles.chipText, { color: pastel.mutedInk }]}>
                     {tv(JP_INTENT, it)}

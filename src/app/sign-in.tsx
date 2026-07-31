@@ -13,7 +13,7 @@ import {
   providerSignIn,
 } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
-import { supabase } from '@/lib/supabase';
+import { setRememberSession, supabase } from '@/lib/supabase';
 import { fetchRemoteState } from '@/lib/sync';
 import { useStore } from '@/store';
 
@@ -43,6 +43,9 @@ export default function SignIn() {
     if (Object.keys(next).length > 0) return;
 
     setBusy(true);
+    // Honour "remember me" before the token is written (web: localStorage vs
+    // sessionStorage) so a shared device doesn't stay signed in.
+    setRememberSession(remember);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setBusy(false);

@@ -445,15 +445,12 @@ export default function DogDetail() {
           )}
           <Pressable
             onPress={isMatched ? () => router.push(`/chat/${dog.id}`) : like}
-            disabled={!isMatched && !inDeck}
             accessibilityRole="button"
             accessibilityLabel={
               isMatched ? tx('マッチ済み。チャットを開く', 'Matched — open chat') : tx('会いたい！', 'Let’s meet!')
             }
-            accessibilityState={{ disabled: !isMatched && !inDeck }}
             style={({ pressed }) => [
               styles.ctaPill,
-              (!isMatched && !inDeck) && styles.ctaDisabled,
               pressed && { transform: [{ scale: 0.98 }] },
             ]}
           >
