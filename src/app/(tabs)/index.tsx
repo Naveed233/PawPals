@@ -32,12 +32,13 @@ export default function Discover() {
   const remoteDogs = useStore((s) => s.remoteDogs);
   const swipes = useStore((s) => s.swipes);
   const saved = useStore((s) => s.saved);
+  const hiddenDogIds = useStore((s) => s.hiddenDogIds);
+  const blockedOwnerIds = useStore((s) => s.blockedOwnerIds);
   const swipeCount = swipes.length;
   const ensureDeck = useStore((s) => s.ensureDeck);
   const swipe = useStore((s) => s.swipe);
   const undo = useStore((s) => s.undo);
   const toggleSave = useStore((s) => s.toggleSave);
-  const resetDemo = useStore((s) => s.resetDemo);
   const clearFilters = useStore((s) => s.clearFilters);
   const setRemoteDogs = useStore((s) => s.setRemoteDogs);
   const mergeRemoteMatches = useStore((s) => s.mergeRemoteMatches);
@@ -122,11 +123,15 @@ export default function Discover() {
       (d) => !swipedIds.has(d.id) && d.ownerId !== owner?.id,
     );
     // Real dogs first so early users find each other; seed dogs keep it full.
+    const hidden = new Set(hiddenDogIds);
+    const blocked = new Set(blockedOwnerIds);
     const seen = new Set<string>();
     return [...remote, ...seed]
       .filter((d) => (seen.has(d.id) ? false : seen.add(d.id)))
+      // Reported/blocked profiles vanish from the feed immediately.
+      .filter((d) => !hidden.has(d.id) && !blocked.has(d.ownerId))
       .filter((d) => matchesFilters(d, filters));
-  }, [deck, remoteDogs, swipedIds, owner?.id, filters]);
+  }, [deck, remoteDogs, swipedIds, owner?.id, filters, hiddenDogIds, blockedOwnerIds]);
 
   const top = remaining[0];
   const [burstKey, setBurstKey] = useState(0);
@@ -296,16 +301,10 @@ export default function Discover() {
               </Text>
               <Text style={styles.emptyBody}>
                 {tx(
-                  '近くのわんちゃんをすべてチェックしました。また後でのぞいてみてください。デモ用にデッキをリセットすることもできます。',
-                  "You've met all the dogs nearby. Check back later — or reset the deck to demo again.",
+                  '近くのわんちゃんをすべてチェックしました。新しい仲間が入ってくるので、また後でのぞいてみてください。',
+                  "You've met all the dogs nearby. New pups join all the time — check back soon.",
                 )}
               </Text>
-              <Button
-                label={tx('デッキをリセット', 'Reset deck')}
-                variant="outline"
-                onPress={resetDemo}
-                style={{ marginTop: spacing.md, alignSelf: 'stretch' }}
-              />
             </View>
           )}
         </View>

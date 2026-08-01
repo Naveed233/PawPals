@@ -170,7 +170,7 @@ export function DogForm({
         </Text>
       </Card>
 
-      <Field label={tx('お名前 *', 'Name *')} value={name} onChangeText={setName} placeholder={tx('例：ビスケット', 'e.g. Biscuit')} error={errors.name} />
+      <Field label={tx('ペットのお名前 *', "Pet's name *")} value={name} onChangeText={setName} placeholder={tx('例：ビスケット', 'e.g. Biscuit')} error={errors.name} />
       <Field label={tx('犬種・ミックス *', 'Breed or mix *')} value={breed} onChangeText={setBreed} placeholder={tx('例：ラブラドールミックス', 'e.g. Labrador mix')} error={errors.breed} />
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
         <Field label={tx('年齢（歳）*', 'Age (years) *')} value={age} onChangeText={setAge} placeholder="3" keyboardType="numeric" error={errors.age} containerStyle={{ flex: 1 }} />
@@ -200,7 +200,7 @@ export function DogForm({
       </Card>
 
       <Field label={tx('性格・行動メモ', 'Personality & behaviour notes')} value={notes} onChangeText={setNotes} placeholder={tx('新しい友だちと会うときの様子など', 'How they act when meeting new friends')} multiline numberOfLines={2} />
-      <Field label={tx('苦手なこと・避けたい状況', 'Dislikes & situations to avoid')} value={avoid} onChangeText={setAvoid} placeholder={tx('相手に知っておいてほしいこと', 'Anything other owners should know')} multiline numberOfLines={2} />
+      <Field label={tx('ペットが苦手なこと', 'Things my pet dislikes')} value={avoid} onChangeText={setAvoid} placeholder={tx('相手に知っておいてほしいこと', 'Anything other owners should know')} multiline numberOfLines={2} />
 
       <Text style={styles.disclaimer}>
         {tx(

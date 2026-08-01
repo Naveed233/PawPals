@@ -59,6 +59,8 @@ export default function Chat() {
   const sendImageMessage = useStore((s) => s.sendImageMessage);
   const receiveReply = useStore((s) => s.receiveReply);
   const owner = useStore((s) => s.owner);
+  const blockOwner = useStore((s) => s.blockOwner);
+  const hideDog = useStore((s) => s.hideDog);
   const match = useStore((s) => s.matches.find((m) => m.dogId === dogId));
 
   // Real matches (from the DB) chat over Supabase in realtime; demo/seed dogs
@@ -154,6 +156,8 @@ export default function Chat() {
   const doBlockChat = async () => {
     if (!dog) return;
     setSafetyOpen(false);
+    blockOwner(dog.ownerId); // hide them from the feed too
+    hideDog(dog.id);
     await Promise.all([
       blockUser(dog.ownerId),
       reportContent(dog.ownerId, dog.id, 'Blocked from chat'),

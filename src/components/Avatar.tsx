@@ -2,12 +2,13 @@ import { Image, ImageStyle } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 
+import { Icon } from '@/components/icons';
 import { dogEmojiFor, gradientFor } from '@/lib/avatars';
 import { OWNER_IMAGES } from '@/lib/seedImages';
 
 /**
  * Procedural avatar: a deterministic gradient with either a dog emoji or a
- * person's initial. Offline-safe stand-in for real photos.
+ * person silhouette. Offline-safe stand-in for real photos.
  */
 export function Avatar({
   seed,
@@ -37,9 +38,7 @@ export function Avatar({
       {kind === 'dog' ? (
         <Text style={[styles.emoji, { fontSize: emojiSize }]}>{dogEmojiFor(seed)}</Text>
       ) : (
-        <Text style={[styles.initials, { fontSize: emojiSize * 0.55 }]}>
-          {(label || '?').charAt(0).toUpperCase()}
-        </Text>
+        <Icon name="user" color="#fff" size={Math.round(emojiSize * 0.62)} />
       )}
       {showLabel && !!label && <Text style={styles.label}>{label}</Text>}
     </LinearGradient>

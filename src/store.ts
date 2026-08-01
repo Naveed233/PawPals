@@ -55,6 +55,12 @@ interface AppState {
   saved: string[];
   matches: Match[];
 
+  // Safety: dogs the user reported (hidden from feed + profile) and owners they
+  // blocked (all of that owner's dogs hidden). Kept locally so the effect is
+  // instant; the server-side block/report tables are the source of truth.
+  hiddenDogIds: string[];
+  blockedOwnerIds: string[];
+
   // Anonymous photo likes: aggregate counts + the keys *this* user liked (so
   // we can toggle). We never associate a like with an identity for others.
   photoLikes: Record<string, number>;
@@ -78,6 +84,10 @@ interface AppState {
   addDogPhoto: (dogId: string, uri: string) => void;
 
   setRemoteDogs: (dogs: DogProfile[]) => void;
+  /** Hide a dog from the feed + its profile (used when reported). */
+  hideDog: (dogId: string) => void;
+  /** Block an owner — hides every dog of theirs, now and in future fetches. */
+  blockOwner: (ownerId: string) => void;
   /** Merge real matches (from the DB) into local matches + resolvable dogs. */
   mergeRemoteMatches: (matches: Match[], dogs: DogProfile[]) => void;
   setFilters: (filters: DiscoveryFilters) => void;
@@ -121,6 +131,8 @@ export const useStore = create<AppState>()(
       swipes: [],
       saved: [],
       matches: [],
+      hiddenDogIds: [],
+      blockedOwnerIds: [],
 
       photoLikes: { ...SEED_PHOTO_LIKES },
       likedPhotos: [],
@@ -147,6 +159,8 @@ export const useStore = create<AppState>()(
           swipes: [],
           saved: [],
           matches: [],
+          hiddenDogIds: [],
+          blockedOwnerIds: [],
           photoLikes: { ...SEED_PHOTO_LIKES },
           likedPhotos: [],
           conversations: {},
@@ -174,6 +188,16 @@ export const useStore = create<AppState>()(
         }),
 
       setRemoteDogs: (remoteDogs) => set({ remoteDogs }),
+
+      hideDog: (dogId) => {
+        if (get().hiddenDogIds.includes(dogId)) return;
+        set({ hiddenDogIds: [...get().hiddenDogIds, dogId] });
+      },
+
+      blockOwner: (ownerId) => {
+        if (get().blockedOwnerIds.includes(ownerId)) return;
+        set({ blockedOwnerIds: [...get().blockedOwnerIds, ownerId] });
+      },
 
       setFilters: (filters) => set({ filters }),
       clearFilters: () => set({ filters: { ...EMPTY_FILTERS } }),

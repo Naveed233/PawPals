@@ -63,7 +63,8 @@ export const MEETUP_TYPES: MeetupType[] = [
   'Café meetup',
 ];
 
-export const LANGUAGES: string[] = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic', 'Urdu'];
+// Preset language chips. Anything else is added via the free-text "other" field.
+export const LANGUAGES: string[] = ['English', 'Japanese', 'Chinese', 'Korean', 'Spanish'];
 
 export const AVAILABILITY: string[] = [
   'Weekday mornings',

@@ -6,7 +6,10 @@
 -- 1. MAP OPT-IN IS REAL NOW. discover_dogs() also returns available_to_meet
 -- so the client can plot ONLY users who turned on "show me on the map".
 -- (Keeps the boost ordering from premium.sql.)
+-- Drop first: Postgres can't CHANGE a function's return columns via
+-- CREATE OR REPLACE (error 42P13), and we're adding owner_available_to_meet.
 -- =====================================================================
+drop function if exists public.discover_dogs();
 create or replace function public.discover_dogs()
 returns table (
   id text, owner_id uuid, name text, breed text, age_years int, sex text, size text,
@@ -54,6 +57,9 @@ drop policy if exists events_delete on public.events;
 create policy events_delete on public.events
   for delete to authenticated using (auth.uid() = host_id);
 
+-- Drop first for the same reason as discover_dogs (return columns may differ
+-- from the version already in your DB from events.sql).
+drop function if exists public.list_events();
 create or replace function public.list_events()
 returns table (
   id uuid, host_id uuid, title text, type text, date_label text, time_label text,

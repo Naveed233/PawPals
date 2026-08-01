@@ -29,7 +29,6 @@ export default function Profile() {
   const matches = useStore((s) => s.matches);
   const swipes = useStore((s) => s.swipes);
   const rsvps = useStore((s) => s.rsvps);
-  const resetDemo = useStore((s) => s.resetDemo);
   const signOut = useStore((s) => s.signOut);
   const addDogPhoto = useStore((s) => s.addDogPhoto);
   const updateOwner = useStore((s) => s.updateOwner);
@@ -302,7 +301,6 @@ export default function Profile() {
           variant="ghost"
           onPress={() => router.push('/terms')}
         />
-        <Button label={tx('デモをリセット', 'Reset demo')} variant="ghost" onPress={resetDemo} />
         <Button label={tx('サインアウト', 'Sign out')} variant="ghost" onPress={confirmSignOut} />
         <Button
           label={tx('アカウントを削除', 'Delete account')}
@@ -348,14 +346,13 @@ export default function Profile() {
         visible={confirm === 'signout'}
         title={tx('サインアウトしますか？', 'Sign out?')}
         message={tx(
-          'この端末のローカルデモアカウントを消去します。',
-          'This clears the local demo account on this device.',
+          'この端末からサインアウトします。プロフィールはアカウントに保存されたままなので、いつでも再度サインインできます。',
+          "You'll be signed out on this device. Your profile stays saved to your account — sign back in anytime.",
         )}
         actions={[
           {
             key: 'signout',
             emoji: '👋',
-            destructive: true,
             label: tx('サインアウト', 'Sign out'),
             onPress: proceedSignOut,
           },

@@ -64,6 +64,22 @@ export async function saveMeetPresence(
   }
 }
 
+/**
+ * Save the user's approximate location (rounded upstream for privacy). Written
+ * on its own — like presence — so it never blocks the core profile save, and so
+ * that others can find them on the map once they've opted in.
+ */
+export async function saveLocationRemote(lat: number, lon: number): Promise<void> {
+  try {
+    const id = await userId();
+    if (!id) return;
+    const { error } = await supabase.from('profiles').update({ lat, lon }).eq('id', id);
+    if (error) console.warn('[sync] saveLocationRemote failed:', error.message);
+  } catch (e) {
+    console.warn('[sync] saveLocationRemote failed:', e);
+  }
+}
+
 export async function saveDogRemote(dog: DogProfile): Promise<void> {
   try {
     const id = await userId();

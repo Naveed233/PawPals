@@ -25,7 +25,7 @@ import { isSeedDog } from '@/lib/dogs';
 import { useI18n } from '@/lib/i18n';
 import { useTabBarClearance } from '@/lib/layout';
 import { TILE_ATTRIBUTION, tileUrl } from '@/lib/mapTiles';
-import { saveMeetPresence } from '@/lib/sync';
+import { saveLocationRemote, saveMeetPresence } from '@/lib/sync';
 import { useStore } from '@/store';
 import { font, night, radius, shadow, spacing } from '@/theme';
 
@@ -93,6 +93,7 @@ export default function MapScreen() {
   };
 
   const remoteDogs = useStore((s) => s.remoteDogs);
+  const myDog = useStore((s) => s.dogs[0]);
 
   const [mode, setMode] = useState<Mode>('locating');
   // `center` is the pannable map view; `homeLoc` is where the user actually is.
@@ -113,6 +114,16 @@ export default function MapScreen() {
     setCenter(loc);
     setPlaceName(place);
     setMode('ready');
+    // Remember where the user is: drives distance + discovery, and (if opted in)
+    // lets others find them on the map. Rounded to ~100m for privacy.
+    if (owner) {
+      const lat = Math.round(loc.lat * 1000) / 1000;
+      const lon = Math.round(loc.lon * 1000) / 1000;
+      if (owner.lat !== lat || owner.lon !== lon) {
+        updateOwner({ lat, lon });
+        void saveLocationRemote(lat, lon);
+      }
+    }
   };
 
   const MIN_ZOOM = 4; // zoom out far enough to see the whole country
@@ -313,13 +324,24 @@ export default function MapScreen() {
               {/* soft wash so the pins read on light tiles */}
               <View style={styles.mapTint} pointerEvents="none" />
 
-              {/* you */}
+              {/* you — your own dog (or a person marker) pinned at your location */}
               {homePt && (
                 <View
-                  style={[styles.youPin, { left: homePt.x - 14, top: homePt.y - 14 }]}
+                  style={[styles.youPin, { left: homePt.x - 22, top: homePt.y - 22 }]}
                   pointerEvents="none"
                 >
-                  <View style={styles.youDot} />
+                  <View style={styles.youRing}>
+                    {myDog ? (
+                      <DogPhoto dog={myDog} style={styles.youPhoto} rounded={radius.pill} emojiSize={16} />
+                    ) : (
+                      <View style={styles.youPhotoFallback}>
+                        <Icon name="user" color="#fff" size={18} />
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.youLabel}>
+                    <Text style={styles.youLabelText}>{tx('あなた', 'You')}</Text>
+                  </View>
                 </View>
               )}
 
@@ -578,23 +600,31 @@ const styles = StyleSheet.create({
   mapTint: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(255,253,248,0.14)' },
   mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  youPin: {
-    position: 'absolute',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,107,107,0.3)',
+  youPin: { position: 'absolute', alignItems: 'center', width: 44 },
+  youRing: {
+    padding: 2.5,
+    borderRadius: radius.pill,
+    backgroundColor: night.pink,
+    ...shadow.soft,
+  },
+  youPhoto: { width: 34, height: 34 },
+  youPhotoFallback: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.pill,
+    backgroundColor: night.coral,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  youDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+  youLabel: {
+    marginTop: 2,
     backgroundColor: night.pink,
-    borderWidth: 2.5,
-    borderColor: '#fff',
+    borderRadius: radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+    ...shadow.soft,
   },
+  youLabelText: { color: '#fff', fontSize: 9, fontWeight: '900' },
 
   pin: { position: 'absolute', alignItems: 'center', width: 40 },
   pinPhotoRing: {

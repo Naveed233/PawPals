@@ -71,10 +71,15 @@ export default function DogDetail() {
   const toggleSave = useStore((s) => s.toggleSave);
   const swipe = useStore((s) => s.swipe);
   const matches = useStore((s) => s.matches);
+  const hideDog = useStore((s) => s.hideDog);
+  const blockOwner = useStore((s) => s.blockOwner);
+  const hiddenDogIds = useStore((s) => s.hiddenDogIds);
+  const blockedOwnerIds = useStore((s) => s.blockedOwnerIds);
 
   const dog = dogById(id);
+  const isHidden = !!dog && (hiddenDogIds.includes(dog.id) || blockedOwnerIds.includes(dog.ownerId));
 
-  if (!dog) {
+  if (!dog || isHidden) {
     return (
       <View style={[styles.page, styles.missingWrap, { paddingTop: insets.top + spacing.xl }]}>
         <StatusBar style="dark" />
@@ -143,21 +148,33 @@ export default function DogDetail() {
     setReportOpen(true);
   };
   const closeReport = () => {
+    const wasDone = reportDone;
     setReportOpen(false);
     setReportDone(false);
+    // If they just reported, hide the profile now and leave the page.
+    if (wasDone) {
+      hideDog(dog.id);
+      if (inDeck) swipe(dog.id, 'pass');
+      goBack();
+    }
   };
 
-  const doBlock = async () => {
+  const doBlock = () => {
     setReportOpen(false);
-    await Promise.all([
+    // Hide immediately (feed + this profile) and leave; persist in background.
+    blockOwner(dog.ownerId);
+    hideDog(dog.id);
+    if (inDeck) swipe(dog.id, 'pass');
+    goBack();
+    void Promise.all([
       blockUser(dog.ownerId),
       reportContent(dog.ownerId, dog.id, 'Blocked from profile'),
     ]);
-    if (inDeck) swipe(dog.id, 'pass');
-    goBack();
   };
 
   const doReport = async () => {
+    // Persist the report and show the thanks state; the actual hide happens on
+    // close (so the confirmation isn't cut off by the hidden-profile guard).
     await reportContent(dog.ownerId, dog.id, 'Reported from profile');
     setReportDone(true);
   };

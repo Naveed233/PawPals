@@ -45,7 +45,11 @@ export const JP_MEETUP: Record<string, string> = {
 
 export const JP_LANGUAGE: Record<string, string> = {
   English: '英語',
+  Japanese: '日本語',
+  Chinese: '中国語',
+  Korean: '韓国語',
   Spanish: 'スペイン語',
+  // Legacy values kept so older saved profiles still render a proper label.
   French: 'フランス語',
   German: 'ドイツ語',
   Mandarin: '中国語',
