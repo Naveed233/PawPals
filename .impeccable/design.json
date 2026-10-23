@@ -1,0 +1,678 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T08:13:52.100Z",
+  "title": "Design System: PawPair",
+  "extensions": {
+    "colorMeta": {
+      "sky-ground": {
+        "role": "neutral",
+        "displayName": "Sky Ground",
+        "canonical": "oklch(95.1% 0.017 250.8)",
+        "tonalRamp": [
+          "#060C12",
+          "#1E252C",
+          "#394148",
+          "#575E67",
+          "#79818A",
+          "#9DA6AF",
+          "#C3CCD5",
+          "#E7F0FA"
+        ]
+      },
+      "sky-ground-top": {
+        "role": "neutral",
+        "displayName": "Sky Ground Top",
+        "canonical": "oklch(97.7% 0.009 247.9)",
+        "tonalRamp": [
+          "#080C0F",
+          "#212428",
+          "#3C4044",
+          "#5A5E62",
+          "#7C8185",
+          "#A0A5AA",
+          "#C6CBD0",
+          "#EAEFF4"
+        ]
+      },
+      "sky-tint": {
+        "role": "tertiary",
+        "displayName": "Sky Tint",
+        "canonical": "oklch(91.4% 0.031 248.2)",
+        "tonalRamp": [
+          "#020C18",
+          "#182533",
+          "#334150",
+          "#505F6F",
+          "#728292",
+          "#96A7B8",
+          "#BBCDDE",
+          "#E3F0FE"
+        ]
+      },
+      "print-white": {
+        "role": "neutral",
+        "displayName": "Print White",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#808080",
+          "#A4A4A4",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "print-edge": {
+        "role": "neutral",
+        "displayName": "Print Edge",
+        "canonical": "oklch(91.4% 0.017 259.4)",
+        "tonalRamp": [
+          "#070B12",
+          "#1F242C",
+          "#3B4049",
+          "#585E67",
+          "#7A818B",
+          "#9EA5AF",
+          "#C4CBD6",
+          "#E8EFFA"
+        ]
+      },
+      "input-mist": {
+        "role": "neutral",
+        "displayName": "Input Mist",
+        "canonical": "oklch(97.2% 0.008 253.9)",
+        "tonalRamp": [
+          "#090B0E",
+          "#212428",
+          "#3D4044",
+          "#5B5E62",
+          "#7D8185",
+          "#A1A5AA",
+          "#C7CBD0",
+          "#EBEFF4"
+        ]
+      },
+      "cobalt": {
+        "role": "primary",
+        "displayName": "Cobalt",
+        "canonical": "oklch(50.5% 0.208 268.3)",
+        "tonalRamp": [
+          "#020034",
+          "#0C0075",
+          "#1A22AB",
+          "#2F4AD0",
+          "#4D71FA",
+          "#7E9FFF",
+          "#B5C9FF",
+          "#E8EEFE"
+        ]
+      },
+      "cobalt-soft": {
+        "role": "primary",
+        "displayName": "Cobalt Soft",
+        "canonical": "oklch(92.7% 0.029 275.1)",
+        "tonalRamp": [
+          "#080A17",
+          "#202332",
+          "#3B3F4F",
+          "#595D6E",
+          "#7B7F92",
+          "#9FA4B7",
+          "#C5C9DE",
+          "#EAEEFE"
+        ]
+      },
+      "sunflower": {
+        "role": "secondary",
+        "displayName": "Sunflower",
+        "canonical": "oklch(85.4% 0.157 84.1)",
+        "tonalRamp": [
+          "#110A00",
+          "#302100",
+          "#523C01",
+          "#775803",
+          "#A27908",
+          "#D09B03",
+          "#FAC137",
+          "#FFECC8"
+        ]
+      },
+      "marker-navy": {
+        "role": "neutral",
+        "displayName": "Marker Navy",
+        "canonical": "oklch(26.5% 0.055 270.6)",
+        "tonalRamp": [
+          "#040822",
+          "#1A223F",
+          "#353E5D",
+          "#525C7D",
+          "#737FA2",
+          "#97A3C8",
+          "#BDC9F0",
+          "#E8EEFF"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "oklch(45.4% 0.045 266.8)",
+        "tonalRamp": [
+          "#04091E",
+          "#1A233A",
+          "#353F58",
+          "#525D78",
+          "#74809C",
+          "#98A4C2",
+          "#BDCAE9",
+          "#E7EEFF"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "oklch(50.6% 0.046 269.4)",
+        "tonalRamp": [
+          "#05091E",
+          "#1B233B",
+          "#363F59",
+          "#535D78",
+          "#757F9D",
+          "#99A4C3",
+          "#BECAEA",
+          "#E8EEFE"
+        ]
+      },
+      "success-green": {
+        "role": "state",
+        "displayName": "Success Green",
+        "canonical": "oklch(51.5% 0.112 156.4)",
+        "tonalRamp": [
+          "#000F05",
+          "#012C17",
+          "#034D2C",
+          "#0C7042",
+          "#3D9464",
+          "#64BA88",
+          "#8BE1AD",
+          "#C5FFD9"
+        ]
+      },
+      "success-soft": {
+        "role": "state",
+        "displayName": "Success Soft",
+        "canonical": "oklch(93.8% 0.026 158.2)",
+        "tonalRamp": [
+          "#030E07",
+          "#19281F",
+          "#35443B",
+          "#526258",
+          "#74857A",
+          "#98AA9F",
+          "#BDD0C4",
+          "#E1F4E8"
+        ]
+      },
+      "danger-red": {
+        "role": "state",
+        "displayName": "Danger Red",
+        "canonical": "oklch(52.7% 0.173 28.7)",
+        "tonalRamp": [
+          "#1F0000",
+          "#4B0101",
+          "#7D0002",
+          "#AA211A",
+          "#D44C3F",
+          "#FE7363",
+          "#FFB5AA",
+          "#FEE9E6"
+        ]
+      },
+      "danger-soft": {
+        "role": "state",
+        "displayName": "Danger Soft",
+        "canonical": "oklch(93.7% 0.026 26.5)",
+        "tonalRamp": [
+          "#150706",
+          "#2F1F1D",
+          "#4D3B39",
+          "#6C5856",
+          "#8F7B78",
+          "#B49F9C",
+          "#DBC5C2",
+          "#FEE9E6"
+        ]
+      },
+      "mint": {
+        "role": "tertiary",
+        "displayName": "Mint",
+        "canonical": "oklch(92.9% 0.034 160.4)",
+        "tonalRamp": [
+          "#000F07",
+          "#14291E",
+          "#30453A",
+          "#4D6457",
+          "#6F8779",
+          "#93AC9D",
+          "#B8D2C3",
+          "#DCF6E7"
+        ]
+      },
+      "mint-ink": {
+        "role": "tertiary",
+        "displayName": "Mint Ink",
+        "canonical": "oklch(42.6% 0.082 159.0)",
+        "tonalRamp": [
+          "#000F06",
+          "#002C19",
+          "#064C2F",
+          "#2E6C4D",
+          "#528F6E",
+          "#77B592",
+          "#9CDBB7",
+          "#C4FFDC"
+        ]
+      },
+      "lilac": {
+        "role": "tertiary",
+        "displayName": "Lilac",
+        "canonical": "oklch(91.0% 0.034 296.7)",
+        "tonalRamp": [
+          "#0D0818",
+          "#262133",
+          "#413C50",
+          "#5F5A6F",
+          "#827C93",
+          "#A6A1B8",
+          "#CCC6DF",
+          "#F0EBFF"
+        ]
+      },
+      "lilac-ink": {
+        "role": "tertiary",
+        "displayName": "Lilac Ink",
+        "canonical": "oklch(41.1% 0.131 288.3)",
+        "tonalRamp": [
+          "#0D002C",
+          "#260B5D",
+          "#402E7F",
+          "#5C4EA2",
+          "#7E71C9",
+          "#A196F1",
+          "#C7C3FE",
+          "#EDECFF"
+        ]
+      },
+      "blossom": {
+        "role": "tertiary",
+        "displayName": "Blossom",
+        "canonical": "oklch(92.0% 0.033 3.7)",
+        "tonalRamp": [
+          "#16050A",
+          "#321D22",
+          "#4F393E",
+          "#6E565B",
+          "#92787E",
+          "#B89CA2",
+          "#DEC2C8",
+          "#FEE8EC"
+        ]
+      },
+      "blossom-ink": {
+        "role": "tertiary",
+        "displayName": "Blossom Ink",
+        "canonical": "oklch(44.8% 0.127 9.5)",
+        "tonalRamp": [
+          "#1E0006",
+          "#490119",
+          "#731631",
+          "#97394E",
+          "#BF5C6F",
+          "#E78193",
+          "#FEB3BE",
+          "#FFE8EB"
+        ]
+      },
+      "butter": {
+        "role": "tertiary",
+        "displayName": "Butter",
+        "canonical": "oklch(94.1% 0.070 92.4)",
+        "tonalRamp": [
+          "#100B00",
+          "#2D2301",
+          "#4D3E08",
+          "#6C5C2B",
+          "#8F7F4E",
+          "#B4A471",
+          "#DBCA96",
+          "#FFEEBB"
+        ]
+      },
+      "butter-ink": {
+        "role": "tertiary",
+        "displayName": "Butter Ink",
+        "canonical": "oklch(45.3% 0.093 84.6)",
+        "tonalRamp": [
+          "#110A00",
+          "#302100",
+          "#523C01",
+          "#76590E",
+          "#9A7B39",
+          "#C0A05E",
+          "#E7C683",
+          "#FFEDC8"
+        ]
+      },
+      "sky-ink": {
+        "role": "tertiary",
+        "displayName": "Sky Ink",
+        "canonical": "oklch(42.1% 0.105 254.4)",
+        "tonalRamp": [
+          "#000B1F",
+          "#00234B",
+          "#0F4075",
+          "#305F97",
+          "#5282BE",
+          "#76A8E5",
+          "#A8CEFE",
+          "#E4F0FE"
+        ]
+      },
+      "sky-scrim": {
+        "role": "neutral",
+        "displayName": "Sky Scrim",
+        "canonical": "rgba(231,240,250,0.97)",
+        "tonalRamp": [
+          "#060C12",
+          "#1E252C",
+          "#394148",
+          "#575E67",
+          "#79818A",
+          "#9DA6AF",
+          "#C3CCD5",
+          "#E7F0FA"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles and the names on dog, owner and event pages; hero moments push it to 28–32px with slight negative tracking."
+      },
+      "print-name": {
+        "displayName": "Print Name",
+        "purpose": "The dog's name on a print's caption strip, one line."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Empty-state, dialog and sheet titles; the drag stamps."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Screen header titles and profile section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, bios and empty-state copy, Japanese first."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Button labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, meta lines, chip and tag text, safety copy."
+      },
+      "group-heading": {
+        "displayName": "Group Heading",
+        "purpose": "The only heading of a group of settings rows or form cards; uppercase in English, ink-faint. Never above a larger headline."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Deck button labels, badge and photo counts, verified pills, field errors."
+      }
+    },
+    "shadows": [
+      {
+        "name": "print",
+        "value": "0 8px 16px rgba(27,35,64,0.18)",
+        "purpose": "A print lying on the table: deck print, cover prints, match prints."
+      },
+      {
+        "name": "card",
+        "value": "0 10px 18px rgba(27,35,64,0.12)",
+        "purpose": "Floating emphasis: like button, welcome CTA, match paw, action sheet, the web column."
+      },
+      {
+        "name": "tab-bar",
+        "value": "0 8px 18px rgba(27,35,64,0.14)",
+        "purpose": "The floating pill tab bar."
+      },
+      {
+        "name": "soft",
+        "value": "0 4px 10px rgba(27,35,64,0.08)",
+        "purpose": "Resting lift: cards, round deck buttons, empty-state discs, the compatibility sticker."
+      }
+    ],
+    "motion": [
+      {
+        "name": "develop",
+        "value": "1600ms cubic-bezier(0.19, 1, 0.22, 1); delays 200ms / 650ms",
+        "purpose": "Match prints develop: a milky #D6DEE8 film fades 1→0 and a 6px blur clears to 0. Reduced motion shows the developed print."
+      },
+      {
+        "name": "entrance",
+        "value": "420ms cubic-bezier(0.33, 1, 0.68, 1); 14px rise; stagger 0/120/260/380/500ms",
+        "purpose": "Cover-page entrances (welcome). Transform only; opacity stays 1 so content is never hidden."
+      },
+      {
+        "name": "swipe-out",
+        "value": "200–220ms cubic-bezier(0.455, 0.03, 0.515, 0.955)",
+        "purpose": "A decided print flies off sideways, turned up to ±9°; short of 26% width it springs back."
+      },
+      {
+        "name": "press",
+        "value": "opacity 0.85 + scale 0.99 (buttons); scale 0.92 (round deck buttons); spring 0.9 (damping 14, stiffness 320) and back (damping 9, stiffness 260) on the cover CTA",
+        "purpose": "Tactile press feedback."
+      },
+      {
+        "name": "paw-trail",
+        "value": "9 paws, 85ms stagger, 200ms in, 650ms hold, 380ms out; the like fires at 780ms",
+        "purpose": "Like feedback: paw prints walk across the print before it leaves."
+      },
+      {
+        "name": "fade",
+        "value": "platform fade",
+        "purpose": "The match screen and the action sheet are presented with a fade."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "app-column",
+        "value": "520px"
+      },
+      {
+        "name": "welcome-measure",
+        "value": "560px"
+      },
+      {
+        "name": "auth-measure",
+        "value": "460px"
+      },
+      {
+        "name": "match-measure",
+        "value": "380px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Cobalt pill for the main path of a view.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">メッセージを送る</button>",
+      "css": ".ds-btn-primary { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; height: 52px; min-width: 260px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #3552D9; background: #3552D9; color: #FFFFFF; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 120ms ease, transform 120ms ease; } .ds-btn-primary:active { opacity: 0.85; transform: scale(0.99); } .ds-btn-primary:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.45; cursor: default; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Hairline pill for the alternative path; ghost (no border, ink-muted) is the way out.",
+      "html": "<div class=\"ds-btn-stack\"><button class=\"ds-btn-outline\" type=\"button\">プロフィールを見る</button><button class=\"ds-btn-ghost\" type=\"button\">スワイプを続ける</button></div>",
+      "css": ".ds-btn-stack { display: flex; flex-direction: column; gap: 8px; width: 280px; } .ds-btn-outline, .ds-btn-ghost { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; height: 52px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 700; background: transparent; cursor: pointer; transition: opacity 120ms ease, transform 120ms ease; } .ds-btn-outline { border: 1.5px solid #DCE3EE; color: #1B2340; } .ds-btn-ghost { border: 1.5px solid transparent; color: #4B5670; } .ds-btn-outline:active, .ds-btn-ghost:active { opacity: 0.85; transform: scale(0.99); } .ds-btn-outline:focus-visible, .ds-btn-ghost:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; }"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "Selectable pills: white with a hairline when off, cobalt with white text when on.",
+      "html": "<div class=\"ds-chip-row\" role=\"group\" aria-label=\"サイズ\"><button class=\"ds-chip\" type=\"button\" aria-pressed=\"false\">小型</button><button class=\"ds-chip ds-chip-on\" type=\"button\" aria-pressed=\"true\">中型</button><button class=\"ds-chip\" type=\"button\" aria-pressed=\"false\">大型</button></div>",
+      "css": ".ds-chip-row { display: flex; gap: 8px; flex-wrap: wrap; } .ds-chip { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; padding: 8px 12px; border-radius: 999px; border: 1.5px solid #DCE3EE; background: #FFFFFF; color: #4B5670; font-size: 13px; font-weight: 600; cursor: pointer; } .ds-chip-on { background: #3552D9; border-color: #3552D9; color: #FFFFFF; } .ds-chip:active { transform: scale(0.97); } .ds-chip:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; }"
+    },
+    {
+      "name": "Category Tags",
+      "kind": "chip",
+      "refersTo": "tag-mint",
+      "description": "Non-interactive pastel labels, each with its own ink.",
+      "html": "<div class=\"ds-tag-row\"><span class=\"ds-tag ds-tag-mint\">おさんぽ</span><span class=\"ds-tag ds-tag-butter\">カフェ</span><span class=\"ds-tag ds-tag-sky\">公園</span><span class=\"ds-tag ds-tag-blossom\">プレイデート</span><span class=\"ds-tag ds-tag-lilac\">おだやか</span><span class=\"ds-tag ds-tag-cobalt\">人なつこい</span></div>",
+      "css": ".ds-tag-row { display: flex; gap: 8px; flex-wrap: wrap; max-width: 320px; } .ds-tag { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; } .ds-tag-mint { background: #D5EFE0; color: #1D5C3E; } .ds-tag-butter { background: #FCEBB6; color: #6E5100; } .ds-tag-sky { background: #D3E5F7; color: #1F4E85; } .ds-tag-blossom { background: #F9DCE2; color: #8C2F45; } .ds-tag-lilac { background: #E3DDF6; color: #4A3A8C; } .ds-tag-cobalt { background: #E1E6FB; color: #3552D9; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "In-app text field: mist fill, hairline, 10px corners; danger border and message on error.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-name\">名前</label><input class=\"ds-input\" id=\"ds-name\" placeholder=\"ポチ\" /></div><div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-age\">年齢</label><input class=\"ds-input ds-input-error\" id=\"ds-age\" value=\"abc\" aria-invalid=\"true\" /><span class=\"ds-field-error\">数字で入力してください</span></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; width: 300px; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; } .ds-field-label { font-size: 13px; font-weight: 700; color: #1B2340; } .ds-input { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background: #F2F6FB; border: 1.5px solid #DCE3EE; border-radius: 10px; padding: 12px 16px; font-size: 15px; color: #1B2340; caret-color: #1B2340; } .ds-input::placeholder { color: #5A6480; } .ds-input:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; } .ds-input-error { border-color: #BA3329; } .ds-field-error { font-size: 11px; font-weight: 600; color: #BA3329; }"
+    },
+    {
+      "name": "Print Card",
+      "kind": "card",
+      "refersTo": "print-card",
+      "description": "The signature discovery card: a white instant print, a clean photo with a sunflower compatibility sticker, and a thick caption strip.",
+      "html": "<article class=\"ds-print\" aria-label=\"ハル、柴犬・3歳\"><div class=\"ds-print-photo\"><div class=\"ds-print-placeholder\"><svg width=\"84\" height=\"84\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#4B5670\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg></div><span class=\"ds-print-count\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z\"/><circle cx=\"12\" cy=\"13\" r=\"4\"/></svg>3</span><span class=\"ds-print-sticker\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#1B2340\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg>相性 87%</span></div><div class=\"ds-print-caption\"><div class=\"ds-print-namerow\"><span class=\"ds-print-name\">ハル</span><span class=\"ds-print-verified\" aria-label=\"認証済み\"><svg width=\"11\" height=\"11\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"3.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg></span><span class=\"ds-print-spacer\"></span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"9 18 15 12 9 6\"/></svg></div><div class=\"ds-print-breed\">柴犬・3歳</div><div class=\"ds-print-meta\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/></svg><span>世田谷区・1.2km先</span></div></div></article>",
+      "css": ".ds-print { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; width: 300px; height: 440px; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 6px; padding: 12px 12px 0; box-shadow: 0 8px 16px rgba(27,35,64,0.18); } .ds-print-photo { position: relative; flex: 1; border-radius: 3px; overflow: hidden; background: #F2F6FB; } .ds-print-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #D3E5F7, #AFCDEE); } .ds-print-count { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px; background: rgba(17,22,44,0.55); color: #FFFFFF; font-size: 11px; font-weight: 800; } .ds-print-sticker { position: absolute; left: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; background: #FFC53D; color: #1B2340; font-size: 13px; font-weight: 800; box-shadow: 0 4px 10px rgba(27,35,64,0.08); } .ds-print-caption { padding: 12px 4px 16px; display: flex; flex-direction: column; gap: 3px; } .ds-print-namerow { display: flex; align-items: center; gap: 8px; } .ds-print-name { font-size: 28px; font-weight: 900; letter-spacing: -0.4px; color: #1B2340; } .ds-print-verified { width: 20px; height: 20px; border-radius: 999px; background: #1E7A4C; display: inline-flex; align-items: center; justify-content: center; } .ds-print-spacer { flex: 1; } .ds-print-breed { font-size: 15px; font-weight: 700; color: #1B2340; } .ds-print-meta { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #4B5670; }"
+    },
+    {
+      "name": "Deck Actions",
+      "kind": "custom",
+      "refersTo": "deck-like",
+      "description": "Round buttons under the print: pass, undo, like (cobalt paw), save; pass and like are labelled.",
+      "html": "<div class=\"ds-deck\"><div class=\"ds-deck-col\"><button class=\"ds-round ds-round-pass\" type=\"button\" aria-label=\"パス\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#1B2340\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button><span class=\"ds-deck-label\">パス</span></div><button class=\"ds-round\" type=\"button\" aria-label=\"元に戻す\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#1B2340\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"1 4 1 10 7 10\"/><path d=\"M3.51 15a9 9 0 1 0 2.13-9.36L1 10\"/></svg></button><div class=\"ds-deck-col\"><button class=\"ds-round ds-round-like\" type=\"button\" aria-label=\"いいね\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#FFFFFF\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg></button><span class=\"ds-deck-label\">いいね</span></div><button class=\"ds-round\" type=\"button\" aria-label=\"保存\" aria-pressed=\"false\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#1B2340\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z\"/></svg></button></div>",
+      "css": ".ds-deck { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: flex-start; justify-content: center; gap: 16px; padding: 12px; background: #E7F0FA; border-radius: 16px; } .ds-deck-col { display: flex; flex-direction: column; align-items: center; gap: 4px; } .ds-deck-label { font-size: 11px; font-weight: 800; color: #4B5670; } .ds-round { width: 48px; height: 48px; margin-top: 8px; border-radius: 999px; border: none; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(27,35,64,0.08); cursor: pointer; transition: transform 120ms ease; } .ds-round-pass { width: 60px; height: 60px; margin-top: 2px; } .ds-round-like { width: 64px; height: 64px; margin-top: 0; background: #3552D9; box-shadow: 0 10px 18px rgba(27,35,64,0.12); } .ds-round:active { transform: scale(0.92); } .ds-round:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; }"
+    },
+    {
+      "name": "Floating Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "White pill floating above the bottom edge; icon-only tabs, the active one a cobalt pill.",
+      "html": "<nav class=\"ds-tabbar\" aria-label=\"メイン\"><a class=\"ds-tab ds-tab-on\" href=\"#\" aria-current=\"page\" aria-label=\"さがす\"><svg width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/></svg></a><a class=\"ds-tab\" href=\"#\" aria-label=\"マッチ\"><svg width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"/></svg><span class=\"ds-tab-badge\">3</span></a><a class=\"ds-tab\" href=\"#\" aria-label=\"マップ\"><svg width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"18\"/><line x1=\"16\" y1=\"6\" x2=\"16\" y2=\"22\"/></svg></a><a class=\"ds-tab\" href=\"#\" aria-label=\"イベント\"><svg width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"16\" y1=\"2\" x2=\"16\" y2=\"6\"/><line x1=\"8\" y1=\"2\" x2=\"8\" y2=\"6\"/><line x1=\"3\" y1=\"10\" x2=\"21\" y2=\"10\"/></svg></a><a class=\"ds-tab\" href=\"#\" aria-label=\"プロフィール\"><svg width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"#4B5670\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg></a></nav>",
+      "css": ".ds-tabbar { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; width: 342px; height: 66px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-around; padding: 10px 8px; border-radius: 999px; background: #FFFFFF; border: 1px solid #DCE3EE; box-shadow: 0 8px 18px rgba(27,35,64,0.14); } .ds-tab { position: relative; width: 54px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; } .ds-tab-on { background: #3552D9; } .ds-tab:active { transform: scale(0.96); } .ds-tab:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; } .ds-tab-badge { position: absolute; top: -4px; right: 6px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: #BA3329; color: #FFFFFF; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }"
+    },
+    {
+      "name": "Action Sheet",
+      "kind": "custom",
+      "refersTo": "action-sheet",
+      "description": "Centred in-app confirmation card replacing browser dialogs; destructive rows in danger soft.",
+      "html": "<div class=\"ds-sheet-veil\"><div class=\"ds-sheet\" role=\"dialog\" aria-label=\"ハルについて\"><div class=\"ds-sheet-title\">ハルについて</div><div class=\"ds-sheet-msg\">安全のため、気になることがあれば報告してください。</div><button class=\"ds-sheet-row\" type=\"button\"><span class=\"ds-sheet-label\">報告する</span><span class=\"ds-sheet-sub\">安全チームが確認します</span></button><button class=\"ds-sheet-row ds-sheet-row-danger\" type=\"button\"><span class=\"ds-sheet-label\">ブロックする</span></button><button class=\"ds-sheet-cancel\" type=\"button\">キャンセル</button></div></div>",
+      "css": ".ds-sheet-veil { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; padding: 24px 16px; background: rgba(17,22,44,0.5); border-radius: 16px; } .ds-sheet { width: 300px; display: flex; flex-direction: column; gap: 8px; background: #FFFFFF; border-radius: 20px; padding: 24px; box-shadow: 0 10px 18px rgba(27,35,64,0.12); } .ds-sheet-title { font-size: 22px; font-weight: 900; color: #1B2340; text-align: center; } .ds-sheet-msg { font-size: 13px; line-height: 20px; color: #4B5670; text-align: center; } .ds-sheet-row { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; margin-top: 4px; padding: 12px; border-radius: 16px; border: 1px solid #DCE3EE; background: #F2F6FB; cursor: pointer; text-align: left; } .ds-sheet-row:active { opacity: 0.85; } .ds-sheet-row:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; } .ds-sheet-label { font-size: 15px; font-weight: 800; color: #1B2340; } .ds-sheet-sub { font-size: 11px; font-weight: 600; color: #4B5670; } .ds-sheet-row-danger { background: #FBE4E1; border-color: #FBE4E1; } .ds-sheet-row-danger .ds-sheet-label { color: #BA3329; } .ds-sheet-cancel { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; margin-top: 4px; padding: 8px; border: none; background: transparent; font-size: 13px; font-weight: 700; color: #4B5670; cursor: pointer; } .ds-sheet-cancel:focus-visible { outline: 3px solid #3552D9; outline-offset: 2px; }"
+    },
+    {
+      "name": "Developing Match Prints",
+      "kind": "custom",
+      "refersTo": "match-paw",
+      "description": "The one authored motion: two turned prints clear from a milky, blurred film to full colour; a sunflower paw between them.",
+      "html": "<div class=\"ds-match\"><div class=\"ds-match-title\">マッチしました！</div><div class=\"ds-match-prints\"><div class=\"ds-dev-print ds-dev-a\"><div class=\"ds-dev-photo\"><div class=\"ds-dev-img ds-dev-img-a\"><svg width=\"52\" height=\"52\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#1D5C3E\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg></div><div class=\"ds-dev-milk\"></div></div><div class=\"ds-dev-caption\">モモ</div></div><div class=\"ds-dev-print ds-dev-b\"><div class=\"ds-dev-photo\"><div class=\"ds-dev-img ds-dev-img-b\"><svg width=\"52\" height=\"52\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#6E5100\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg></div><div class=\"ds-dev-milk\"></div></div><div class=\"ds-dev-caption\">ハル</div></div><div class=\"ds-match-paw\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><g fill=\"#1B2340\"><ellipse cx=\"6\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"18\" cy=\"8.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"9.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><ellipse cx=\"14.5\" cy=\"4.5\" rx=\"2.4\" ry=\"3\"/><path d=\"M12 10c-3.5 0-6.5 3.2-6.5 6.2 0 2 1.5 3.3 3.4 3.3 1.2 0 2.1-.6 3.1-.6s1.9.6 3.1.6c1.9 0 3.4-1.3 3.4-3.3C18.5 13.2 15.5 10 12 10z\"/></g></svg></div></div></div>",
+      "css": ".ds-match { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; width: 340px; padding: 24px 16px 40px; background: rgba(231,240,250,0.97); border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; } .ds-match-title { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; color: #1B2340; } .ds-match-prints { position: relative; display: flex; justify-content: center; align-items: center; margin: 16px 0; } .ds-dev-print { width: 130px; background: #FFFFFF; border-radius: 6px; padding: 9px 9px 0; box-shadow: 0 8px 16px rgba(27,35,64,0.18); } .ds-dev-a { transform: rotate(-6deg); } .ds-dev-b { transform: rotate(5deg); margin-left: -26px; margin-top: 18px; } .ds-dev-photo { position: relative; height: 146px; border-radius: 3px; overflow: hidden; background: #F2F6FB; } .ds-dev-img { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; animation: ds-focus 1600ms cubic-bezier(0.19, 1, 0.22, 1) both; } .ds-dev-img-a { background: linear-gradient(135deg, #D5EFE0, #AEDCC2); } .ds-dev-img-b { background: linear-gradient(135deg, #FCEBB6, #F6D886); } .ds-dev-milk { position: absolute; inset: 0; background: #D6DEE8; animation: ds-milk 1600ms cubic-bezier(0.19, 1, 0.22, 1) both; } .ds-dev-a .ds-dev-img, .ds-dev-a .ds-dev-milk { animation-delay: 200ms; } .ds-dev-b .ds-dev-img, .ds-dev-b .ds-dev-milk { animation-delay: 650ms; } .ds-dev-caption { font-size: 15px; font-weight: 900; color: #1B2340; text-align: center; padding: 8px 0; } .ds-match-paw { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; border-radius: 999px; background: #FFC53D; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 18px rgba(27,35,64,0.12); } @keyframes ds-milk { from { opacity: 1; } to { opacity: 0; } } @keyframes ds-focus { from { filter: blur(6px); } to { filter: blur(0); } } @media (prefers-reduced-motion: reduce) { .ds-dev-img, .ds-dev-milk { animation: none; } .ds-dev-milk { opacity: 0; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sunny-Day Cheki Album",
+    "overview": "Every dog is an instant-photo print. The discovery deck is a stack of prints on a table, a match is two prints developing side by side, and the whole app is one album laid out under a clear sky: a pale sky-blue ground, white prints with soft navy-tinted shadows, and every word written in the same marker-navy ink. The dog's photo is the hero and stays clean; the facts sit on the print's thick bottom margin like a handwritten caption, and the only thing stuck on the photo is a sunflower sticker carrying the compatibility score, the way people decorate cheki prints.\n\nColour has a strict division of labour. Cobalt carries every action, as a fill and as text, so there is one hue to learn for \"you can press this\". Sunflower is kept back for the two moments of delight (the compatibility sticker and the match paw), and it stays sunny by being scarce. Pastel camera-body tints (mint, lilac, blossom, butter, sky) label categories, always with their own deep ink. The palette was chosen by measurement, not taste: contrast and colour-vision separation were measured for every pairing, and the alternatives that failed are recorded below.\n\nThe density is phone-first and calm: short sessions, often outdoors in daylight, one decision per screen. Motion is an enhancement, never a gate on content, with exactly one authored moment (the match prints developing). The system refuses the full-bleed swipe card with a dark gradient over the photo and text printed on it, and it refuses the cream-and-coral \"friendly app\" default.",
+    "keyCharacteristics": [
+      "Sky ground, white prints, marker-navy ink for all text.",
+      "Cobalt for every action; sunflower fill for reward moments only.",
+      "Dog photos sit inside print frames: near-square corners, a thicker caption margin, a slight turn.",
+      "Everything you touch is a pill; containers are softly rounded; prints are nearly square.",
+      "Soft navy-tinted shadows lift prints and floating controls; flat controls stay flat.",
+      "One stroke-drawn icon set; the paw is the like.",
+      "One system type family; hierarchy from weight (900 to 400) and size.",
+      "Japanese first, English second, in the same boxes."
+    ],
+    "rules": [
+      {
+        "name": "The One Cobalt Rule",
+        "body": "Every pressable thing that needs colour is cobalt: fill, text, outline and focus. There is no second action hue, and no amber stand-in for links or focus.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scarce Sunflower Rule",
+        "body": "Sunflower is a fill for reward moments only, with ink on top. Never sunflower text, outline, border or focus ring, never a sunflower button. If a screen has more than one sunflower element, one of them is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink-On-Pastel Rule",
+        "body": "A pastel tint always carries its own ink. Never white on a pastel, never cobalt on a mint, butter, blossom, lilac or sky chip.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured Hue Rule",
+        "body": "A new hue enters only after it keeps colour-vision separation at or above ΔE 44 against cobalt, sunflower and danger red under protanopia, deuteranopia and tritanopia simulation, and passes contrast in its role. The measured floor today: cobalt vs sunflower ΔE ≥ 67.7 (including tritanopia), cobalt vs danger ΔE ≥ 97, sunflower vs danger ΔE ≥ 44. Rejected by this test: an all-sunflower action (1.58:1 as text, would need a second amber for text and focus) and park green #1B7F48 (ΔE 12.1 against the delete red under protanopia).",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "One system family carries everything. Hierarchy comes from weight (900 names, 800 headings, 700 labels, 400 body) and size, never from a second face, italics or decorative type.",
+        "section": "typography"
+      },
+      {
+        "name": "The Japanese First Rule",
+        "body": "Every string ships in Japanese and English in the same box. Lay out and test in Japanese first, break Japanese headlines by hand at phrase boundaries, keep body line height at about 1.45× or more, and let English fit the space Japanese defined.",
+        "section": "typography"
+      },
+      {
+        "name": "The Centred Column Rule",
+        "body": "Wider screens get more sky, not more app. The column stops at 520px and the surround is Sky Tint.",
+        "section": "layout"
+      },
+      {
+        "name": "The Prints Lift Rule",
+        "body": "Prints and floating controls cast navy-tinted shadows; inputs, chips, tags and rows inside a surface do not. A shadow is never black and never a hard offset.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Print Frame Rule",
+        "body": "When a dog's photo stands for the dog as an object (deck card, cover, match), it sits inside a white print frame with a 6px corner, a 3px photo corner and a thicker bottom caption margin. Thumbnails and avatars in lists, chat and the map use plain rounded crops (circles, or 10–16px corners) and are not framed as prints.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do use cobalt (#3552D9) for every action: primary button, like, active tab, selected chip, link, focus ring.",
+      "Do keep sunflower (#FFC53D) to the compatibility sticker and the match paw, with marker-navy ink on it.",
+      "Do set a dog's photo inside a print frame (6px corner, 3px photo corner, thick caption margin) when the photo stands for the dog, and turn prints a few degrees.",
+      "Do write all text in marker navy, ink-muted or ink-faint; each passes 4.5:1 on the ground, on print white and on input mist.",
+      "Do pair every pastel tag with its own ink (mint with mint ink, butter with butter ink, and so on).",
+      "Do draw icons from the one stroke set: 24px grid, 2px round-capped strokes (2.2–3.5px only when drawn small), filled paw for like and reward.",
+      "Do give like and pass a label and a distinct icon as well as a colour.",
+      "Do keep the web app a 520px phone column centred on the Sky Tint surround.",
+      "Do tint every shadow with marker navy (rgba(27,35,64,…)) and keep it soft.",
+      "Do show the developed print immediately when reduced motion is on, and keep content visible if an animation never runs.",
+      "Do measure a new hue for contrast and for ΔE ≥ 44 against cobalt, sunflower and danger under colour-vision simulation before adding it."
+    ],
+    "donts": [
+      "Don't build the full-bleed swipe card with a dark gradient over the photo and the name printed on it; the photo stays clean and the facts live on the caption strip.",
+      "Don't fall back to the cream-and-coral \"friendly app\" palette.",
+      "Don't use sunflower as text, outline, border or focus ring (1.58:1), and don't add a second amber or gold to cover for it.",
+      "Don't introduce a second action hue; park green (#1B7F48) was rejected for collapsing into the delete red under protanopia.",
+      "Don't use emoji as interface icons: in action rows, badges, category tags, placeholders or avatars. Emoji typed by people in chats and bios are their content, not the interface.",
+      "Don't use hearts, flames or romance cues; PawPair is not a dating app and the like is a paw.",
+      "Don't put white or cobalt text on a pastel tint.",
+      "Don't set a small uppercase line above a headline; a group heading is the only heading of its group.",
+      "Don't use hard offset shadows or black shadows.",
+      "Don't stretch the deck or any screen across a laptop width.",
+      "Don't reach for the legacy aliases (`night.pink`, `night.coral`, `brand.*`, `colors.coral`) in new code; use the `tone` roles."
+    ]
+  }
+}
