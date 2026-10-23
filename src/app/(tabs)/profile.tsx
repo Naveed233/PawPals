@@ -19,7 +19,7 @@ import { activateBoost, deleteOwnAccount } from '@/lib/remote';
 import { supabase } from '@/lib/supabase';
 import { saveDogRemote, saveProfileRemote } from '@/lib/sync';
 import { useStore } from '@/store';
-import { font, night, radius, spacing, tone } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
 
 export default function Profile() {
   const router = useRouter();
@@ -129,7 +129,7 @@ export default function Profile() {
         style={({ pressed }) => [styles.boostCard, boostActive && styles.boostCardOn, pressed && { opacity: 0.9 }]}
       >
         <View style={styles.boostIcon}>
-          <Icon name="bolt" color={tone.butterInk} size={20} />
+          <Icon name="bolt" color="#fff" size={20} />
         </View>
         <View style={{ flex: 1 }}>
           <View style={styles.boostTitleRow}>
@@ -230,7 +230,7 @@ export default function Profile() {
       ) : petStatus === 'has-other-pet' ? (
         <Card style={styles.petStatusCard}>
           <View style={styles.pawBadge}>
-            <Icon name="pawFill" color={night.accentInk} size={24} />
+            <Icon name="pawFill" color={night.pink} size={24} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.petStatusTitle}>
@@ -252,7 +252,7 @@ export default function Profile() {
       ) : petStatus === 'no-pet-meet' || petStatus === 'no-pet-future' ? (
         <Card style={styles.petStatusCard}>
           <View style={styles.pawBadge}>
-            <Icon name="pawFill" color={night.accentInk} size={24} />
+            <Icon name="pawFill" color={night.pink} size={24} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.petStatusTitle}>{tx(JP_PET_STATUS[petStatus] ?? petStatus, EN_PET_STATUS[petStatus] ?? petStatus)}</Text>
@@ -267,7 +267,7 @@ export default function Profile() {
       ) : (
         <Card style={styles.petStatusCard}>
           <View style={styles.pawBadge}>
-            <Icon name="pawFill" color={night.accentInk} size={24} />
+            <Icon name="pawFill" color={night.pink} size={24} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.petStatusTitle}>
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     padding: 3,
     borderRadius: radius.pill,
     borderWidth: 2,
-    borderColor: night.accentInk,
+    borderColor: night.pink,
     marginBottom: spacing.xs,
   },
   avatar: {
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
-  statValue: { fontSize: 24, fontWeight: '900', color: night.accentInk },
+  statValue: { fontSize: 24, fontWeight: '900', color: night.pink },
   statLabel: { fontSize: font.tiny, color: night.muted, fontWeight: '700' },
 
   dogCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radius.xl },
@@ -481,16 +481,16 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: night.card,
     borderWidth: 1,
-    borderColor: 'rgba(110,81,0,0.25)',
+    borderColor: 'rgba(240,196,74,0.35)',
     borderRadius: radius.lg,
     padding: spacing.md,
   },
-  boostCardOn: { borderColor: night.accentInk, backgroundColor: night.pinkSoft },
+  boostCardOn: { borderColor: night.pink, backgroundColor: night.pinkSoft },
   boostIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: tone.butter,
+    backgroundColor: '#F0C44A',
     alignItems: 'center',
     justifyContent: 'center',
   },

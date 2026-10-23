@@ -136,7 +136,7 @@ function Group({ label, premium, children }: { label: string; premium?: boolean;
 
 const styles = StyleSheet.create({
   intro: { color: night.muted, fontSize: font.small, lineHeight: 20 },
-  clear: { color: night.accentInk, fontSize: font.small, fontWeight: '800' },
+  clear: { color: night.pink, fontSize: font.small, fontWeight: '800' },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   groupLabel: { color: night.text, fontSize: font.body, fontWeight: '800' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

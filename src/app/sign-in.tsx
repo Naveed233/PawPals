@@ -4,12 +4,12 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import {
   AuthScreen,
-  AuthCheckbox,
-  AuthField,
-  AuthButton,
+  DarkCheckbox,
+  DarkField,
+  LimeButton,
   OrDivider,
   SocialRow,
-  authColors,
+  dark,
   providerSignIn,
 } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
@@ -96,7 +96,7 @@ export default function SignIn() {
       footerAction={tx('新規登録', 'Sign up')}
       onFooterPress={() => router.push('/sign-up')}
     >
-      <AuthField
+      <DarkField
         label={tx('メールアドレス*', 'Email address*')}
         value={email}
         onChangeText={setEmail}
@@ -106,7 +106,7 @@ export default function SignIn() {
         autoComplete="email"
         error={errors.email}
       />
-      <AuthField
+      <DarkField
         label={tx('パスワード*', 'Password*')}
         value={password}
         onChangeText={setPassword}
@@ -116,7 +116,7 @@ export default function SignIn() {
       />
 
       <View style={styles.row}>
-        <AuthCheckbox
+        <DarkCheckbox
           checked={remember}
           onToggle={() => setRemember((r) => !r)}
           label={tx('ログイン状態を保持', 'Remember me')}
@@ -132,7 +132,7 @@ export default function SignIn() {
 
       {!!errors.form && <Text style={styles.formError}>{errors.form}</Text>}
 
-      <AuthButton
+      <LimeButton
         label={busy ? tx('サインイン中…', 'Signing in…') : tx('サインイン', 'Sign in')}
         onPress={() => void submit()}
         disabled={busy}
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: -2,
   },
-  forgot: { color: authColors.text, fontSize: 13, fontWeight: '700' },
-  formError: { color: authColors.danger, fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  forgot: { color: dark.text, fontSize: 13, fontWeight: '700' },
+  formError: { color: dark.danger, fontSize: 13, fontWeight: '600', textAlign: 'center' },
   note: {
-    color: authColors.sub,
-    fontSize: 13,
-    lineHeight: 19,
+    color: dark.placeholder,
+    fontSize: 11,
+    lineHeight: 16,
     textAlign: 'center',
     marginTop: 4,
   },

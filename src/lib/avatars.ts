@@ -3,7 +3,7 @@
  *
  * AI image generation is unavailable here (no Hugging Face token) and scraping
  * stock sites is unreliable + licence-murky, so demo profiles use generated
- * pastel gradient + glyph avatars instead. They are offline-safe (no broken remote
+ * gradient + emoji avatars instead. They are offline-safe (no broken remote
  * images) and deterministic per id, so a given dog/owner always looks the same.
  *
  * Real photos added via the image picker take precedence over these.
@@ -11,16 +11,17 @@
 
 export type Gradient = readonly [string, string];
 
-// Soft pastel pairs from the app's category tints; avatars draw ink glyphs on them.
 const GRADIENTS: Gradient[] = [
-  ['#D5EFE0', '#AEDCC2'],
-  ['#E3DDF6', '#C7BDEE'],
-  ['#F9DCE2', '#F1BDC8'],
-  ['#FCEBB6', '#F6D886'],
-  ['#D3E5F7', '#AFCDEE'],
-  ['#E6EEF8', '#C6D6EA'],
-  ['#DDF0E4', '#B9E0C9'],
-  ['#EFE6F9', '#D6C7F0'],
+  ['#A7D8C9', '#2E5E4E'],
+  ['#F7C9BC', '#F2765E'],
+  ['#BFD8EE', '#6FA8DC'],
+  ['#F3E2B3', '#E0A33B'],
+  ['#D9C8E8', '#9B7BC4'],
+  ['#F8C8D8', '#E86A92'],
+  ['#C9E4CA', '#5BA66E'],
+  ['#FAD7A0', '#E59866'],
+  ['#BFE3E0', '#3E9E97'],
+  ['#E6C9A8', '#B07D4F'],
 ];
 
 const DOG_EMOJI = ['🐕', '🐶', '🦮', '🐩', '🐕‍🦺', '🐾', '🐺'];

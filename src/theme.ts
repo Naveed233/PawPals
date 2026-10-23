@@ -1,176 +1,136 @@
 /**
- * PawPair design tokens. Keep every colour, spacing, radius and type value here
- * so screens stay consistent and a theme change is a single edit.
+ * PawPair design tokens.
+ *
+ * Brand: warm, outdoorsy, trust-first — think Rover / AllTrails / Strava, NOT
+ * a dating app. Parks, sunshine, happy dogs. Friendship & getting outside.
+ *
+ *  - Coral       #FF6B6B  primary / like / active
+ *  - Forest      #3FAF6C  secondary / success / "outside"
+ *  - Golden      #FFC857  accent / rewards
+ *  - Warm white  #FFFDF8  background
+ *  - White       #FFFFFF  cards
+ *  - Charcoal    #2C2C2C  text
+ *
+ * Keep all colour / spacing / radius / typography here so screens stay
+ * consistent and a theme change is a single edit.
  */
 
-/**
- * The world: a cheki (instant-photo) album on a clear day. Dogs sit on white
- * "prints" over a sky-tinted ground, all text is marker-navy ink, cobalt carries
- * every action, and sunflower is kept for reward moments only.
- *
- * Roles (use these, not raw hex, in screens):
- *  - action     cobalt FILL: primary buttons, the like circle, active tab, chips on
- *  - onAction   text/icons ON an action fill
- *  - accentInk  the action colour for text, icons and outlines (cobalt is text-safe)
- *  - reward     sunflower FILL for delight only: compatibility sticker, match paw
- *  - onReward   text/icons ON a reward fill (never put reward-coloured text on light)
- *  - ink / inkMuted / inkFaint  text; every one passes 4.5:1 on ground, print and input
- *  - mint / lilac / blossom / butter / skyTint  category chips, each with its *Ink
- *
- * Chosen by measurement over sunny-only and park-green variants: see
- * .impeccable/surfaces/src-app.md and DESIGN.md.
- */
-const P = {
-  ground: '#E7F0FA',
-  groundTop: '#F3F8FD',
-  input: '#F2F6FB',
-  action: '#3552D9',
-  onAction: '#FFFFFF',
-  actionSoft: '#E1E6FB',
-  accentInk: '#3552D9',
-  reward: '#FFC53D',
-  onReward: '#1B2340',
-};
-
-/** Ink, prints, states and pastel category tints. */
-export const tone = {
-  ...P,
-  print: '#FFFFFF',
-  printEdge: '#DCE3EE',
-  ink: '#1B2340',
-  inkMuted: '#4B5670',
-  inkFaint: '#5A6480',
-  success: '#1E7A4C',
-  successSoft: '#DDF0E4',
-  danger: '#BA3329',
-  dangerSoft: '#FBE4E1',
-  mint: '#D5EFE0',
-  mintInk: '#1D5C3E',
-  lilac: '#E3DDF6',
-  lilacInk: '#4A3A8C',
-  blossom: '#F9DCE2',
-  blossomInk: '#8C2F45',
-  butter: '#FCEBB6',
-  butterInk: '#6E5100',
-  skyTint: '#D3E5F7',
-  skyInk: '#1F4E85',
-  /** The album page behind the match prints: the sky ground, nearly opaque. */
-  skyScrim: 'rgba(231,240,250,0.97)',
-  shadow: '#1B2340',
-} as const;
-
-/** Legacy names kept so existing call sites compile; values follow the roles. */
+/** Brand palette — the single source of truth for the new identity. */
 export const brand = {
-  coral: tone.action,
-  coralDeep: tone.accentInk,
-  coralSoft: tone.actionSoft,
-  forest: tone.success,
-  forestDeep: tone.success,
-  forestSoft: tone.successSoft,
-  golden: tone.butter,
-  goldenSoft: tone.butter,
-  bg: tone.ground,
-  card: tone.print,
-  text: tone.ink,
-  muted: tone.inkMuted,
-  faint: tone.inkFaint,
-  border: tone.printEdge,
+  coral: '#FF6B6B',
+  coralDeep: '#F25252',
+  coralSoft: '#FFE9E6',
+  forest: '#3FAF6C',
+  forestDeep: '#2F9257',
+  forestSoft: '#EAF8EE',
+  golden: '#FFC857',
+  goldenSoft: '#FFF3D6',
+  bg: '#FFFDF8',
+  card: '#FFFFFF',
+  text: '#2C2C2C',
+  muted: '#707070',
+  faint: '#9A958C',
+  border: '#ECE6DA',
 } as const;
 
-/** Event-type category tints (walk/café/park/playdate): ink text on a pastel. */
+/** Event-type category colours (walk/café/park/playdate) + soft backgrounds. */
 export const eventPalette = {
-  walk: { color: tone.mintInk, soft: tone.mint, emoji: '🐕' },
-  cafe: { color: tone.butterInk, soft: tone.butter, emoji: '☕' },
-  park: { color: tone.skyInk, soft: tone.skyTint, emoji: '🌳' },
-  playdate: { color: tone.blossomInk, soft: tone.blossom, emoji: '🎾' },
+  walk: { color: '#3FAF6C', soft: '#EAF8EE', emoji: '🐕' },
+  cafe: { color: '#A9703F', soft: '#F3E9DF', emoji: '☕' },
+  park: { color: '#4C97C9', soft: '#E6F1F8', emoji: '🌳' },
+  playdate: { color: '#F0913E', soft: '#FCEDDC', emoji: '🎾' },
 } as const;
 export type EventCategory = keyof typeof eventPalette;
 
 export const colors = {
-  cream: tone.ground,
-  surface: tone.print,
-  surfaceAlt: tone.input,
+  cream: brand.bg,
+  surface: '#FFFFFF',
+  surfaceAlt: '#F4F1EA',
 
-  forest: tone.success,
-  forestDark: tone.success,
-  forestSoft: tone.successSoft,
+  forest: brand.forest,
+  forestDark: brand.forestDeep,
+  forestSoft: brand.forestSoft,
 
-  coral: tone.action,
-  coralSoft: tone.actionSoft,
+  coral: brand.coral,
+  coralSoft: brand.coralSoft,
 
-  blue: tone.skyInk,
-  blueSoft: tone.skyTint,
+  blue: '#4C97C9',
+  blueSoft: '#E6F1F8',
 
-  charcoal: tone.ink,
-  ink: tone.ink,
-  muted: tone.inkMuted,
-  faint: tone.inkFaint,
+  charcoal: brand.text,
+  ink: brand.text,
+  muted: brand.muted,
+  faint: brand.faint,
 
-  border: tone.printEdge,
-  success: tone.success,
-  warning: tone.butter,
-  danger: tone.danger,
+  border: brand.border,
+  success: brand.forest,
+  warning: brand.golden,
+  danger: '#E5533D',
 
-  overlayLike: 'rgba(27,35,64,0.72)',
-  overlayPass: 'rgba(27,35,64,0.72)',
+  overlayLike: 'rgba(63,175,108,0.88)',
+  overlayPass: 'rgba(229,83,61,0.85)',
 
-  sunrise: [tone.groundTop, tone.ground, tone.skyTint],
+  // Welcome-screen hero gradient: sunny gold → tangerine → coral
+  sunrise: ['#FFD86F', '#FFAE63', '#FF6B6B'],
 } as const;
 
 /**
- * Main app theme. The namespace is still `night` for historical reasons (it was
- * once a dark theme). `pink` / `coral` = the action FILL; use `accentInk` for
- * text and icons in that colour.
+ * Main app theme (discover, messages, map, onboarding, profile...).
+ *
+ * NOTE: the token namespace is still called `night` for historical reasons —
+ * it used to be a dark theme — but the values below are the warm, LIGHT brand.
+ * Renaming across every screen is deferred; the values here are the source of
+ * truth. `pink` = the coral primary (kept as `pink` so existing call sites work).
  */
 export const night = {
-  bg: tone.ground,
-  bgTop: tone.groundTop,
-  card: tone.print,
-  surface: tone.print,
-  surfaceHi: tone.input,
-  border: tone.printEdge,
-  input: tone.input,
-  text: tone.ink,
-  muted: tone.inkMuted,
-  faint: tone.inkFaint,
+  bg: brand.bg, // warm white
+  bgTop: '#FFF4E6', // soft sunny wash for screen tops
+  card: brand.card,
+  surface: '#FFFFFF',
+  surfaceHi: '#F4F1EA',
+  border: brand.border,
+  input: '#F6F3EC',
+  text: brand.text,
+  muted: brand.muted,
+  faint: brand.faint,
 
-  pink: tone.action,
-  pinkDeep: tone.accentInk,
-  pinkSoft: tone.actionSoft,
+  // Primary brand colour (coral). Named `pink` for call-site compatibility.
+  pink: brand.coral,
+  pinkDeep: brand.coralDeep,
+  pinkSoft: brand.coralSoft,
 
-  coral: tone.action,
-  coralDeep: tone.accentInk,
-  coralSoft: tone.actionSoft,
-  onAction: tone.onAction,
-  accentInk: tone.accentInk,
-  forest: tone.success,
-  forestDeep: tone.success,
-  golden: tone.butter,
-  goldenSoft: tone.butter,
-  softGreen: tone.mint,
-  softGreenText: tone.mintInk,
+  // Semantic brand aliases (prefer these in new code)
+  coral: brand.coral,
+  coralDeep: brand.coralDeep,
+  coralSoft: brand.coralSoft,
+  forest: brand.forest,
+  forestDeep: brand.forestDeep,
+  golden: brand.golden,
+  goldenSoft: brand.goldenSoft,
+  softGreen: brand.forestSoft, // #EAF8EE pill background
+  softGreenText: brand.forest, // #3FAF6C pill text
 
-  navy: tone.skyTint, // map fallback background
-  navyLine: tone.printEdge,
-  success: tone.success,
-  danger: tone.danger,
-  tabBar: tone.print,
+  navy: '#E7EEF1', // map fallback background (light)
+  navyLine: '#CBD9DF',
+  success: brand.forest,
+  danger: '#E5533D',
+  tabBar: '#FFFFFF', // white bottom nav
 } as const;
 
-/** Dog profile page (dog/[id]) palette, in the same world. */
+/** Light pet-profile palette (dog/[id]) — aligned to the warm brand. */
 export const pastel = {
-  hero: tone.skyTint,
-  sheet: tone.print,
-  lavender: tone.lilac,
-  lavenderText: tone.lilacInk,
-  butter: tone.butter,
-  butterText: tone.butterInk,
-  mint: tone.mint,
-  mintText: tone.mintInk,
-  ink: tone.ink,
-  mutedInk: tone.inkMuted,
-  orange: tone.accentInk,
-  dashed: tone.printEdge,
+  hero: '#F6D9C4',
+  sheet: '#FFFFFF',
+  lavender: '#E4EFE9',
+  lavenderText: brand.forestDeep,
+  butter: brand.goldenSoft,
+  butterText: '#8A6A1E',
+  mint: brand.forestSoft,
+  mintText: brand.forestDeep,
+  ink: brand.text,
+  mutedInk: brand.muted,
+  orange: brand.coral,
+  dashed: '#E4DED2',
 } as const;
 
 export const spacing = {
@@ -183,12 +143,10 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  sm: 6,
-  md: 10,
-  lg: 16,
-  xl: 20,
-  /** An instant-photo print: nearly square corners. */
-  print: 6,
+  sm: 8,
+  md: 14,
+  lg: 20,
+  xl: 28,
   pill: 999,
 } as const;
 
@@ -204,25 +162,17 @@ export const font = {
 
 export const shadow = {
   card: {
-    shadowColor: tone.shadow,
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-  soft: {
-    shadowColor: tone.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  /** A print lying on the table: a little lift, a soft fall-off. */
-  print: {
-    shadowColor: tone.shadow,
+    shadowColor: '#B99A6B',
     shadowOpacity: 0.18,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    elevation: 6,
+  },
+  soft: {
+    shadowColor: '#B99A6B',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 } as const;

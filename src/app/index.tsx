@@ -2,13 +2,12 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { loadRemoteState } from '@/lib/sync';
 import { useStore } from '@/store';
-import { font, night, radius, shadow, spacing } from '@/theme';
+import { font, night, spacing } from '@/theme';
 
 /**
  * Entry point. Acts as splash + router: waits for persisted state to hydrate,
@@ -89,12 +88,10 @@ export default function Index() {
   if (!hydrated || restoring) {
     return (
       <View style={styles.splash}>
-        <View style={styles.logo}>
-          <Icon name="pawFill" color={night.onAction} size={40} />
-        </View>
+        <Text style={styles.logo}>🐾</Text>
         <Text style={styles.brand}>PawPair</Text>
         <Text style={styles.tag}>{tx('ワンちゃんの出会いアプリ', 'Where dogs make new friends')}</Text>
-        <ActivityIndicator color={night.accentInk} style={{ marginTop: spacing.xl }} />
+        <ActivityIndicator color={night.pink} style={{ marginTop: spacing.xl }} />
       </View>
     );
   }
@@ -102,9 +99,7 @@ export default function Index() {
   if (loadFailed) {
     return (
       <View style={styles.splash}>
-        <View style={styles.logo}>
-          <Icon name="pawFill" color={night.onAction} size={40} />
-        </View>
+        <Text style={styles.logo}>🐾</Text>
         <Text style={styles.title} accessibilityRole="header">
           {tx('読み込みに失敗しました', "Couldn't load your account")}
         </Text>
@@ -137,16 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  // The app mark: a paw on an action-coloured disc.
-  logo: {
-    width: 84,
-    height: 84,
-    borderRadius: radius.pill,
-    backgroundColor: night.coral,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.card,
-  },
+  logo: { fontSize: 72 },
   brand: { fontSize: 40, fontWeight: '900', color: night.text, marginTop: spacing.sm },
   tag: { fontSize: font.body, color: night.muted, fontWeight: '600' },
   title: {

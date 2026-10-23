@@ -19,7 +19,7 @@ import {
   type IncomingWalkRequest,
 } from '@/lib/remote';
 import { useStore } from '@/store';
-import { font, night, radius, spacing, tone } from '@/theme';
+import { font, night, radius, spacing } from '@/theme';
 import type { DogProfile, Message } from '@/types';
 
 /** 時刻ラベル: 今日 → 14:05 / 昨日 / それ以前 → 7/12 */
@@ -236,7 +236,7 @@ export default function Matches() {
       {matches.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyIcon}>
-            <Icon name="chat" color={night.accentInk} size={32} />
+            <Icon name="chat" color={night.pink} size={32} />
           </View>
           <Text style={styles.emptyTitle}>{tx('まだマッチがありません', 'No matches yet')}</Text>
           <Text style={styles.emptyBody}>
@@ -268,7 +268,7 @@ export default function Matches() {
                 style={({ pressed }) => [styles.statusItem, pressed && { opacity: 0.8 }]}
               >
                 <View style={styles.plusRing}>
-                  <Icon name="plus" color={night.accentInk} size={26} />
+                  <Icon name="plus" color={night.pink} size={26} />
                 </View>
                 <Text style={styles.statusName} numberOfLines={1}>
                   {tx('相手を探す', 'Find matches')}
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: night.card,
     borderWidth: 1,
-    borderColor: 'rgba(110,81,0,0.25)',
+    borderColor: 'rgba(240,196,74,0.35)',
     borderRadius: radius.lg,
     padding: spacing.md,
   },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: radius.pill,
     borderWidth: 2,
-    borderColor: night.accentInk,
+    borderColor: night.pink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, fontWeight: '800', color: night.text, flexShrink: 1 },
   owner: { fontSize: font.small, color: night.muted, fontWeight: '600', flexShrink: 1 },
   preview: { fontSize: font.small, color: night.muted },
-  newMatch: { fontSize: font.small, color: night.accentInk, fontWeight: '700' },
+  newMatch: { fontSize: font.small, color: night.pink, fontWeight: '700' },
   rowRight: { alignItems: 'flex-end', gap: 6, minWidth: 40 },
   time: { fontSize: font.tiny, color: night.faint, fontWeight: '600' },
   badge: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: radius.pill,
     paddingHorizontal: 6,
-    backgroundColor: night.danger,
+    backgroundColor: night.pink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     backgroundColor: night.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: tone.actionSoft,
+    borderColor: 'rgba(255,107,107,0.35)',
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -542,5 +542,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  reqAcceptText: { color: night.onAction, fontSize: font.small, fontWeight: '800' },
+  reqAcceptText: { color: '#fff', fontSize: font.small, fontWeight: '800' },
 });

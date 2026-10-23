@@ -11,20 +11,12 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { Icon } from '@/components/icons';
 import { useI18n } from '@/lib/i18n';
 import { colors, eventPalette, font, night, radius, shadow, spacing } from '@/theme';
 
 /* ---------------------------------------------------------------- Button */
 
-type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'outline'
-  | 'ghost'
-  | 'danger'
-  | 'dangerGhost'
-  | 'dark';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dangerGhost' | 'dark';
 
 export function Button({
   label,
@@ -73,8 +65,8 @@ export function Button({
 }
 
 const BUTTON_VARIANTS: Record<ButtonVariant, { bg: string; fg: string; border: string }> = {
-  primary: { bg: night.coral, fg: night.onAction, border: night.coral }, // action CTA
-  secondary: { bg: colors.ink, fg: '#fff', border: colors.ink }, // ink CTA
+  primary: { bg: night.coral, fg: '#fff', border: night.coral }, // coral CTA
+  secondary: { bg: night.forest, fg: '#fff', border: night.forest }, // forest-green CTA
   outline: { bg: 'transparent', fg: night.text, border: night.border },
   ghost: { bg: 'transparent', fg: night.muted, border: 'transparent' },
   danger: { bg: night.danger, fg: '#fff', border: night.danger },
@@ -117,7 +109,7 @@ export function Tag({ label, tone = 'green', emoji }: { label: string; tone?: Ta
   const map: Record<TagTone, { bg: string; fg: string }> = {
     green: { bg: night.softGreen, fg: night.softGreenText },
     coral: { bg: night.coralSoft, fg: night.coralDeep },
-    golden: { bg: night.goldenSoft, fg: eventPalette.cafe.color },
+    golden: { bg: night.goldenSoft, fg: '#8A6A1E' },
     blue: { bg: eventPalette.park.soft, fg: eventPalette.park.color },
     walk: { bg: eventPalette.walk.soft, fg: eventPalette.walk.color },
     cafe: { bg: eventPalette.cafe.soft, fg: eventPalette.cafe.color },
@@ -171,8 +163,7 @@ export function VerifiedBadge() {
   const { tx } = useI18n();
   return (
     <View style={styles.verified}>
-      <Icon name="check" color={night.softGreenText} size={11} strokeWidth={3} />
-      <Text style={styles.verifiedText}>{tx('認証済み', 'Verified')}</Text>
+      <Text style={styles.verifiedText}>{tx('✓ 認証済み', '✓ Verified')}</Text>
     </View>
   );
 }
@@ -197,10 +188,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1.5,
   },
-  chipOn: { backgroundColor: night.pink, borderColor: night.accentInk },
+  chipOn: { backgroundColor: night.pink, borderColor: night.pink },
   chipOff: { backgroundColor: night.surface, borderColor: night.border },
   chipText: { fontSize: font.small, fontWeight: '600' },
-  chipTextOn: { color: night.onAction },
+  chipTextOn: { color: '#fff' },
   chipTextOff: { color: night.muted },
 
   tag: {
@@ -244,7 +235,6 @@ const styles = StyleSheet.create({
   verified: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
     backgroundColor: night.softGreen,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,

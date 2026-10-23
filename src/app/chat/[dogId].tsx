@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   identity: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar: { width: 40, height: 40, borderWidth: 2, borderColor: night.accentInk },
+  avatar: { width: 40, height: 40, borderWidth: 2, borderColor: night.pink },
   name: { fontSize: font.heading, fontWeight: '800', color: night.text },
   sub: { fontSize: font.tiny, color: night.muted, fontWeight: '600' },
   callBtn: {

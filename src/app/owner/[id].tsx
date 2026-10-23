@@ -27,7 +27,7 @@ import {
   JP_PET_STATUS,
 } from '@/lib/jp';
 import { useStore } from '@/store';
-import { font, night, pastel, radius, spacing, tone } from '@/theme';
+import { font, pastel, radius, spacing } from '@/theme';
 
 /**
  * Owner profile — the human behind the dogs, built to make meeting feel safe:
@@ -147,7 +147,7 @@ export default function OwnerDetail() {
             size={120}
           />
           <LinearGradient
-            colors={['rgba(211,229,247,0)', 'rgba(211,229,247,0.6)']}
+            colors={['rgba(235,197,172,0)', 'rgba(235,197,172,0.55)']}
             style={styles.heroFade}
             pointerEvents="none"
           />
@@ -190,11 +190,7 @@ export default function OwnerDetail() {
                 </View>
               )}
               <View style={styles.trustTile}>
-                {verified ? (
-                  <Icon name="check" color={pastel.ink} size={18} strokeWidth={3} />
-                ) : (
-                  <Text style={styles.trustValue}>—</Text>
-                )}
+                <Text style={styles.trustValue}>{verified ? '✓' : '—'}</Text>
                 <Text style={styles.trustLabel}>
                   {verified ? tx('本人確認済み', 'ID verified') : tx('未認証', 'Not verified')}
                 </Text>
@@ -248,17 +244,15 @@ export default function OwnerDetail() {
                 )}
                 {sharedLangs.map((l) => (
                   <View key={l} style={[styles.chip, { backgroundColor: pastel.mint }]}>
-                    <Icon name="check" color={pastel.mintText} size={12} strokeWidth={3} />
                     <Text style={[styles.chipText, { color: pastel.mintText }]}>
-                      {tx(`${tv(JP_LANGUAGE, l)}で話せる`, `You both speak ${l}`)}
+                      {tx(`✓ ${tv(JP_LANGUAGE, l)}で話せる`, `✓ You both speak ${l}`)}
                     </Text>
                   </View>
                 ))}
                 {sharedAvail.map((a) => (
                   <View key={a} style={[styles.chip, { backgroundColor: pastel.mint }]}>
-                    <Icon name="check" color={pastel.mintText} size={12} strokeWidth={3} />
                     <Text style={[styles.chipText, { color: pastel.mintText }]}>
-                      {tx(`${tv(JP_AVAILABILITY, a)}が空いてる`, `Both free ${a.toLowerCase()}`)}
+                      {tx(`✓ ${tv(JP_AVAILABILITY, a)}が空いてる`, `✓ Both free ${a.toLowerCase()}`)}
                     </Text>
                   </View>
                 ))}
@@ -391,7 +385,7 @@ export default function OwnerDetail() {
             )}
             style={({ pressed }) => [styles.ctaBtn, pressed && { transform: [{ scale: 0.98 }] }]}
           >
-            <Icon name="chat" color={night.onAction} size={18} />
+            <Icon name="chat" color="#fff" size={18} />
             <Text style={styles.ctaText}>{tx('メッセージを送る', 'Send a message')}</Text>
           </Pressable>
         </View>
@@ -466,7 +460,7 @@ const styles = StyleSheet.create({
   trustRow: { flexDirection: 'row', gap: spacing.sm },
   trustTile: {
     flex: 1,
-    backgroundColor: tone.input,
+    backgroundColor: '#FAF7F2',
     borderRadius: 16,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
@@ -486,14 +480,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-  },
+  chip: { borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
   chipOutline: { borderWidth: 1.5, borderColor: pastel.dashed, backgroundColor: 'transparent' },
   chipText: { fontSize: font.small, fontWeight: '700' },
 
@@ -509,7 +496,7 @@ const styles = StyleSheet.create({
   dogRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   dogCard: {
     width: 128,
-    backgroundColor: tone.input,
+    backgroundColor: '#FAF7F2',
     borderRadius: 18,
     padding: spacing.sm,
     alignItems: 'center',
@@ -520,7 +507,7 @@ const styles = StyleSheet.create({
   dogBreed: { fontSize: font.tiny, color: pastel.mutedInk },
 
   safetyCard: {
-    backgroundColor: tone.input,
+    backgroundColor: '#FAF7F2',
     borderRadius: 18,
     padding: spacing.lg,
     gap: spacing.xs,
@@ -545,11 +532,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: night.coral,
+    backgroundColor: pastel.ink,
     borderRadius: radius.pill,
     height: 54,
   },
-  ctaText: { color: night.onAction, fontWeight: '800', fontSize: font.body },
+  ctaText: { color: '#fff', fontWeight: '800', fontSize: font.body },
 
   floatRow: { position: 'absolute', left: spacing.lg, right: spacing.lg, flexDirection: 'row' },
   floatBtn: {
