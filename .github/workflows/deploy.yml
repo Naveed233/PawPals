@@ -36,6 +36,9 @@ jobs:
           # GitHub Pages project site is served under /PawPals; Cloudflare Pages
           # (and any custom domain) serve at root, so app.config.ts defaults to "/".
           EXPO_BASE_URL: "/PawPals"
+          # Map tiles. CARTO watermarks tiles requested without a key; the key
+          # is public once built (it is in every tile URL), but kept out of git.
+          EXPO_PUBLIC_CARTO_KEY: ${{ secrets.CARTO_BASEMAPS_KEY }}
 
       # SPA fallback so deep links (e.g. /PawPals/dog/dog-luna) load the app
       # instead of GitHub's 404 page

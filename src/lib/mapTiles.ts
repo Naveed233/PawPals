@@ -5,8 +5,13 @@
  * use and blocks bulk traffic — which shows up as a blank grey map for users.
  * So the app never points at it in production.
  *
- * Default (no key): CARTO's "voyager" raster basemap — reliable, light, and it
- * suits the warm palette. Good for launch-scale traffic.
+ * Default: CARTO's "voyager" raster basemap — reliable, light, and it suits the
+ * warm palette. Good for launch-scale traffic. Since autumn 2026 CARTO stamps
+ * "API KEY REQUIRED" on every tile requested without a key. Keys are free
+ * (https://carto.com/basemaps/apikey/; 1M tiles/month for commercial use). The
+ * key is read from EXPO_PUBLIC_CARTO_KEY at build time — the deploy workflow
+ * fills it from the CARTO_BASEMAPS_KEY repository secret — so it never lives
+ * in the source.
  *
  * Production (recommended once you're growing): paste a free MapTiler key
  * below. MapTiler's free tier is 100k tile loads/month and explicitly allows
@@ -21,12 +26,16 @@ export const MAPTILER_KEY = '';
 /** MapTiler raster style: streets-v2 | basic-v2 | outdoor-v2 | bright-v2 */
 const MAPTILER_STYLE = 'streets-v2';
 
+/** CARTO basemaps key, inlined at build time. Empty = watermarked tiles. */
+const CARTO_KEY = process.env.EXPO_PUBLIC_CARTO_KEY ?? '';
+
 /** URL for a single slippy-map tile. */
 export function tileUrl(z: number, x: number, y: number): string {
   if (MAPTILER_KEY) {
     return `https://api.maptiler.com/maps/${MAPTILER_STYLE}/${z}/${x}/${y}.png?key=${MAPTILER_KEY}`;
   }
-  return `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;
+  const key = CARTO_KEY ? `?key=${encodeURIComponent(CARTO_KEY)}` : '';
+  return `https://basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png${key}`;
 }
 
 /** Attribution required by whichever provider is active. */
