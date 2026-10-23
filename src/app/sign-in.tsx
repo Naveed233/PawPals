@@ -14,7 +14,7 @@ import {
 } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
 import { setRememberSession, supabase } from '@/lib/supabase';
-import { fetchRemoteState } from '@/lib/sync';
+import { loadRemoteState } from '@/lib/sync';
 import { useStore } from '@/store';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,9 +63,21 @@ export default function SignIn() {
       return;
     }
 
-    // Pull the profile/dogs this account saved before (any device).
-    const remote = await fetchRemoteState();
-    if (remote?.owner) useStore.setState({ owner: remote.owner, dogs: remote.dogs });
+    // Pull the profile/dogs this account saved before (any device). If that
+    // read fails, stay here: carrying on would land on onboarding, and
+    // finishing onboarding overwrites the saved profile.
+    const remote = await loadRemoteState();
+    if (remote.status !== 'ok') {
+      setBusy(false);
+      setErrors({
+        form: tx(
+          'プロフィールを読み込めませんでした。\n通信状況を確認して、もう一度お試しください。',
+          "Your profile didn't load.\nCheck your connection and try again.",
+        ),
+      });
+      return;
+    }
+    if (remote.owner) useStore.setState({ owner: remote.owner, dogs: remote.dogs });
     signIn(email);
     setBusy(false);
     router.replace('/');

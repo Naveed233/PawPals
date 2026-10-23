@@ -9,6 +9,11 @@ import type { DogProfile, OwnerProfile, SwipeDirection } from '@/types';
  * profile/dogs/swipes to Supabase, and hydrate them back on sign-in. Every
  * call is failure-tolerant: if the schema isn't installed yet or the network
  * is down we log and move on rather than break the app.
+ *
+ * Reads are the exception. A failed read says nothing about whether a profile
+ * exists, so `fetchRemoteState` reports it as `error`, never as "no profile":
+ * that would send a returning user to onboarding, and finishing onboarding
+ * overwrites the profile they saved.
  */
 
 async function userId(): Promise<string | null> {
@@ -130,19 +135,28 @@ export function recordSwipeRemote(targetDogId: string, direction: SwipeDirection
   })();
 }
 
-/** The user's own data as stored server-side (null when none / unavailable). */
-export async function fetchRemoteState(): Promise<{
-  owner: OwnerProfile | null;
-  dogs: DogProfile[];
-} | null> {
+/** What the server holds for the signed-in account (see the note at the top). */
+export type RemoteState =
+  | { status: 'ok'; owner: OwnerProfile | null; dogs: DogProfile[] }
+  | { status: 'signed-out' }
+  | { status: 'error' };
+
+export async function fetchRemoteState(): Promise<RemoteState> {
   try {
     const id = await userId();
-    if (!id) return null;
+    if (!id) return { status: 'signed-out' };
 
-    const [{ data: p }, { data: dogRows }] = await Promise.all([
+    const [profileRes, dogsRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
       supabase.from('dogs').select('*').eq('owner_id', id),
     ]);
+    const failed = profileRes.error ?? dogsRes.error;
+    if (failed) {
+      console.warn('[sync] fetchRemoteState failed:', failed.message);
+      return { status: 'error' };
+    }
+    const p = profileRes.data;
+    const dogRows = dogsRes.data;
 
     // A profile row exists for every confirmed signup (trigger), but treat a
     // never-onboarded profile (no name yet) as absent so onboarding runs.
@@ -197,9 +211,31 @@ export async function fetchRemoteState(): Promise<{
       distanceKm: 0,
     }));
 
-    return { owner, dogs };
+    return { status: 'ok', owner, dogs };
   } catch (e) {
     console.warn('[sync] fetchRemoteState failed:', e);
-    return null;
+    return { status: 'error' };
   }
+}
+
+/**
+ * `fetchRemoteState`, retried once after a forced token refresh. A restored
+ * session can hold an access token the server already rejects (say, a tab
+ * that woke from sleep before its background refresh ran), so the first read
+ * fails with 401 although the account is fine.
+ */
+export async function loadRemoteState(): Promise<RemoteState> {
+  const first = await fetchRemoteState();
+  if (first.status !== 'error') return first;
+  try {
+    const { error } = await supabase.auth.refreshSession();
+    if (error) {
+      console.warn('[sync] session refresh failed:', error.message);
+      return first;
+    }
+  } catch (e) {
+    console.warn('[sync] session refresh failed:', e);
+    return first;
+  }
+  return fetchRemoteState();
 }
