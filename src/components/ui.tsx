@@ -16,7 +16,7 @@ import { colors, eventPalette, font, night, radius, shadow, spacing } from '@/th
 
 /* ---------------------------------------------------------------- Button */
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dark';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dangerGhost' | 'dark';
 
 export function Button({
   label,
@@ -70,6 +70,7 @@ const BUTTON_VARIANTS: Record<ButtonVariant, { bg: string; fg: string; border: s
   outline: { bg: 'transparent', fg: night.text, border: night.border },
   ghost: { bg: 'transparent', fg: night.muted, border: 'transparent' },
   danger: { bg: night.danger, fg: '#fff', border: night.danger },
+  dangerGhost: { bg: 'transparent', fg: night.danger, border: 'transparent' }, // quiet destructive
   dark: { bg: colors.ink, fg: '#fff', border: colors.ink },
 };
 

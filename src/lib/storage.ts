@@ -45,3 +45,30 @@ export async function uploadPhoto(localUri: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Best-effort removal of the user's own uploaded photos (public URLs returned
+ * by uploadPhoto). Bundled demo photos and anything outside the user's folder
+ * are skipped; the storage policy only allows deletes in your own folder anyway.
+ * Failures are logged, not thrown: a leftover file must not block a delete.
+ */
+export async function removeOwnPhotos(urls: string[]): Promise<void> {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user.id;
+    if (!uid) return;
+
+    const marker = '/storage/v1/object/public/photos/';
+    const paths = urls
+      .map((u) => (u.includes(marker) ? decodeURIComponent(u.split(marker)[1].split('?')[0]) : ''))
+      .filter((p) => p.startsWith(`${uid}/`));
+    if (paths.length === 0) return;
+
+    const { error } = await supabase.storage.from('photos').remove(paths);
+    if (error) console.warn('[storage] remove failed:', error.message);
+  } catch (e) {
+    console.warn('[storage] remove failed:', e);
+  }
+}

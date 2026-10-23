@@ -1,3 +1,4 @@
+import { removeOwnPhotos } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import type { DogProfile, OwnerProfile, SwipeDirection } from '@/types';
 
@@ -118,6 +119,29 @@ export async function saveDogRemote(dog: DogProfile): Promise<void> {
   } catch (e) {
     console.warn('[sync] saveDog failed:', e);
   }
+}
+
+/**
+ * Delete one of the user's dogs on the server, then its uploaded photos.
+ * Returns false when the server delete did not happen, so the caller keeps
+ * the dog: removing it only on this device would bring it back at the next
+ * sign-in. Unlike the saves above, this one is not fire-and-forget.
+ */
+export async function deleteDogRemote(dog: DogProfile): Promise<boolean> {
+  try {
+    const id = await userId();
+    if (!id) return false;
+    const { error } = await supabase.from('dogs').delete().eq('id', dog.id).eq('owner_id', id);
+    if (error) {
+      console.warn('[sync] deleteDog failed:', error.message);
+      return false;
+    }
+  } catch (e) {
+    console.warn('[sync] deleteDog failed:', e);
+    return false;
+  }
+  await removeOwnPhotos(dog.photos ?? []);
+  return true;
 }
 
 export function recordSwipeRemote(targetDogId: string, direction: SwipeDirection): void {
