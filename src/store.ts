@@ -81,6 +81,7 @@ interface AppState {
   updateOwner: (patch: Partial<OwnerProfile>) => void;
   addDog: (dog: DogProfile) => void;
   updateDog: (dogId: string, patch: Partial<DogProfile>) => void;
+  removeDog: (dogId: string) => void;
   addDogPhoto: (dogId: string, uri: string) => void;
 
   setRemoteDogs: (dogs: DogProfile[]) => void;
@@ -179,6 +180,8 @@ export const useStore = create<AppState>()(
 
       updateDog: (dogId, patch) =>
         set({ dogs: get().dogs.map((d) => (d.id === dogId ? { ...d, ...patch } : d)) }),
+
+      removeDog: (dogId) => set({ dogs: get().dogs.filter((d) => d.id !== dogId) }),
 
       addDogPhoto: (dogId, uri) =>
         set({

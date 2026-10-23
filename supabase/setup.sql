@@ -871,3 +871,14 @@ create policy swipes_update on public.swipes
 create or replace trigger on_swipe_like
   after insert or update of direction on public.swipes
   for each row execute function public.handle_mutual_like();
+
+-- ========== photos-delete-own.sql ==========
+--
+-- The photos bucket allowed reading (anyone) and uploading (own folder) but not deleting,
+-- so deleting a dog left its photos in storage forever. Same folder rule as photos_upload:
+-- the first path segment must be your user id.
+
+drop policy if exists photos_delete on storage.objects;
+create policy photos_delete on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
