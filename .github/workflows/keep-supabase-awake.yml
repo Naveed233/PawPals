@@ -1,0 +1,42 @@
+name: Keep Supabase awake
+
+# Supabase's free plan pauses a project after 7 days of low activity, and the app then
+# looks "down" (https://supabase.com/docs/guides/platform/free-project-pausing).
+# One small read a day keeps PawPals' backend running. A failure here is the early
+# warning: GitHub emails the repo owner when a scheduled run fails.
+#
+# Caveat: GitHub turns off scheduled workflows in a public repo after 60 days with no
+# repository activity, and emails before it does. Re-enable it from the Actions tab.
+
+on:
+  schedule:
+    - cron: '23 3 * * *' # every day at 03:23 UTC (12:23 in Japan)
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/keep-supabase-awake.yml
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one row through the public API
+        env:
+          # The same public URL and publishable key the app ships in src/lib/supabase.ts.
+          # Safe to publish: row-level security decides what it can see. Signed out, this read
+          # returns an empty list, but it still reaches the database.
+          SUPABASE_URL: https://zuizenbzncstqzfrnpsy.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_gvrmL_A0XQHpfA2zea1QvQ_ndD1uQGT
+        run: |
+          status=$(curl -sS -o body.txt -w '%{http_code}' --retry 3 --retry-delay 15 --retry-all-errors \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/events?select=id&limit=1") || status=000
+          echo "Supabase answered HTTP $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Supabase answered HTTP $status. If the project is paused, restore it in the Supabase dashboard."
+            cat body.txt 2>/dev/null || true
+            exit 1
+          fi
