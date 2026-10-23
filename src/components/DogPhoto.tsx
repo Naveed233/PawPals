@@ -1,13 +1,12 @@
 import { Image, ImageStyle } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 
-import { Icon } from '@/components/icons';
-import { gradientFor } from '@/lib/avatars';
+import { dogEmojiFor } from '@/lib/avatars';
 import { useI18n } from '@/lib/i18n';
 import { heroPhoto } from '@/lib/photos';
-import { tone } from '@/theme';
+import { night } from '@/theme';
 import type { DisplayPhoto, DogProfile, PhotoFocus } from '@/types';
 
 /**
@@ -79,15 +78,15 @@ export function PhotoView({
   }
 
   return (
-    <DogPlaceholder seed={photo.key || seed} name={name} style={style} rounded={rounded} emojiSize={emojiSize} />
+    <DarkDogPlaceholder seed={photo.key || seed} name={name} style={style} rounded={rounded} emojiSize={emojiSize} />
   );
 }
 
 /**
- * Placeholder for a dog with no photo yet: a pastel tint (deterministic per
- * dog) with a drawn paw. Offline-safe stand-in for real photos.
+ * Dark placeholder that matches the night theme: a deep maroon gradient with a
+ * deterministic dog emoji. Offline-safe stand-in for real photos.
  */
-function DogPlaceholder({
+function DarkDogPlaceholder({
   seed,
   name,
   style,
@@ -101,20 +100,24 @@ function DogPlaceholder({
   emojiSize?: number;
 }) {
   const { tx } = useI18n();
-  const [c1, c2] = gradientFor(seed);
   return (
     <LinearGradient
-      colors={[c1, c2]}
+      colors={[night.bgTop, night.card]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.placeholder, rounded != null ? { borderRadius: rounded } : null, style]}
       accessibilityLabel={tx(`${name}のプレースホルダー画像`, `Placeholder image for ${name}`)}
     >
-      <Icon name="pawFill" color={tone.inkMuted} size={Math.round(emojiSize * 0.75)} />
+      <Text style={[styles.emoji, { fontSize: emojiSize }]}>{dogEmojiFor(seed)}</Text>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   placeholder: { alignItems: 'center', justifyContent: 'center' },
+  emoji: {
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 2 },
+  },
 });

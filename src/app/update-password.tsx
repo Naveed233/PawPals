@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
-import { AuthScreen, AuthField, AuthButton, authColors } from '@/components/auth';
+import { AuthScreen, DarkField, LimeButton, dark } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 
@@ -77,14 +77,14 @@ export default function UpdatePassword() {
     >
       {ready && (
         <>
-          <AuthField
+          <DarkField
             label={tx('新しいパスワード*', 'New password*')}
             value={password}
             onChangeText={setPassword}
             placeholder={tx('6文字以上', 'At least 6 characters')}
             secureToggle
           />
-          <AuthField
+          <DarkField
             label={tx('パスワードの確認*', 'Confirm password*')}
             value={confirm}
             onChangeText={setConfirm}
@@ -93,7 +93,7 @@ export default function UpdatePassword() {
             error={error}
           />
 
-          <AuthButton
+          <LimeButton
             label={busy ? tx('更新中…', 'Updating…') : tx('パスワードを更新', 'Update password')}
             onPress={() => void submit()}
             disabled={busy}
@@ -112,7 +112,7 @@ export default function UpdatePassword() {
 
 const styles = StyleSheet.create({
   done: {
-    color: authColors.link,
+    color: dark.lime,
     fontSize: 13,
     lineHeight: 19,
     textAlign: 'center',

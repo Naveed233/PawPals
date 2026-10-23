@@ -176,31 +176,10 @@ export default function Discover() {
     <View style={styles.root}>
       <LinearGradient colors={[night.bgTop, night.bg]} style={styles.wash} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => router.push('/filters')}
-            accessibilityRole="button"
-            accessibilityLabel={tx('絞り込み', 'Filters')}
-            hitSlop={6}
-            style={({ pressed }) => [styles.roundBtn, pressed && styles.pressedScale]}
-          >
-            <Icon name="sliders" color={night.text} size={18} strokeWidth={2.4} />
-            {filterCount > 0 && (
-              <View style={styles.filterCount}>
-                <Text style={styles.filterCountText}>{filterCount}</Text>
-              </View>
-            )}
-          </Pressable>
-          <Text style={styles.headerTitle} accessibilityRole="header">
-            {tx('さがす', 'Discover')}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
-        <View style={[styles.deckArea, !top && { marginBottom: tabClearance }]}>
+        <View style={[styles.deckArea, { marginBottom: tabClearance }]}>
           {deck === null ? (
             <View style={styles.center}>
-              <ActivityIndicator color={night.accentInk} size="large" />
+              <ActivityIndicator color={night.pink} size="large" />
               <Text style={styles.loadingText}>{tx('読み込み中…', 'Loading…')}</Text>
             </View>
           ) : top ? (
@@ -213,13 +192,86 @@ export default function Discover() {
                 onTap={(dog) => router.push(`/dog/${dog.id}`)}
               />
               {burstKey > 0 && <PawTrail key={burstKey} count={9} />}
+
+              {/* Floating filter button — card top-left */}
+              <Pressable
+                onPress={() => router.push('/filters')}
+                accessibilityRole="button"
+                accessibilityLabel={tx('絞り込み', 'Filters')}
+                hitSlop={6}
+                style={({ pressed }) => [styles.filterBtn, pressed && styles.pressedScale]}
+              >
+                <Icon name="sliders" color={night.coral} size={18} strokeWidth={2.4} />
+                {filterCount > 0 && (
+                  <View style={styles.filterCount}>
+                    <Text style={styles.filterCountText}>{filterCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+
+              {/* Floating pass pill — card top-right, labelled for visibility */}
+              <Pressable
+                onPress={() => deckRef.current?.swipe('pass')}
+                accessibilityRole="button"
+                accessibilityLabel={tx('パス', 'Pass')}
+                hitSlop={6}
+                style={({ pressed }) => [styles.passPill, pressed && styles.pressedScale]}
+              >
+                <Icon name="x" color={night.text} size={16} strokeWidth={2.6} />
+                <Text style={styles.passPillText}>{tx('パス', 'Pass')}</Text>
+              </Pressable>
+
+              {/* Right-side floating action rail */}
+              <View style={styles.sideStack}>
+                <Pressable
+                  onPress={pawLike}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('いいね', 'Like')}
+                  hitSlop={6}
+                  style={({ pressed }) => [
+                    styles.glassCircle,
+                    styles.likeBtn,
+                    pressed && styles.pressedScale,
+                  ]}
+                >
+                  <Icon name="pawFill" color="#fff" size={28} />
+                </Pressable>
+                <Pressable
+                  onPress={undo}
+                  disabled={swipeCount === 0}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('元に戻す', 'Undo')}
+                  accessibilityState={{ disabled: swipeCount === 0 }}
+                  hitSlop={6}
+                  style={({ pressed }) => [
+                    styles.glassCircle,
+                    swipeCount === 0 && styles.disabled,
+                    pressed && swipeCount > 0 && styles.pressedScale,
+                  ]}
+                >
+                  <Icon name="undo" color={night.text} size={20} />
+                </Pressable>
+                <Pressable
+                  onPress={() => toggleSave(top.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={tx('保存', 'Save')}
+                  accessibilityState={{ selected: isSaved }}
+                  hitSlop={6}
+                  style={({ pressed }) => [
+                    styles.glassCircle,
+                    isSaved && styles.savedBtn,
+                    pressed && styles.pressedScale,
+                  ]}
+                >
+                  <Icon name="bookmark" color={isSaved ? night.coral : night.text} size={20} />
+                </Pressable>
+              </View>
+
             </>
           ) : filterCount > 0 ? (
             // Empty because filters exclude everyone — always give a way out.
             <View style={styles.center}>
-              <View style={styles.emptyIcon}>
-                <Icon name="search" color={night.text} size={30} />
-              </View>
+              <Text style={styles.emptyEmoji}>🔍</Text>
               <Text style={styles.emptyTitle}>
                 {tx('条件に合うワンちゃんがいません', 'No dogs match your filters')}
               </Text>
@@ -243,9 +295,7 @@ export default function Discover() {
             </View>
           ) : (
             <View style={styles.center}>
-              <View style={styles.emptyIcon}>
-                <Icon name="pawFill" color={night.text} size={30} />
-              </View>
+              <Text style={styles.emptyEmoji}>🦴</Text>
               <Text style={styles.emptyTitle}>
                 {tx('今日の出会いはここまで', "That's everyone for today")}
               </Text>
@@ -258,60 +308,6 @@ export default function Discover() {
             </View>
           )}
         </View>
-
-        {top && (
-          <View style={[styles.actions, { marginBottom: tabClearance }]}>
-            <View style={styles.actionCol}>
-              <Pressable
-                onPress={() => deckRef.current?.swipe('pass')}
-                accessibilityRole="button"
-                accessibilityLabel={tx('パス', 'Pass')}
-                hitSlop={6}
-                style={({ pressed }) => [styles.roundBtn, styles.passBtn, pressed && styles.pressedScale]}
-              >
-                <Icon name="x" color={night.text} size={26} strokeWidth={2.6} />
-              </Pressable>
-              <Text style={styles.actionLabel}>{tx('パス', 'Pass')}</Text>
-            </View>
-            <Pressable
-              onPress={undo}
-              disabled={swipeCount === 0}
-              accessibilityRole="button"
-              accessibilityLabel={tx('元に戻す', 'Undo')}
-              accessibilityState={{ disabled: swipeCount === 0 }}
-              hitSlop={6}
-              style={({ pressed }) => [
-                styles.roundBtn,
-                swipeCount === 0 && styles.disabled,
-                pressed && swipeCount > 0 && styles.pressedScale,
-              ]}
-            >
-              <Icon name="undo" color={night.text} size={20} />
-            </Pressable>
-            <View style={styles.actionCol}>
-              <Pressable
-                onPress={pawLike}
-                accessibilityRole="button"
-                accessibilityLabel={tx('いいね', 'Like')}
-                hitSlop={6}
-                style={({ pressed }) => [styles.roundBtn, styles.likeBtn, pressed && styles.pressedScale]}
-              >
-                <Icon name="pawFill" color={night.onAction} size={32} />
-              </Pressable>
-              <Text style={styles.actionLabel}>{tx('いいね', 'Like')}</Text>
-            </View>
-            <Pressable
-              onPress={() => toggleSave(top.id)}
-              accessibilityRole="button"
-              accessibilityLabel={tx('保存', 'Save')}
-              accessibilityState={{ selected: isSaved }}
-              hitSlop={6}
-              style={({ pressed }) => [styles.roundBtn, isSaved && styles.savedBtn, pressed && styles.pressedScale]}
-            >
-              <Icon name="bookmark" color={isSaved ? night.onAction : night.text} size={20} />
-            </Pressable>
-          </View>
-        )}
       </SafeAreaView>
     </View>
   );
@@ -322,47 +318,51 @@ const styles = StyleSheet.create({
   wash: { position: 'absolute', top: 0, left: 0, right: 0, height: 280 },
   safe: { flex: 1, backgroundColor: 'transparent' },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: { fontSize: font.heading, fontWeight: '900', color: night.text },
-  headerSpacer: { width: 44 },
-
-  // The print stack. Its side margins leave room for the tilted back print.
+  // Full-bleed deck: the card is the screen. Only the floating tab bar is
+  // cleared at the bottom.
   deckArea: {
     flex: 1,
-    marginHorizontal: spacing.lg,
+    marginHorizontal: spacing.sm,
     marginTop: spacing.xs,
+    // marginBottom is applied inline from useTabBarClearance() so the deck
+    // adapts to every device's safe area.
   },
 
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  actionCol: { alignItems: 'center', gap: 4 },
-  actionLabel: { fontSize: font.tiny, fontWeight: '800', color: night.muted },
-
-  roundBtn: {
-    width: 48,
-    height: 48,
-    marginTop: 8,
+  glassCircle: {
+    width: 52,
+    height: 52,
     borderRadius: radius.pill,
-    backgroundColor: night.surface,
+    backgroundColor: 'rgba(255,255,255,0.94)',
     alignItems: 'center',
     justifyContent: 'center',
     ...shadow.soft,
   },
-  passBtn: { width: 60, height: 60, marginTop: 2 },
-  likeBtn: { width: 64, height: 64, marginTop: 0, backgroundColor: night.coral, ...shadow.card },
-  savedBtn: { backgroundColor: night.coral },
+  passPill: {
+    position: 'absolute',
+    top: spacing.lg,
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    ...shadow.soft,
+  },
+  passPillText: { color: night.text, fontSize: font.small, fontWeight: '800', letterSpacing: 0.3 },
+  filterBtn: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.soft,
+  },
   filterCount: {
     position: 'absolute',
     top: -4,
@@ -370,12 +370,28 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: night.coral,
+    backgroundColor: night.pink,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  filterCountText: { color: night.onAction, fontSize: 10, fontWeight: '900' },
+  filterCountText: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  sideStack: {
+    position: 'absolute',
+    right: spacing.lg,
+    top: '28%',
+    gap: spacing.md,
+    alignItems: 'center',
+  },
+  likeBtn: {
+    width: 60,
+    height: 60,
+    backgroundColor: night.coral,
+  },
+  savedBtn: {
+    backgroundColor: night.coralSoft,
+    borderColor: 'rgba(255,107,107,0.55)',
+  },
   disabled: { opacity: 0.35 },
   pressedScale: { transform: [{ scale: 0.92 }] },
 
@@ -387,17 +403,8 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   loadingText: { color: night.muted, fontSize: font.small, fontWeight: '600' },
-  emptyIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: radius.pill,
-    backgroundColor: night.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-    ...shadow.soft,
-  },
-  emptyTitle: { fontSize: font.title, fontWeight: '800', color: night.text, textAlign: 'center' },
+  emptyEmoji: { fontSize: 56 },
+  emptyTitle: { fontSize: font.title, fontWeight: '800', color: night.text },
   emptyBody: {
     fontSize: font.body,
     color: night.muted,

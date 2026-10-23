@@ -1,13 +1,13 @@
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppErrorBoundary } from '@/components/ErrorBoundary';
 import { supabase } from '@/lib/supabase';
-import { night, shadow, tone } from '@/theme';
+import { night } from '@/theme';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -40,30 +40,16 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <StatusBar style="light" />
         <AppErrorBoundary>
-          {/* Web: a phone-width column centred on wide screens, so a laptop
-              gets the same composition instead of a stretched deck. */}
-          <View style={styles.shell}>
-            <View style={styles.column}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: night.bg },
-                }}
-              >
-                <Stack.Screen name="match" options={{ presentation: 'transparentModal', animation: 'fade' }} />
-              </Stack>
-            </View>
-          </View>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: night.bg },
+            }}
+          >
+            <Stack.Screen name="match" options={{ presentation: 'transparentModal', animation: 'fade' }} />
+          </Stack>
         </AppErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  shell: { flex: 1, backgroundColor: tone.skyTint, alignItems: 'center' },
-  column:
-    Platform.OS === 'web'
-      ? { flex: 1, width: '100%', maxWidth: 520, backgroundColor: night.bg, overflow: 'hidden', ...shadow.card }
-      : { flex: 1, width: '100%' },
-});

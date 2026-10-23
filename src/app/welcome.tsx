@@ -1,167 +1,153 @@
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnimatedPressable, Entrance } from '@/components/anim';
-import { Icon } from '@/components/icons';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useI18n } from '@/lib/i18n';
-import { font, night, radius, shadow, spacing, tone } from '@/theme';
+import { colors, font, radius, shadow, spacing } from '@/theme';
 
 /*
- * Welcome / first screen — the album's cover page.
+ * Welcome / first screen — poster-style hero.
  *
- * The park photo (assets/images/welcome-bg.jpg) as a large instant print on the
- * sky ground, the wordmark and headline in ink, and one action button. Swap the
- * photo by replacing that file; the print crops to its lower part, where the
- * dogs are.
- *
- * Sizes come from percentages and an aspect ratio, never from window
- * dimensions at render: this page is pre-rendered at build time (window size
- * 0), and those first styles survive hydration on the web.
+ * Full-bleed park photo (assets/images/welcome-bg.jpg) under a warm scrim,
+ * cream Japanese headline, and a single green CTA. Swap the photo by
+ * replacing that file; keep it portrait (~9:16) so the crop stays nice.
  */
 
-const PHOTO = require('@/assets/images/welcome-bg.jpg');
+const BG = require('@/assets/images/welcome-bg.jpg');
+
+const CREAM = '#F3E3C2';
 
 export default function Welcome() {
   const router = useRouter();
   const { tx } = useI18n();
+  // Scale type/spacing down on short screens (e.g. iPhone SE) so the whole
+  // screen fits without scrolling.
+  const { height } = useWindowDimensions();
+  const compact = height < 740;
 
   return (
-    <View style={styles.root}>
-      <LinearGradient colors={[night.bgTop, night.bg]} style={StyleSheet.absoluteFill} />
+    <ImageBackground
+      source={BG}
+      style={styles.bg}
+      imageStyle={styles.bgImage}
+      resizeMode="cover"
+    >
+      <LinearGradient
+        colors={['rgba(28,20,10,0.55)', 'rgba(28,20,10,0.12)', 'rgba(18,14,8,0.45)']}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
 
       <SafeAreaView style={styles.safe}>
-        <View style={styles.body}>
-          <View style={styles.topBar}>
-            <Entrance delay={0} style={styles.brand}>
-              <View style={styles.mark}>
-                <Icon name="pawFill" color={tone.onAction} size={18} />
-              </View>
-              <Text style={styles.logo}>PawPair</Text>
-            </Entrance>
-            <LanguageToggle />
-          </View>
+        <LanguageToggle style={styles.langToggle} />
+        <View style={[styles.body, compact && styles.bodyCompact]}>
+          <Entrance delay={0}>
+            <Text style={styles.logo}>PawPair</Text>
+          </Entrance>
 
-          {/* Print and words are one block centred in the free height, so tall
-              phones share the extra space above and below instead of one gap. */}
-          <View style={styles.cover}>
-            <View style={styles.printArea}>
-              <Entrance delay={120} style={styles.printSlot}>
-                <View style={styles.print}>
-                  <Image
-                    source={PHOTO}
-                    style={styles.photo}
-                    contentFit="cover"
-                    contentPosition="bottom"
-                    accessibilityLabel={tx('公園を走る2匹の犬', 'Two dogs running in a park')}
-                  />
-                </View>
-              </Entrance>
-            </View>
+          <Entrance delay={150}>
+            <Text style={[styles.headline, compact && styles.headlineCompact]}>
+              {tx('愛犬の、新しい親友を見つけよう。', "Find your dog's new best friend.")}
+            </Text>
+          </Entrance>
 
-            <Entrance delay={260}>
-              <Text style={styles.headline} accessibilityRole="header">
-                {tx('愛犬の、新しい親友を\n見つけよう。', "Find your dog's new best friend.")}
-              </Text>
-            </Entrance>
+          <Entrance delay={300}>
+            <Text style={[styles.sub, compact && styles.subCompact]}>
+              {tx(
+                '近くのワンちゃんとつながろう。お散歩やプレイデート、新しい出会いを。',
+                'Connect with pups nearby — walks, playdates, and brand-new friendships.',
+              )}
+            </Text>
+          </Entrance>
 
-            <Entrance delay={380}>
-              <Text style={styles.sub}>
-                {tx(
-                  '近くのワンちゃんとつながろう。お散歩やプレイデート、新しい出会いを。',
-                  'Connect with pups nearby — walks, playdates, and brand-new friendships.',
-                )}
-              </Text>
-            </Entrance>
-          </View>
+          <View style={{ flex: 1 }} />
 
-          <Entrance delay={500}>
+          <Entrance delay={500} style={styles.ctaWrap}>
             <AnimatedPressable
               onPress={() => router.push('/sign-in')}
               accessibilityLabel={tx('はじめる', 'Get started')}
-              style={styles.cta}
+              style={[styles.cta, compact && styles.ctaCompact]}
             >
-              <Text style={styles.ctaText}>
+              <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>
                 {tx('無料で試す', 'Try Free')}
               </Text>
             </AnimatedPressable>
           </Entrance>
         </View>
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: night.bg },
+  bg: { flex: 1, width: '100%', backgroundColor: '#3a2c1c' },
+  bgImage: { width: '100%', height: '100%' },
   safe: { flex: 1 },
+  langToggle: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.xl,
+    zIndex: 10,
+  },
   body: {
     flex: 1,
     padding: spacing.xl,
-    paddingTop: spacing.md,
+    paddingTop: spacing.xxl,
     width: '100%',
     maxWidth: 560,
     alignSelf: 'center',
   },
+  bodyCompact: { paddingTop: spacing.lg, paddingBottom: spacing.lg },
 
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 44,
+  logo: {
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+    color: CREAM,
   },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  mark: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.pill,
-    backgroundColor: night.coral,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: { fontSize: 24, fontWeight: '900', letterSpacing: -0.3, color: tone.ink },
-
-  // The cover print: white frame, photo inset, the thick bottom margin of a
-  // cheki, slightly turned.
-  cover: { flex: 1, justifyContent: 'center', paddingVertical: spacing.lg },
-  printArea: { alignItems: 'center', marginBottom: spacing.xl },
-  printSlot: { width: '86%', maxWidth: 340 },
-  print: {
-    backgroundColor: tone.print,
-    borderRadius: radius.print,
-    padding: 12,
-    paddingBottom: 44,
-    transform: [{ rotate: '-2deg' }],
-    ...shadow.print,
-  },
-  photo: { width: '100%', aspectRatio: 1.05, borderRadius: 3, backgroundColor: tone.input },
-
   headline: {
+    fontSize: 36,
+    lineHeight: 50,
+    fontWeight: '600',
+    color: CREAM,
+    marginTop: spacing.xl,
+    paddingRight: spacing.xxl,
+  },
+  headlineCompact: {
     fontSize: 28,
     lineHeight: 39,
-    fontWeight: '900',
-    color: tone.ink,
-    letterSpacing: -0.3,
+    marginTop: spacing.lg,
   },
   sub: {
     fontSize: font.body,
     lineHeight: 24,
-    fontWeight: '600',
-    color: tone.inkMuted,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: spacing.xl,
+    paddingRight: spacing.xxl,
+  },
+  subCompact: {
+    fontSize: font.small,
+    lineHeight: 20,
     marginTop: spacing.md,
   },
 
+  ctaWrap: { alignItems: 'center' },
   cta: {
-    width: '100%',
+    minWidth: 300,
+    maxWidth: '100%',
     paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
     borderRadius: radius.pill,
-    backgroundColor: night.coral,
+    backgroundColor: colors.forest,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadow.card,
   },
-  ctaText: { color: night.onAction, fontWeight: '800', fontSize: 20 },
+  ctaCompact: { minWidth: 260, paddingVertical: spacing.md },
+  ctaText: { color: '#fff', fontWeight: '800', fontSize: 26 },
+  ctaTextCompact: { fontSize: 21 },
 });

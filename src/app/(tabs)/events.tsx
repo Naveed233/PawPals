@@ -114,13 +114,13 @@ export default function Events() {
                 accessibilityLabel={tx(`${e.title}を開く`, `Open ${e.title}`)}
                 style={({ pressed }) => [styles.cardBody, pressed && { opacity: 0.92 }]}
               >
-                <Text style={styles.title}>{e.title}</Text>
                 <View style={styles.topRow}>
-                  <Tag label={tv(JP_MEETUP, e.type)} tone={eventStyle(e.type).category} />
+                  <Tag label={tv(JP_MEETUP, e.type)} tone={eventStyle(e.type).category} emoji={eventStyle(e.type).emoji} />
                   <Text style={styles.when}>
                     {dateLabelFor(lang, e.dateLabel)} · {timeLabelFor(lang, e.timeLabel)}
                   </Text>
                 </View>
+                <Text style={styles.title}>{e.title}</Text>
                 <View style={styles.placeRow}>
                   <Icon name="pin" color={night.muted} size={14} />
                   <Text style={styles.place} numberOfLines={1}>
@@ -148,9 +148,8 @@ export default function Events() {
                   }
                   style={[styles.rsvp, going ? styles.rsvpOn : styles.rsvpOff]}
                 >
-                  {going && <Icon name="check" color={night.onAction} size={14} strokeWidth={3} />}
                   <Text style={[styles.rsvpText, going ? styles.rsvpTextOn : styles.rsvpTextOff]}>
-                    {going ? tx('参加中', 'Going') : tx('参加する', 'Join')}
+                    {going ? tx('参加中 ✓', 'Going ✓') : tx('参加する', 'Join')}
                   </Text>
                 </Pressable>
               </View>
@@ -201,20 +200,12 @@ const styles = StyleSheet.create({
   hostRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
   hostAvatar: { width: 26, height: 26 },
   hostText: { fontSize: font.small, color: night.faint, fontWeight: '600', flex: 1 },
-  rsvp: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-  },
-  rsvpOn: { backgroundColor: night.pink, borderColor: night.accentInk },
-  rsvpOff: { backgroundColor: 'transparent', borderColor: night.accentInk },
+  rsvp: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill, borderWidth: 1.5 },
+  rsvpOn: { backgroundColor: night.pink, borderColor: night.pink },
+  rsvpOff: { backgroundColor: 'transparent', borderColor: night.pink },
   rsvpText: { fontSize: font.small, fontWeight: '800' },
-  rsvpTextOn: { color: night.onAction },
-  rsvpTextOff: { color: night.accentInk },
+  rsvpTextOn: { color: '#fff' },
+  rsvpTextOff: { color: night.pink },
   footnote: { fontSize: font.tiny, color: night.faint, textAlign: 'center', marginTop: spacing.sm, lineHeight: 16 },
   empty: {
     alignItems: 'center',

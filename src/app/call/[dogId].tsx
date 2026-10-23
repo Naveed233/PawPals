@@ -160,7 +160,7 @@ function CallButton({
       <View style={[styles.ctrl, active && styles.ctrlActive, danger && styles.ctrlDanger]}>
         <Icon
           name={icon}
-          color={danger ? '#fff' : active ? night.onAction : night.text}
+          color={active || danger ? '#fff' : night.text}
           size={26}
           style={rotate ? styles.rotated : undefined}
         />
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   avatarRing: {
     padding: 4,
     borderWidth: 2,
-    borderColor: night.accentInk,
+    borderColor: night.pink,
     borderRadius: radius.xl + 8,
   },
   bigAvatar: { width: 160, height: 160 },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctrlActive: { backgroundColor: night.coral, borderColor: night.accentInk },
+  ctrlActive: { backgroundColor: night.coral, borderColor: night.coral },
   ctrlDanger: { backgroundColor: night.danger, borderColor: night.danger },
   rotated: { transform: [{ rotate: '135deg' }] },
   ctrlLabel: { color: night.text, fontSize: font.tiny, fontWeight: '700' },
