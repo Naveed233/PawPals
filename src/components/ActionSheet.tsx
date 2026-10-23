@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useI18n } from '@/lib/i18n';
-import { font, night, radius, shadow, spacing } from '@/theme';
+import { font, night, radius, shadow, spacing, tone } from '@/theme';
 
 export type SheetAction = {
   key: string;
@@ -76,7 +76,7 @@ export function ActionSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(23,21,19,0.5)',
+    backgroundColor: 'rgba(17,22,44,0.5)',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
@@ -93,14 +93,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: '#F6F3EE',
+    backgroundColor: tone.input,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#EAE4D8',
+    borderColor: tone.printEdge,
     padding: spacing.md,
     marginTop: spacing.xs,
   },
-  actionDestructive: { backgroundColor: '#FCEDEA', borderColor: '#F6D6CF' },
+  actionDestructive: { backgroundColor: tone.dangerSoft, borderColor: tone.dangerSoft },
   emoji: { fontSize: 22 },
   actionLabel: { fontSize: font.body, fontWeight: '800', color: night.text },
   actionSub: { fontSize: font.tiny, fontWeight: '600', color: night.muted, marginTop: 1 },

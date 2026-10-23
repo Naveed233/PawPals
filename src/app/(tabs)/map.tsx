@@ -366,7 +366,7 @@ export default function MapScreen() {
                     </View>
                     {dog.likesYou && (
                       <View style={styles.pinHeart}>
-                        <Icon name="pawFill" color={night.coral} size={9} />
+                        <Icon name="pawFill" color={night.accentInk} size={9} />
                       </View>
                     )}
                     <View style={styles.pinLabel}>
@@ -383,7 +383,7 @@ export default function MapScreen() {
           </>
         ) : (
           <View style={styles.mapPlaceholder}>
-            {mode === 'locating' && <ActivityIndicator color={night.pink} size="large" />}
+            {mode === 'locating' && <ActivityIndicator color={night.accentInk} size="large" />}
           </View>
         )}
       </View>
@@ -417,7 +417,7 @@ export default function MapScreen() {
 
         {mode === 'locating' && (
           <View style={styles.card}>
-            <ActivityIndicator color={night.pink} />
+            <ActivityIndicator color={night.accentInk} />
             <Text style={styles.cardText}>
               {tx(
                 '位置情報を取得しています…（ブラウザの許可ダイアログをご確認ください）',
@@ -580,8 +580,8 @@ export default function MapScreen() {
               accessibilityLabel={tx('マップに表示する', 'Show me on the map')}
               style={[styles.presencePill, availableToMeet && styles.presencePillOn]}
             >
-              <Icon name="pin" color={availableToMeet ? '#fff' : night.coral} size={15} />
-              <Text style={[styles.presencePillText, availableToMeet && { color: '#fff' }]}>
+              <Icon name="pin" color={availableToMeet ? night.onAction : night.accentInk} size={15} />
+              <Text style={[styles.presencePillText, availableToMeet && { color: night.onAction }]}>
                 {availableToMeet ? tx('マップに表示中', 'You’re on the map') : tx('マップに表示', 'Show me on the map')}
               </Text>
             </Pressable>
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
 
   mapLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, overflow: 'hidden' },
   tile: { position: 'absolute', width: TILE, height: TILE, backgroundColor: night.navy },
-  mapTint: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(255,253,248,0.14)' },
+  mapTint: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.14)' },
   mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   youPin: { position: 'absolute', alignItems: 'center', width: 44 },
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
     ...shadow.soft,
   },
-  youLabelText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  youLabelText: { color: night.onAction, fontSize: 9, fontWeight: '900' },
 
   pin: { position: 'absolute', alignItems: 'center', width: 40 },
   pinPhotoRing: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     right: spacing.sm,
     bottom: 72,
     fontSize: 9,
-    color: 'rgba(60,60,60,0.65)',
+    color: 'rgba(17,22,44,0.65)',
   },
 
   overlay: { flex: 1, paddingHorizontal: spacing.lg },
@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     justifyContent: 'center',
   },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: font.small },
+  searchBtnText: { color: night.onAction, fontWeight: '700', fontSize: font.small },
   searchError: { color: night.danger, fontSize: font.tiny, fontWeight: '600' },
 
   chipRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, flexWrap: 'wrap' },
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     ...shadow.card,
   },
-  presencePillOn: { backgroundColor: night.coral, borderColor: night.coral },
+  presencePillOn: { backgroundColor: night.coral, borderColor: night.accentInk },
   presencePillText: { color: night.text, fontSize: font.small, fontWeight: '800' },
   safetyRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   safetyText: { color: night.faint, fontSize: font.tiny, fontWeight: '600', flex: 1, lineHeight: 15 },

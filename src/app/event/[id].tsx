@@ -78,10 +78,10 @@ export default function EventDetail() {
 
   return (
     <Screen title={tx('イベント', 'Event')} onBack={() => goBack()}>
-      <View style={styles.tagRow}>
-        <Tag label={tv(JP_MEETUP, event.type)} tone={eventStyle(event.type).category} emoji={eventStyle(event.type).emoji} />
-      </View>
       <Text style={styles.title}>{event.title}</Text>
+      <View style={styles.tagRow}>
+        <Tag label={tv(JP_MEETUP, event.type)} tone={eventStyle(event.type).category} />
+      </View>
 
       <Card style={{ gap: spacing.md }}>
         <Row icon="calendar" text={`${dateLabelFor(lang, event.dateLabel)} · ${timeLabelFor(lang, event.timeLabel)}`} />
@@ -136,16 +136,18 @@ export default function EventDetail() {
       <Button
         label={
           going
-            ? tx('参加中 ✓ ・タップで取り消し', 'Going ✓ · Tap to cancel')
+            ? tx('参加中・タップで取り消し', 'Going · Tap to cancel')
             : tx('このイベントに参加する', 'Join this event')
         }
+        icon={going ? <Icon name="check" color={night.text} size={18} strokeWidth={3} /> : undefined}
         variant={going ? 'outline' : 'primary'}
         onPress={join}
       />
 
       {going && !!event.startsAt && (
         <Button
-          label={tx('📅 スマホのカレンダーに追加', '📅 Add to phone calendar')}
+          label={tx('スマホのカレンダーに追加', 'Add to phone calendar')}
+          icon={<Icon name="calendar" color={night.text} size={18} />}
           variant="outline"
           onPress={() => void remindForEvent(event, tx)}
         />
@@ -196,7 +198,7 @@ export default function EventDetail() {
 function Row({ icon, text }: { icon: IconName; text: string }) {
   return (
     <View style={styles.row}>
-      <Icon name={icon} color={night.pink} size={18} />
+      <Icon name={icon} color={night.accentInk} size={18} />
       <Text style={styles.rowText}>{text}</Text>
     </View>
   );
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: radius.pill,
   },
-  hostBadgeText: { fontSize: font.tiny, fontWeight: '800', color: night.coralDeep },
+  hostBadgeText: { fontSize: font.tiny, fontWeight: '800', color: night.accentInk },
   attendees: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   attendeeAvatar: { width: 40, height: 40 },
   goingText: { fontSize: font.small, fontWeight: '700', color: night.muted, marginLeft: spacing.xs },

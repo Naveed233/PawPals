@@ -4,24 +4,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, IconName } from '@/components/icons';
 import { tabBarBottom } from '@/lib/layout';
+import { useI18n } from '@/lib/i18n';
 import { useStore } from '@/store';
-import { night } from '@/theme';
+import { night, tone } from '@/theme';
 
 /**
- * Floating pill tab bar (night theme): dark rounded bar hovering above the
- * bottom edge, icon-only tabs, active tab = hot-pink circle.
+ * Floating pill tab bar: a white print-like bar hovering above the bottom edge,
+ * icon-only tabs (titles are the accessible names), active tab = action pill.
  */
 
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
   return (
-    <View style={styles.iconWrap}>
-      <Icon name={name} color={focused ? night.coral : night.faint} size={24} />
-      {focused && <View style={styles.activeDot} />}
+    <View style={[styles.iconWrap, focused && styles.iconWrapOn]}>
+      <Icon name={name} color={focused ? night.onAction : night.muted} size={23} />
     </View>
   );
 }
 
 export default function TabsLayout() {
+  const { tx } = useI18n();
   const matchCount = useStore((s) => s.matches.length);
   const insets = useSafeAreaInsets();
 
@@ -38,14 +39,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'さがす',
+          title: tx('さがす', 'Discover'),
           tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="matches"
         options={{
-          title: 'マッチ',
+          title: tx('マッチ', 'Matches'),
           tabBarBadge: matchCount || undefined,
           tabBarIcon: ({ focused }) => <TabIcon name="chat" focused={focused} />,
         }}
@@ -53,21 +54,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: 'マップ',
+          title: tx('マップ', 'Map'),
           tabBarIcon: ({ focused }) => <TabIcon name="map" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
-          title: 'イベント',
+          title: tx('イベント', 'Events'),
           tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'プロフィール',
+          title: tx('プロフィール', 'Profile'),
           tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} />,
         }}
       />
@@ -91,9 +92,9 @@ const styles = StyleSheet.create({
     borderColor: night.border,
     paddingTop: 10,
     paddingBottom: 10,
-    // soft lift off the warm background
-    shadowColor: '#B99A6B',
-    shadowOpacity: 0.22,
+    // soft lift off the sky ground
+    shadowColor: tone.shadow,
+    shadowOpacity: 0.14,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 10,
@@ -104,21 +105,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconWrap: {
-    width: 46,
-    height: 46,
+    width: 54,
+    height: 40,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeDot: {
-    position: 'absolute',
-    bottom: 2,
-    width: 5,
-    height: 5,
-    borderRadius: 999,
-    backgroundColor: night.coral,
-  },
+  iconWrapOn: { backgroundColor: night.coral },
   badge: {
-    backgroundColor: night.coral,
+    backgroundColor: night.danger,
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',

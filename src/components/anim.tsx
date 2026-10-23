@@ -202,7 +202,7 @@ export function PawTrail({ count = 8 }: { count?: number }) {
             x={x}
             y={y}
             angle={baseAngle + side * 8}
-            color={i % 2 === 0 ? night.coral : night.forest}
+            color={i % 2 === 0 ? night.accentInk : night.forest}
           />
         );
       })}

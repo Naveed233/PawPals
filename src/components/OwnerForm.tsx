@@ -288,13 +288,13 @@ const styles = StyleSheet.create({
   avatar: { width: 72, height: 72 },
   photoBtn: {
     borderWidth: 1.5,
-    borderColor: night.pink,
+    borderColor: night.accentInk,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     backgroundColor: night.surface,
   },
-  photoBtnText: { color: night.pink, fontWeight: '700', fontSize: font.small },
+  photoBtnText: { color: night.accentInk, fontWeight: '700', fontSize: font.small },
 
   groupLabel: { fontSize: font.small, fontWeight: '700', color: night.text },
 
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  statusCardOn: { borderColor: night.pink, backgroundColor: night.pinkSoft },
+  statusCardOn: { borderColor: night.accentInk, backgroundColor: night.pinkSoft },
   statusText: { fontSize: font.body, fontWeight: '600', color: night.muted },
   statusTextOn: { color: night.text, fontWeight: '700' },
   statusNote: { fontSize: font.tiny, color: night.faint, marginTop: 2 },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioOuterOn: { borderColor: night.pink },
+  radioOuterOn: { borderColor: night.accentInk },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: night.pink },
 
   zipRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     marginTop: 26, // aligns with the input (label sits above it)
   },
-  zipBtnText: { color: '#fff', fontWeight: '700', fontSize: font.small },
+  zipBtnText: { color: night.onAction, fontWeight: '700', fontSize: font.small },
 
   customLangRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
   customLangInput: {
@@ -353,5 +353,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  addLangBtnText: { color: '#fff', fontWeight: '700', fontSize: font.small },
+  addLangBtnText: { color: night.onAction, fontWeight: '700', fontSize: font.small },
 });

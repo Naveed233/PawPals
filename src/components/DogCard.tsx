@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { DogPhoto } from '@/components/DogPhoto';
@@ -6,13 +5,14 @@ import { Icon } from '@/components/icons';
 import type { CompatibilityResult } from '@/lib/compatibility';
 import { useI18n } from '@/lib/i18n';
 import { displayPhotos } from '@/lib/photos';
-import { font, night, radius, shadow, spacing } from '@/theme';
+import { font, night, radius, shadow, spacing, tone } from '@/theme';
 import type { DogProfile } from '@/types';
 
 /**
- * The discovery card — the dog is the hero: a full-bleed photo, no border, and
- * only a soft gradient across the bottom carrying the essentials. A big white
- * distance badge and a green location badge sit top-left.
+ * The discovery card, drawn as an instant-photo print: a white frame, the
+ * photo set inside it, and a thick caption strip under it carrying the
+ * essentials. The photo stays clean (only a compatibility sticker and the
+ * photo count sit on it), so the dog is the hero.
  */
 export function DogCard({ dog, compat }: { dog: DogProfile; compat: CompatibilityResult | null }) {
   const { tx } = useI18n();
@@ -21,156 +21,124 @@ export function DogCard({ dog, compat }: { dog: DogProfile; compat: Compatibilit
     // pointerEvents="none": the card is purely visual — the SwipeDeck's
     // GestureDetector (our parent) handles pan/tap. On web this also stops the
     // <img> from hijacking mouse drags as native image-drag.
-    <View style={styles.card} pointerEvents="none">
-      <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} contentPosition={dog.photoFocus ?? 'top'} />
+    <View style={styles.print} pointerEvents="none">
+      <View style={styles.photo}>
+        <DogPhoto dog={dog} style={StyleSheet.absoluteFill} emojiSize={120} contentPosition={dog.photoFocus ?? 'top'} />
 
-      {/* Top-left: big distance badge + green location badge + optional compat */}
-      <View style={styles.topLeft} pointerEvents="none">
-        <View style={styles.distanceBadge}>
-          <Text style={styles.distanceText}>
-            {tx(`${dog.distanceKm}km先`, `${dog.distanceKm} km away`)}
-          </Text>
-        </View>
-        <View style={styles.locationBadge}>
-          <Icon name="pin" color="#fff" size={13} strokeWidth={2.4} />
-          <Text style={styles.locationText}>{dog.ownerArea}</Text>
-        </View>
+        {photoCount > 1 && (
+          <View style={styles.photoCount}>
+            <Icon name="camera" color="#fff" size={12} />
+            <Text style={styles.photoCountText}>{photoCount}</Text>
+          </View>
+        )}
+
         {compat && (
-          <View style={styles.compatBadge}>
-            <Icon name="pawFill" color={night.coral} size={13} />
+          <View style={styles.compat}>
+            <Icon name="pawFill" color={tone.onReward} size={13} />
             <Text style={styles.compatText}>{tx(`相性 ${compat.score}%`, `${compat.score}% match`)}</Text>
           </View>
         )}
       </View>
 
-      {/* Top-center: photo count (tap the card to browse them all) */}
-      {photoCount > 1 && (
-        <View style={styles.photoCountWrap} pointerEvents="none">
-          <View style={styles.photoCount}>
-            <Icon name="camera" color="#fff" size={12} />
-            <Text style={styles.photoCountText}>{photoCount}</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Soft gradient across the bottom ~40% only — the dog stays the hero */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.62)']}
-        locations={[0, 0.45, 1]}
-        style={styles.scrim}
-        pointerEvents="none"
-      >
+      <View style={styles.caption}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
             {dog.name}
           </Text>
           {dog.ownerVerified && (
-            <View style={styles.verifiedDot} accessibilityLabel={tx('認証済み', 'Verified')}>
+            <View style={styles.verified} accessibilityLabel={tx('認証済み', 'Verified')}>
               <Icon name="check" color="#fff" size={11} strokeWidth={3.5} />
             </View>
           )}
+          <View style={{ flex: 1 }} />
+          <Icon name="chevronRight" color={night.muted} size={20} />
         </View>
         <Text style={styles.breed} numberOfLines={1}>
           {tx(`${dog.breed}・${dog.ageYears}歳`, `${dog.breed} · ${dog.ageYears} yrs`)}
         </Text>
+        <View style={styles.metaRow}>
+          <Icon name="pin" color={night.muted} size={14} strokeWidth={2.2} />
+          <Text style={styles.meta} numberOfLines={1}>
+            {tx(`${dog.ownerArea}・${dog.distanceKm}km先`, `${dog.ownerArea} · ${dog.distanceKm} km away`)}
+          </Text>
+        </View>
         {!!dog.notes && (
-          <Text style={styles.notes} numberOfLines={2}>
+          <Text style={styles.notes} numberOfLines={1}>
             {dog.notes}
           </Text>
         )}
-        <Text style={styles.more}>{tx('もっと見る', 'See more')}</Text>
-      </LinearGradient>
+      </View>
     </View>
   );
 }
 
+const FRAME = 12;
+
 const styles = StyleSheet.create({
-  card: {
+  print: {
     flex: 1,
-    backgroundColor: night.surfaceHi,
-    borderRadius: radius.xl,
+    backgroundColor: tone.print,
+    borderRadius: radius.print,
+    padding: FRAME,
+    paddingBottom: 0,
+    ...shadow.print,
+  },
+  photo: {
+    flex: 1,
+    borderRadius: 3,
     overflow: 'hidden',
-    ...shadow.card,
+    backgroundColor: tone.input,
   },
 
-  topLeft: {
-    position: 'absolute',
-    // Sit below the discovery filter button (44px) so the two never collide.
-    top: spacing.lg + 52,
-    left: spacing.lg,
-    right: 76, // keep clear of the floating pass button
-    gap: spacing.sm,
-    alignItems: 'flex-start',
-  },
-  distanceBadge: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    ...shadow.soft,
-  },
-  distanceText: { color: night.coral, fontSize: font.body, fontWeight: '900' },
-  locationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: night.forest,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  locationText: { color: '#fff', fontSize: font.small, fontWeight: '800' },
-  compatBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  compatText: { color: night.text, fontSize: font.small, fontWeight: '800' },
-
-  photoCountWrap: { position: 'absolute', top: spacing.lg, left: 0, right: 0, alignItems: 'center' },
   photoCount: {
+    position: 'absolute',
+    top: spacing.md,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(17,22,44,0.55)',
   },
   photoCountText: { color: '#fff', fontSize: font.tiny, fontWeight: '800' },
 
-  scrim: {
+  // A sunflower sticker in the corner of the photo (a reward moment).
+  compat: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    minHeight: '42%',
-    justifyContent: 'flex-end',
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    left: spacing.md,
+    bottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: tone.reward,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    ...shadow.soft,
+  },
+  compatText: { color: tone.onReward, fontSize: font.small, fontWeight: '800' },
+
+  // The thick bottom margin of an instant print.
+  caption: {
+    paddingHorizontal: 4,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
     gap: 3,
   },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  name: { color: '#fff', fontSize: font.display, fontWeight: '900', flexShrink: 1 },
-  verifiedDot: {
+  name: { color: tone.ink, fontSize: 28, fontWeight: '900', letterSpacing: -0.4, flexShrink: 1 },
+  verified: {
     width: 20,
     height: 20,
     borderRadius: radius.pill,
-    backgroundColor: night.forest,
+    backgroundColor: tone.success,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  breed: { color: 'rgba(255,255,255,0.95)', fontSize: font.body, fontWeight: '700' },
-  notes: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: font.small,
-    fontWeight: '500',
-    lineHeight: 19,
-    marginTop: 2,
-  },
-  more: { color: '#fff', fontSize: font.body, fontWeight: '800', marginTop: 4 },
+  breed: { color: tone.ink, fontSize: font.body, fontWeight: '700' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  meta: { color: tone.inkMuted, fontSize: font.small, fontWeight: '600', flexShrink: 1 },
+  notes: { color: tone.inkMuted, fontSize: font.small, lineHeight: 19, marginTop: 2 },
 });

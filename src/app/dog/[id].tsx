@@ -41,7 +41,7 @@ import {
 } from '@/lib/jp';
 import { displayPhotos } from '@/lib/photos';
 import { useStore } from '@/store';
-import { font, night, pastel, radius, shadow, spacing } from '@/theme';
+import { font, night, pastel, radius, shadow, spacing, tone } from '@/theme';
 import type { GoodWith } from '@/types';
 
 /** Light pastel pet-profile page — the one intentionally NOT dark screen. */
@@ -239,7 +239,7 @@ export default function DogDetail() {
             </View>
           )}
           <LinearGradient
-            colors={['rgba(235,197,172,0)', 'rgba(235,197,172,0.55)']}
+            colors={['rgba(211,229,247,0)', 'rgba(211,229,247,0.6)']}
             style={styles.heroFade}
             pointerEvents="none"
           />
@@ -305,7 +305,7 @@ export default function DogDetail() {
                   <View style={{ flex: 1, gap: 6 }}>
                     {compat.reasons.map((r) => (
                       <View key={r} style={styles.reasonRow}>
-                        <Icon name="check" color={night.pink} size={14} />
+                        <Icon name="check" color={night.accentInk} size={14} />
                         <Text style={styles.reasonText}>{r}</Text>
                       </View>
                     ))}
@@ -344,10 +344,11 @@ export default function DogDetail() {
                 return (
                   <View
                     key={key}
-                    style={[styles.miniChip, { backgroundColor: ok ? pastel.mint : '#F1EEE9' }]}
+                    style={[styles.miniChip, { backgroundColor: ok ? pastel.mint : tone.input }]}
                   >
+                    <Icon name={ok ? 'check' : 'x'} color={ok ? pastel.mintText : pastel.mutedInk} size={12} strokeWidth={3} />
                     <Text style={[styles.miniChipText, { color: ok ? pastel.mintText : pastel.mutedInk }]}>
-                      {ok ? '✓' : '✕'} {tx(JP_GOOD_WITH[key], EN_GOOD_WITH[key] ?? key)}
+                      {tx(JP_GOOD_WITH[key], EN_GOOD_WITH[key] ?? key)}
                     </Text>
                   </View>
                 );
@@ -427,7 +428,7 @@ export default function DogDetail() {
             hitSlop={8}
             style={({ pressed }) => [styles.floatBtn, pressed && styles.floatBtnPressed]}
           >
-            <Icon name="bookmark" color={isSaved ? night.coral : pastel.ink} size={20} />
+            <Icon name="bookmark" color={isSaved ? night.accentInk : pastel.ink} size={20} />
           </Pressable>
         </View>
       </View>
@@ -471,9 +472,9 @@ export default function DogDetail() {
               pressed && { transform: [{ scale: 0.98 }] },
             ]}
           >
-            <Icon name="pawFill" color="#fff" size={20} />
+            <Icon name={isMatched ? 'check' : 'pawFill'} color={night.onAction} size={20} strokeWidth={3} />
             <Text style={styles.ctaText}>
-              {isMatched ? tx('マッチ済み ✓', 'Matched ✓') : tx('会いたい！', 'Let’s meet!')}
+              {isMatched ? tx('マッチ済み', 'Matched') : tx('会いたい！', 'Let’s meet!')}
             </Text>
           </Pressable>
         </View>
@@ -724,21 +725,25 @@ const styles = StyleSheet.create({
   aboutTitle: { fontSize: font.heading, fontWeight: '800', color: pastel.ink },
   aboutBody: { fontSize: font.body, color: pastel.ink, lineHeight: 22 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  miniChip: { paddingHorizontal: spacing.md, paddingVertical: 5, borderRadius: radius.pill },
+  miniChip: { paddingHorizontal: spacing.md, paddingVertical: 5, borderRadius: radius.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   miniChipText: { fontSize: font.tiny, fontWeight: '800' },
   intentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
   intentLabel: { fontSize: font.small, fontWeight: '800', color: pastel.mutedInk, paddingTop: 4 },
 
   sectionHeader: { fontSize: font.heading, fontWeight: '800', color: pastel.ink },
   statsCard: {
-    backgroundColor: '#FAF7F2',
+    backgroundColor: tone.input,
     borderRadius: 20,
     padding: spacing.lg,
     gap: spacing.sm,
     marginTop: -spacing.sm,
   },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  scorePct: { fontSize: 40, fontWeight: '900', color: night.pink },
+  scorePct: { fontSize: 40, fontWeight: '900', color: night.accentInk },
   reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   reasonText: { fontSize: font.small, color: pastel.ink, fontWeight: '600', flex: 1 },
   scoreNote: { fontSize: font.tiny, color: pastel.mutedInk, lineHeight: 16 },
@@ -750,19 +755,19 @@ const styles = StyleSheet.create({
   goodWithLabel: { fontSize: font.small, color: pastel.mutedInk, fontWeight: '700', marginTop: spacing.xs },
 
   warnCard: {
-    backgroundColor: '#FDECE5',
+    backgroundColor: tone.dangerSoft,
     borderRadius: 20,
     padding: spacing.lg,
     gap: spacing.xs,
   },
-  warnTitle: { fontSize: font.small, fontWeight: '800', color: '#B6432F' },
-  warnText: { fontSize: font.body, color: '#B6432F', fontWeight: '600', lineHeight: 21 },
+  warnTitle: { fontSize: font.small, fontWeight: '800', color: tone.danger },
+  warnText: { fontSize: font.body, color: tone.danger, fontWeight: '600', lineHeight: 21 },
 
   ownerStrip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: '#FAF7F2',
+    backgroundColor: tone.input,
     borderRadius: 20,
     padding: spacing.md,
   },
@@ -801,7 +806,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     backgroundColor: pastel.sheet,
     borderTopWidth: 1,
-    borderTopColor: '#F0EBE3',
+    borderTopColor: tone.input,
   },
   roundBtn: {
     width: 52,
@@ -815,7 +820,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 52,
     borderRadius: radius.pill,
-    backgroundColor: pastel.orange,
+    backgroundColor: night.coral,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -823,12 +828,12 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   ctaDisabled: { opacity: 0.45 },
-  ctaText: { fontSize: font.body, fontWeight: '900', color: '#fff' },
+  ctaText: { fontSize: font.body, fontWeight: '900', color: night.onAction },
 
   // Ask-to-join-a-walk modal (matches this screen's pastel sheet).
   walkBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(23,21,19,0.5)',
+    backgroundColor: 'rgba(17,22,44,0.5)',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
@@ -849,10 +854,10 @@ const styles = StyleSheet.create({
   },
   walkInput: {
     minHeight: 88,
-    backgroundColor: '#F6F3EE',
+    backgroundColor: tone.input,
     borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: '#E7E1D7',
+    borderColor: tone.printEdge,
     padding: spacing.md,
     fontSize: font.body,
     color: pastel.ink,
@@ -862,13 +867,13 @@ const styles = StyleSheet.create({
   walkSend: {
     height: 50,
     borderRadius: radius.pill,
-    backgroundColor: pastel.orange,
+    backgroundColor: night.coral,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.xs,
     ...shadow.card,
   },
-  walkSendText: { fontSize: font.body, fontWeight: '900', color: '#fff' },
+  walkSendText: { fontSize: font.body, fontWeight: '900', color: night.onAction },
   walkCancel: { alignItems: 'center', paddingVertical: spacing.sm },
   walkCancelText: { fontSize: font.small, fontWeight: '700', color: pastel.mutedInk },
 
@@ -876,14 +881,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: '#F6F3EE',
+    backgroundColor: tone.input,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#EAE4D8',
+    borderColor: tone.printEdge,
     padding: spacing.md,
     marginTop: spacing.xs,
   },
-  reportBlock: { backgroundColor: '#FCEDEA', borderColor: '#F6D6CF' },
+  reportBlock: { backgroundColor: tone.dangerSoft, borderColor: tone.dangerSoft },
   reportEmoji: { fontSize: 22 },
   reportOptTitle: { fontSize: font.body, fontWeight: '800', color: pastel.ink },
   reportOptSub: { fontSize: font.tiny, fontWeight: '600', color: pastel.mutedInk, marginTop: 1 },

@@ -4,11 +4,11 @@ import { StyleSheet, Text } from 'react-native';
 
 import {
   AuthScreen,
-  DarkField,
-  LimeButton,
+  AuthField,
+  AuthButton,
   OrDivider,
   SocialRow,
-  dark,
+  authColors,
   providerSignIn,
 } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
@@ -97,7 +97,7 @@ export default function SignUp() {
       footerAction={tx('サインイン', 'Sign in')}
       onFooterPress={() => router.push('/sign-in')}
     >
-      <DarkField
+      <AuthField
         label={tx('お名前*', 'Full name*')}
         value={name}
         onChangeText={setName}
@@ -105,7 +105,7 @@ export default function SignUp() {
         autoComplete="name"
         error={errors.name}
       />
-      <DarkField
+      <AuthField
         label={tx('メールアドレス*', 'Email address*')}
         value={email}
         onChangeText={setEmail}
@@ -115,7 +115,7 @@ export default function SignUp() {
         autoComplete="email"
         error={errors.email}
       />
-      <DarkField
+      <AuthField
         label={tx('パスワード*', 'Password*')}
         value={password}
         onChangeText={setPassword}
@@ -127,7 +127,7 @@ export default function SignUp() {
       {!!errors.form && <Text style={styles.formError}>{errors.form}</Text>}
       {!!info && <Text style={styles.info}>{info}</Text>}
 
-      <LimeButton
+      <AuthButton
         label={busy ? tx('登録中…', 'Registering…') : tx('登録する', 'Register')}
         onPress={() => void submit()}
         disabled={busy}
@@ -141,6 +141,6 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
-  formError: { color: dark.danger, fontSize: 13, fontWeight: '600', textAlign: 'center' },
-  info: { color: dark.lime, fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 19 },
+  formError: { color: authColors.danger, fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  info: { color: authColors.link, fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 19 },
 });
