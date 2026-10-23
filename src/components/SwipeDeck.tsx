@@ -125,10 +125,10 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
           <DogCard dog={top} compat={compatFor(top)} />
 
           <Animated.View style={[styles.stamp, styles.likeStamp, likeStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: night.coral }]}>{t('いいね', 'LIKE')}</Text>
+            <Text style={[styles.stampText, { color: night.accentInk }]}>{t('いいね', 'LIKE')}</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.passStamp, passStyle]} pointerEvents="none">
-            <Text style={[styles.stampText, { color: night.danger }]}>{t('パス', 'PASS')}</Text>
+            <Text style={[styles.stampText, { color: night.text }]}>{t('パス', 'PASS')}</Text>
           </Animated.View>
         </Animated.View>
       </GestureDetector>
@@ -139,7 +139,8 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
 const styles = StyleSheet.create({
   deck: { flex: 1 },
   cardLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  backCard: { transform: [{ scale: 0.95 }, { translateY: 14 }] },
+  // The next print peeks out from under the stack, a little turned.
+  backCard: { transform: [{ rotate: '2.5deg' }, { scale: 0.97 }, { translateY: 6 }] },
 
   stamp: {
     position: 'absolute',
@@ -147,10 +148,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderWidth: 3,
-    borderRadius: radius.lg,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(255,255,255,0.92)',
   },
-  likeStamp: { left: spacing.xl, borderColor: night.coral, transform: [{ rotate: '-14deg' }] },
-  passStamp: { right: spacing.xl, borderColor: night.danger, transform: [{ rotate: '14deg' }] },
+  likeStamp: { left: spacing.xl, borderColor: night.accentInk, transform: [{ rotate: '-14deg' }] },
+  passStamp: { right: spacing.xl, borderColor: night.text, transform: [{ rotate: '14deg' }] },
   stampText: { fontSize: font.title, fontWeight: '900', letterSpacing: 2 },
 });

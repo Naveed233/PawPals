@@ -4,6 +4,7 @@ import { StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { Icon } from '@/components/icons';
 import { dogEmojiFor, gradientFor } from '@/lib/avatars';
+import { tone } from '@/theme';
 import { OWNER_IMAGES } from '@/lib/seedImages';
 
 /**
@@ -38,7 +39,7 @@ export function Avatar({
       {kind === 'dog' ? (
         <Text style={[styles.emoji, { fontSize: emojiSize }]}>{dogEmojiFor(seed)}</Text>
       ) : (
-        <Icon name="user" color="#fff" size={Math.round(emojiSize * 0.62)} />
+        <Icon name="user" color={tone.ink} size={Math.round(emojiSize * 0.62)} />
       )}
       {showLabel && !!label && <Text style={styles.label}>{label}</Text>}
     </LinearGradient>
@@ -105,6 +106,6 @@ export function PersonAvatar({
 const styles = StyleSheet.create({
   base: { alignItems: 'center', justifyContent: 'center', gap: 6 },
   emoji: { textShadowColor: 'rgba(0,0,0,0.12)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 2 } },
-  initials: { color: '#fff', fontWeight: '900' },
-  label: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  initials: { color: tone.ink, fontWeight: '900' },
+  label: { color: tone.ink, fontWeight: '800', fontSize: 14 },
 });

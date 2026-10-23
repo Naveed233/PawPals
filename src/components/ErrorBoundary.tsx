@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Icon } from '@/components/icons';
 import { useStore } from '@/store';
 import { font, night, radius, spacing } from '@/theme';
 
@@ -36,7 +37,9 @@ function Fallback({ onReset }: { onReset: () => void }) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.emoji}>🐾</Text>
+      <View style={styles.emoji}>
+        <Icon name="pawFill" color={night.onAction} size={32} />
+      </View>
       <Text style={styles.title}>{t('問題が発生しました', 'Something went wrong')}</Text>
       <Text style={styles.body}>
         {t(
@@ -65,7 +68,14 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.md,
   },
-  emoji: { fontSize: 56 },
+  emoji: {
+    width: 68,
+    height: 68,
+    borderRadius: radius.pill,
+    backgroundColor: night.coral,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: { fontSize: font.title, fontWeight: '900', color: night.text, textAlign: 'center' },
   body: {
     fontSize: font.body,
@@ -81,5 +91,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
     paddingVertical: spacing.md,
   },
-  btnText: { color: '#fff', fontWeight: '800', fontSize: font.body },
+  btnText: { color: night.onAction, fontWeight: '800', fontSize: font.body },
 });

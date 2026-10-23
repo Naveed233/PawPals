@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, Text } from 'react-native';
 
-import { AuthScreen, DarkField, LimeButton, dark } from '@/components/auth';
+import { AuthScreen, AuthField, AuthButton, authColors } from '@/components/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 
@@ -54,7 +54,7 @@ export default function ForgotPassword() {
       footerAction={tx('サインイン', 'Sign in')}
       onFooterPress={() => router.push('/sign-in')}
     >
-      <DarkField
+      <AuthField
         label={tx('メールアドレス*', 'Email address*')}
         value={email}
         onChangeText={setEmail}
@@ -65,7 +65,7 @@ export default function ForgotPassword() {
         error={error}
       />
 
-      <LimeButton
+      <AuthButton
         label={busy ? tx('送信中…', 'Sending…') : tx('再設定メールを送信', 'Send reset email')}
         onPress={() => void submit()}
         disabled={busy}
@@ -85,7 +85,7 @@ export default function ForgotPassword() {
 
 const styles = StyleSheet.create({
   sent: {
-    color: dark.lime,
+    color: authColors.link,
     fontSize: 13,
     lineHeight: 19,
     textAlign: 'center',

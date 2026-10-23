@@ -51,5 +51,5 @@ const styles = StyleSheet.create({
   },
   segOn: { backgroundColor: night.coral },
   segText: { fontSize: 12, fontWeight: '700', color: night.muted },
-  segTextOn: { color: '#fff' },
+  segTextOn: { color: night.onAction },
 });
